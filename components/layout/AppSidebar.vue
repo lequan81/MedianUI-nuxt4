@@ -34,55 +34,28 @@ const navGroups = [
 
 <template>
   <!-- mainL: 75px wide, border-right line -->
-  <div 
-    class="mainL hidden lg:block relative flex-shrink-0 z-[1] border-r border-[var(--color-border-main)]" 
-    style="width: var(--side-width);"
-  >
+  <div class="mainL hidden lg:block relative shrink-0 z-1 border-r border-border-main"
+    style="width: var(--side-width);">
     <!-- leftW: sticky left sidebar wrapper -->
-    <div 
-      class="leftW sticky bg-[var(--color-bg-base)] overflow-y-auto overflow-x-hidden"
-      style="top: var(--header-height); height: calc(100vh - var(--header-height));"
-    >
-      <nav 
-        class="leftN w-full h-full bg-inherit"
-        style="padding-block: var(--content-padding-box) 60px;"
-      >
+    <div class="leftW sticky bg-bg-base overflow-y-auto overflow-x-hidden"
+      style="top: var(--header-height); height: calc(100vh - var(--header-height));">
+      <nav class="leftN w-full h-full bg-inherit" style="padding-block: var(--content-padding-box) 60px;">
         <div class="leftC" style="padding-inline: calc((var(--side-width) - var(--icon-width)) / 2);">
           <template v-for="(group, gIdx) in navGroups" :key="gIdx">
             <!-- Group Separator Line -->
-            <div 
-              v-if="gIdx > 0" 
-              class="my-3 border-b border-[var(--color-border-main)]"
-            ></div>
+            <div v-if="gIdx > 0" class="my-3 border-b border-border-main"></div>
 
-            <NuxtLink 
-              v-for="item in group.items" 
-              :key="item.name"
-              :to="item.path"
-              :class="[
-                'leftNav-item flex items-center justify-center relative my-1 py-2 rounded transition-colors',
-                item.active ? 'text-[var(--color-primary)]' : 'text-slate-400 hover:text-slate-200'
-              ]"
-              style="width: var(--icon-width); height: var(--icon-height);"
-              :title="item.name"
-            >
+            <NuxtLink v-for="item in group.items" :key="item.name" :to="item.path" :class="[
+              'leftNav-item flex items-center justify-center relative my-1 py-2 rounded transition-colors',
+              item.active ? 'text-primary' : 'text-slate-400 hover:text-slate-200'
+            ]" style="width: var(--icon-width); height: var(--icon-height);" :title="item.name">
               <!-- Active indicator line on left edge -->
-              <span 
-                v-if="item.active" 
-                class="absolute top-0 bottom-0 -left-[20px] w-[2px] bg-[var(--color-primary)] rounded-r"
-              ></span>
+              <span v-if="item.active" class="absolute top-0 bottom-0 -left-5 w-0.5 bg-primary rounded-r"></span>
 
               <!-- OUTLINE Icon -->
-              <svg 
-                class="w-[20px] h-[20px] flex-shrink-0" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24" 
-                stroke-width="1.5"
-                stroke-linecap="round" 
-                stroke-linejoin="round"
-              >
-                <path :d="item.icon"/>
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path :d="item.icon" />
               </svg>
             </NuxtLink>
           </template>

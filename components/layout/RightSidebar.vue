@@ -1,166 +1,154 @@
 <script setup lang="ts">
-/* Right sidebar (.sideB from XML)
-   - Title structure: h2.name > a.clamp (line-clamp-2 MAX 2 LINES)
-   - Title font size: 16.8px !important (from main.css)
-   - All icons are OUTLINE style
-   - Badges: Circle Bookmark+ button on top right of thumbnail
-   - Thumbnails object-cover tràn viền 16:9
-*/
+import { computed, ref } from "vue";
+import {
+  getLabelCounts,
+  getPostImage,
+  getPostPath,
+  sortPopularPosts,
+} from "~/composables/usePosts";
+import AppIcon from "~/components/ui/AppIcon.vue";
+import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 
-const popularPosts = [
-  {
-    id: 1,
-    num: '01',
-    date: 'Oct 25',
-    category: 'Decor',
-    title: 'The 6 Worst Interior Design Jobs In History',
-    snippet: 'How hollywood got apartment guides all wrong. The complete beginner\'s guide...',
-    comments: 8,
-    image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80'
-  },
-  { id: 2, num: '02', date: 'Mar 16', category: 'Product', title: 'Median UI - Blogger Template (Sample Post Product)' },
-  { id: 3, num: '03', date: 'Mar 16', category: 'Fitness', title: '14 Things Your Boss Expects You Know About Weight Loss Success Stories' },
-  { id: 4, num: '04', date: 'Mar 13', category: 'Activities', title: 'An Expert Interview About Honeymoon Packages' },
-  { id: 5, num: '05', date: 'Mar 13', category: 'Flights', title: 'Why Flight Scanners Are Killing You' }
-]
+const { data: posts } = await useAsyncData("right-sidebar-posts", () =>
+  queryCollection("posts").all(),
+);
 
-const labels = [
-  { name: 'Accessory', count: 1 },
-  { name: 'Activities', count: 1 },
-  { name: 'Adventure', count: 1 },
-  { name: 'Analysis', count: 1 },
-  { name: 'Country', count: 1 },
-  { name: 'Cruises', count: 1 },
-  { name: 'Decor', count: 1 },
-  { name: 'Design', count: 1 }
-]
+const isAllLabelsVisible = ref(false);
+
+const popularPosts = computed(() =>
+  sortPopularPosts(posts.value || []).slice(0, 5),
+);
+const labels = computed(() => getLabelCounts(posts.value || []));
+const visibleLabels = computed(() =>
+  isAllLabelsVisible.value ? labels.value : labels.value.slice(0, 8),
+);
 </script>
 
 <template>
-  <div>
-    <!-- Popular Posts widget (.itemP.popular) -->
-    <div class="widget mb-(--content-space)">
-      <h3 class="widget-title text-[15px] font-medium leading-[1.4] text-slate-200">Popular Posts</h3>
+  <div class="space-y-12">
+    <section class="pt-1">
+      <WidgetTitle title="Popular Posts" />
 
-      <div class="itemP popular flex flex-col gap-4">
-        <!-- Item #1: Featured with thumbnail -->
-        <article class="most flex flex-col gap-4">
-          <!-- Thumbnail: TRÀN VIỀN 16:9 OBJECT-COVER -->
-          <div class="pI relative overflow-hidden rounded-(--content-bd-radius) bg-bg-alt">
-            <a class="thumbnail block relative pt-(--thumbnail-ratio)">
-              <img :src="popularPosts[0]?.image" :alt="popularPosts[0]?.title"
-                class="absolute inset-0 w-full h-full object-cover" />
-            </a>
-            <!-- Badges: BOOKMARK ICON TRÒN & COMMENT COUNT -->
+      <div class="flex flex-col gap-4">
+        <article v-if="popularPosts[0]" class="flex flex-col gap-3">
+          <div
+            class="relative overflow-hidden rounded-(--content-bd-radius) bg-bg-sec"
+          >
+            <NuxtLink
+              :to="getPostPath(popularPosts[0])"
+              class="block aspect-video"
+            >
+              <img
+                :src="getPostImage(popularPosts[0])"
+                :alt="popularPosts[0].title"
+                class="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </NuxtLink>
             <div
-              class="bar flex flex-row-reverse justify-end items-center absolute top-2 right-2 gap-1.5 text-[0.76em]">
-              <button
-                class="flex items-center justify-center w-7 h-7 rounded-full text-[#0e2045] bg-[#fffdfc] shadow-[0_2px_8px_rgba(0,0,0,0.15)] border-0 cursor-pointer"
-                title="Bookmark post">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5zM12 8v4m-2-2h4" />
-                </svg>
-              </button>
+              class="absolute right-2 top-2 flex items-center gap-1.5 text-xs"
+            >
               <span
-                class="flex items-center gap-0.75 px-2 py-1 rounded-xl text-[#0e2045] bg-[#fffdfc] shadow-[0_2px_8px_rgba(0,0,0,0.15)] font-normal">
-                <span class="opacity-80">{{ popularPosts[0]?.comments }}</span>
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+                class="flex h-7 items-center gap-1 rounded-full bg-white px-2 text-slate-800 shadow-md"
+              >
+                <span>{{ popularPosts[0].comments || 0 }}</span>
+                <AppIcon name="book-open-text" :size="13" />
               </span>
             </div>
           </div>
 
-          <!-- Counter + Content -->
-          <div class="pC flex gap-0">
-            <span class="shrink-0 opacity-60 w-6.5 font-bold text-[14px] text-slate-400">
-              {{ popularPosts[0]?.num }}
-            </span>
-            <div class="pB grow w-[calc(100%-26px)]">
-              <div class="pH info flex items-baseline justify-start mb-0.5 text-[11px] text-slate-400">
-                <span>{{ popularPosts[0]?.date }}</span>
-                <span class="mx-1">·</span>
-                <span class="text-primary">{{ popularPosts[0]?.category }}</span>
+          <div class="flex gap-2">
+            <span class="w-6 shrink-0 text-sm font-bold text-text-alt/70"
+              >01</span
+            >
+            <div class="min-w-0 flex-1">
+              <div class="mb-1 flex items-baseline text-xs text-text-alt">
+                <span>{{ popularPosts[0].date }}</span>
+                <span class="mx-1">/</span>
+                <span class="font-medium text-primary">{{
+                  popularPosts[0].category
+                }}</span>
               </div>
-              <div class="pT">
-                <h2 class="name m-0 font-normal text-[16.8px] leading-[1.3] text-slate-100">
-                  <a href="#" class="clamp line-clamp-2 hover:underline">{{ popularPosts[0]?.title }}</a>
-                </h2>
-              </div>
-              <div class="pS my-1">
-                <p class="snippet text-[12px] text-slate-400 leading-[1.4] line-clamp-2 opacity-80">
-                  {{ popularPosts[0]?.snippet }}
-                </p>
-              </div>
+              <h2
+                class="line-clamp-2 text-base font-medium leading-snug text-text-main"
+              >
+                <NuxtLink
+                  :to="getPostPath(popularPosts[0])"
+                  class="transition-colors hover:text-primary"
+                >
+                  {{ popularPosts[0].title }}
+                </NuxtLink>
+              </h2>
+              <p
+                v-if="popularPosts[0].snippet"
+                class="mt-1 line-clamp-2 text-xs leading-relaxed text-text-alt"
+              >
+                {{ popularPosts[0].snippet }}
+              </p>
             </div>
           </div>
         </article>
 
-        <!-- Items #2-#5 -->
-        <article v-for="post in popularPosts.slice(1)" :key="post.id">
-          <div class="pC flex gap-0">
-            <span class="shrink-0 opacity-60 w-6.5 font-bold text-[14px] text-slate-400">
-              {{ post.num }}
-            </span>
-            <div class="pB grow w-[calc(100%-26px)]">
-              <div class="pH info flex items-baseline justify-start mb-0.5 text-[11px] text-slate-400">
-                <span>{{ post.date }}</span>
-                <span class="mx-1">·</span>
-                <span class="text-primary">{{ post.category }}</span>
-              </div>
-              <div class="pT">
-                <h2 class="name m-0 font-normal text-[16.8px] leading-[1.3] text-slate-100">
-                  <a href="#" class="clamp line-clamp-2 hover:underline">{{ post.title }}</a>
-                </h2>
-              </div>
+        <article
+          v-for="(post, index) in popularPosts.slice(1)"
+          :key="post.path"
+          class="flex gap-2"
+        >
+          <span class="w-6 shrink-0 text-sm font-bold text-text-alt/70">
+            {{ String(index + 2).padStart(2, "0") }}
+          </span>
+          <div class="min-w-0 flex-1">
+            <div class="mb-0.5 flex items-baseline text-xs text-text-alt">
+              <span>{{ post.date }}</span>
+              <span class="mx-1">/</span>
+              <span class="font-medium text-primary">{{ post.category }}</span>
             </div>
+            <h2
+              class="line-clamp-2 text-base font-medium leading-snug text-text-main"
+            >
+              <NuxtLink
+                :to="getPostPath(post)"
+                class="transition-colors hover:text-primary"
+              >
+                {{ post.title }}
+              </NuxtLink>
+            </h2>
           </div>
         </article>
       </div>
-    </div>
+    </section>
 
-    <!-- Labels widget (.itemL) -->
-    <div class="widget mb-(--content-space)">
-      <h3 class="widget-title text-[15px] font-medium leading-[1.4] text-slate-200">Labels</h3>
+    <section class="pt-1">
+      <WidgetTitle title="Labels" />
 
-      <div class="itemL">
-        <div class="lab list flex flex-wrap gap-2">
-          <a v-for="lbl in labels" :key="lbl.name" href="#"
-            class="link flex items-center gap-1.5 w-[calc(50%-4px)] p-2 border border-bg-sec rounded-(--content-bd-radius) bg-bg-sec text-[12px] text-inherit hover:border-primary transition-all">
-            <span class="flex-1 truncate">{{ lbl.name }}</span>
-            <span class="count inline-flex items-center gap-1 shrink-0 text-slate-400 text-[11px]">
-              <span>{{ lbl.count }}</span>
-              <svg class="w-3 h-3 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </span>
-          </a>
-        </div>
-
-        <label class="flex items-center gap-1 mt-2 py-1.5 cursor-pointer">
-          <span class="text-primary text-[12px]">Show all</span>
-          <span class="text-[11px] text-slate-500">(+25)</span>
-        </label>
+      <div class="grid grid-cols-2 gap-2">
+        <NuxtLink
+          v-for="label in visibleLabels"
+          :key="label.name"
+          :to="`/?category=${encodeURIComponent(label.name)}`"
+          class="flex min-w-0 items-center justify-between gap-2 border border-border-main bg-bg-sec p-2.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        >
+          <span class="truncate">{{ label.name }}</span>
+          <span class="inline-flex shrink-0 items-center gap-1 text-text-alt">
+            {{ label.count }}
+            <AppIcon name="tag" :size="12" />
+          </span>
+        </NuxtLink>
       </div>
-    </div>
 
-    <!-- Ad slot in sidebar -->
-    <div class="mb-(--content-space) text-center text-[11px] text-slate-500 py-2 opacity-60">
-      Ads go here
-    </div>
+      <button
+        v-if="labels.length > 8"
+        type="button"
+        class="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+        @click="isAllLabelsVisible = !isAllLabelsVisible"
+      >
+        <span>{{ isAllLabelsVisible ? "Show less" : "Show all" }}</span>
+        <span v-if="!isAllLabelsVisible" class="text-text-alt"
+          >(+{{ labels.length - 8 }})</span
+        >
+      </button>
+    </section>
 
-    <!-- Footer links -->
-    <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 opacity-80">
-      <a href="#" class="hover:underline">Term</a>
-      <span>·</span>
-      <a href="#" class="hover:underline">Disclaimer</a>
-      <span>·</span>
-      <a href="#" class="hover:underline">Privacy</a>
-      <span>·</span>
-      <a href="#" class="hover:underline">Faq</a>
-    </div>
+    <div class="pt-2 text-center text-xs text-text-alt/70">Ads go here</div>
   </div>
 </template>

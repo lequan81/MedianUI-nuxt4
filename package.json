@@ -10,6 +10,8 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@iconify/vue": "^5.0.0",
+    "@nuxt/content": "^3.15.2",
     "@pinia/nuxt": "^1.0.1",
     "nuxt": "^4.5.1",
     "pinia": "^4.0.2",

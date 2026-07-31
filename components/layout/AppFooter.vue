@@ -1,25 +1,48 @@
-<template>
-  <footer class="w-full bg-(--color-bg-card) border-t border-border-main mt-12 py-8 px-4 sm:px-6 transition-colors">
-    <div
-      class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left text-xs text-(--color-text-muted)">
-      <!-- Left: Logo & Copyright -->
-      <div class="flex flex-col sm:flex-row items-center gap-3">
-        <div class="flex items-center gap-2 font-bold text-sm text-text-main">
-          <div class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold">M
-          </div>
-          Median UI v1.7
-        </div>
-        <span class="hidden sm:inline text-border-main">|</span>
-        <span>&copy; {{ new Date().getFullYear() }} Median UI. Reconstructed with Nuxt 4 &amp; Tailwind CSS v4.</span>
-      </div>
+<script setup lang="ts">
+import { footerLinks, siteConfig } from "~/app/config/site";
+import AppIcon from "~/components/ui/AppIcon.vue";
+</script>
 
-      <!-- Right: Links -->
-      <div class="flex items-center gap-4 font-medium">
-        <a href="#" class="hover:text-primary transition-colors">Privacy Policy</a>
-        <a href="#" class="hover:text-primary transition-colors">Terms of Service</a>
-        <a href="#" class="hover:text-primary transition-colors">Documentation</a>
-        <a href="#" class="hover:text-primary transition-colors">Sitemap</a>
-      </div>
+<template>
+  <footer class="relative mt-auto bg-bg-base py-7 text-[13px] text-text-alt">
+    <div
+      class="mx-auto flex max-w-(--content-max-width) flex-col gap-5 border-t border-border-main/70 px-(--content-padding) pt-6 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <span class="truncate">&copy; {{ siteConfig.copyright }}</span>
+
+      <nav class="flex flex-wrap items-center gap-2 px-3 py-2">
+        <template v-for="(link, index) in footerLinks" :key="link.label">
+          <NuxtLink
+            v-if="link.to"
+            :to="link.to"
+            class="transition-colors hover:text-primary"
+          >
+            {{ link.label }}
+          </NuxtLink>
+          <a
+            v-else
+            :href="link.href"
+            class="transition-colors hover:text-primary"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {{ link.label }}
+          </a>
+          <span
+            v-if="index < footerLinks.length - 1"
+            class="px-1 text-border-main/80"
+            >/</span
+          >
+        </template>
+
+        <a
+          href="#top"
+          class="ml-2 inline-flex items-center gap-1 rounded-full border border-border-main/70 px-3 py-1 transition-colors hover:border-primary hover:text-primary"
+        >
+          Top
+          <AppIcon name="arrow-up" :size="14" />
+        </a>
+      </nav>
     </div>
   </footer>
 </template>

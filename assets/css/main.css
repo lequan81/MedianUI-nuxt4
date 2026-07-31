@@ -1,22 +1,26 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Noto Sans', 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Noto Sans', sans-serif;
-  --font-body-alt: 'Fira Sans', sans-serif;
-  --font-code: 'Fira Mono', monospace;
+  --font-sans:
+    "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  --font-body: "Be Vietnam Pro", sans-serif;
+  --font-body-alt: "Be Vietnam Pro", sans-serif;
+  --font-code: "Fira Mono", monospace;
 
-  /* Exact values from XML template variables */
-  --color-primary: #8775f5;
-  --color-primary-light: rgba(135, 117, 245, 0.15);
-
-  /* Dark mode (demo default) */
-  --color-bg-base: #1b1e26;
-  --color-bg-alt: #232731;
-  --color-bg-sec: #22262e;
-  --color-text-main: #d9e2f0;
-  --color-text-alt: #d9e2f0b3; /* 70% opacity */
-  --color-border-main: rgba(255, 255, 255, 0.06);
+  --color-primary: var(--color-accent);
+  --color-primary-light: color-mix(
+    in srgb,
+    var(--color-accent) 15%,
+    transparent
+  );
+  --color-bg-base: var(--surface);
+  --color-bg-alt: var(--surface-elevated);
+  --color-bg-sec: var(--surface-muted);
+  --color-text-main: var(--foreground);
+  --color-text-alt: var(--foreground-muted);
+  --color-border-main: var(--border);
 
   /* XML exact layout dimensions */
   --header-height: 65px;
@@ -47,29 +51,53 @@
 
   /* Header from XML */
   --header-font: 1.143em;
+  /* Header from XML */
+  --header-font: 1.143em;
   --header-font-weight: 500;
 }
 
-/* Light Mode */
-.light {
-  --color-primary: #3740ff;
-  --color-bg-base: #fffdfc;
-  --color-bg-alt: #f9f9fb;
-  --color-bg-sec: #f5f3f2;
-  --color-text-main: #0e2045;
-  --color-text-alt: #0e2045cc; /* 80% opacity */
-  --color-border-main: #e4e3e1;
+/* Light Mode (default root) */
+:root {
+  --color-accent: #3740ff;
+  --surface: #ffffff;
+  --surface-elevated: #f9fafc;
+  --surface-muted: #f4f5f8;
+  --foreground: #2d323c;
+  --foreground-muted: #5f6570;
+  --border: #e8eaee;
+}
+
+/* Dark Mode (when .dark class is active) */
+html.dark,
+.dark {
+  --color-accent: #8d7af8;
+  --surface: #1a1d24;
+  --surface-elevated: #212630;
+  --surface-muted: #242a35;
+  --foreground: #dbe4f1;
+  --foreground-muted: rgba(219, 228, 241, 0.72);
+  --border: rgba(219, 228, 241, 0.08);
 }
 
 /* ===== Global resets from XML normalize ===== */
-::selection { color: #fffdfc; background-color: var(--color-primary); opacity: .85; }
-::placeholder { color: var(--color-text-alt); }
-::before, ::after, * { box-sizing: border-box; }
+::selection {
+  color: #fffdfc;
+  background-color: var(--color-primary);
+  opacity: 0.85;
+}
+::placeholder {
+  color: var(--color-text-alt);
+}
+::before,
+::after,
+* {
+  box-sizing: border-box;
+}
 
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
-  font: 14px var(--font-body);  /* XML: --fontSize = 14px */
+  font: 15px/1.6 var(--font-body);
 }
 
 body {
@@ -81,16 +109,81 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* ===== Exact Junookyo.com 5px Custom Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 5px !important;
+  height: 5px !important;
+}
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+::-webkit-scrollbar-thumb {
+  background: #c5c9d0 !important;
+  border-radius: 10px !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9fa4b0 !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb,
+.dark ::-webkit-scrollbar-thumb {
+  background: #3a3f4b !important;
+}
+html.dark ::-webkit-scrollbar-thumb:hover,
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #565c6c !important;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #c5c9d0 transparent !important;
+}
+html.dark *,
+.dark * {
+  scrollbar-color: #3a3f4b transparent !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
   font-weight: 400;
   color: currentColor;
 }
 
-a { color: inherit; text-decoration: none; }
-a:hover { filter: brightness(.9); transition: filter .1s; }
+a:hover {
+  filter: brightness(0.9);
+  transition: filter 0.1s;
+}
 
-img { display: inline-block; max-width: 100%; height: auto; }
+button,
+.button {
+  cursor: pointer;
+  transition:
+    filter 0.15s ease,
+    opacity 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+button:hover,
+.button:hover {
+  filter: brightness(1.1);
+}
+
+img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
 
 svg {
   fill: none;
@@ -98,41 +191,4 @@ svg {
   stroke-width: 1.25;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-/* Widget title style from XML: HAS HORIZONTAL LINE AFTER TITLE */
-.widget-title, .widget .title {
-  display: flex !important;
-  align-items: center !important;
-  font-size: 15px !important;
-  font-weight: 500 !important;
-  margin-block: 0 var(--widget-title-space) !important;
-  color: var(--color-text-main) !important;
-}
-
-.widget-title::after, .widget .title::after {
-  content: '' !important;
-  display: inline-block !important;
-  width: 24px !important;
-  height: 1px !important;
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  margin-left: 10px !important;
-}
-
-/* Post title style from XML: EXACTLY 16.8px (1.2rem * 14px) */
-.pT .name {
-  font-size: 16.8px !important;
-  font-weight: 400 !important;
-  line-height: 1.3 !important;
-  margin: 0 !important;
-  font-family: var(--font-body-alt), var(--font-body), sans-serif !important;
-}
-
-.pT .name a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.pT .name a:hover {
-  text-decoration: underline;
 }

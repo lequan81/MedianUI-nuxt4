@@ -1,110 +1,169 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useAppStore } from '~/stores/useAppStore'
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { getPostPath } from "~/composables/usePosts";
+import { useAppStore } from "~/stores/useAppStore";
+import AppIcon from "~/components/ui/AppIcon.vue";
 
-const appStore = useAppStore()
-const searchQuery = ref('')
-const inputRef = ref<HTMLInputElement | null>(null)
+const appStore = useAppStore();
+const searchQuery = ref("");
+const inputRef = ref<HTMLInputElement | null>(null);
 
-const popularTags = ['Nuxt 4', 'Tailwind CSS v4', 'Median UI v1.7', 'Vue 3', 'Blogger Theme', 'Design System']
+const { data: posts } = await useAsyncData("search-posts", () =>
+  queryCollection("posts").all(),
+);
+
+const popularTags = computed(() => {
+  const categories = new Set(
+    (posts.value || []).map((post: any) => post.category).filter(Boolean),
+  );
+  return Array.from(categories).slice(0, 8);
+});
+
+const results = computed(() => {
+  const keyword = searchQuery.value.trim().toLowerCase();
+  if (!keyword) return [];
+
+  return (posts.value || [])
+    .filter((post: any) => {
+      return [post.title, post.snippet, post.category, post.author?.name]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(keyword));
+    })
+    .slice(0, 8);
+});
 
 function handleKeyDown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-    e.preventDefault()
-    appStore.toggleSearchModal()
-  } else if (e.key === 'Escape' && appStore.isSearchOpen) {
-    appStore.closeSearchModal()
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    appStore.toggleSearchModal();
+  } else if (e.key === "Escape" && appStore.isSearchOpen) {
+    appStore.closeSearchModal();
   }
 }
 
-watch(() => appStore.isSearchOpen, (isOpen) => {
-  if (isOpen) {
-    setTimeout(() => inputRef.value?.focus(), 100)
-  } else {
-    searchQuery.value = ''
-  }
-})
+watch(
+  () => appStore.isSearchOpen,
+  (isOpen) => {
+    if (isOpen) {
+      setTimeout(() => inputRef.value?.focus(), 100);
+    } else {
+      searchQuery.value = "";
+    }
+  },
+);
 
 onMounted(() => {
-  if (typeof window !== 'undefined') {
-    window.addEventListener('keydown', handleKeyDown)
-  }
-})
+  window.addEventListener("keydown", handleKeyDown);
+});
 
 onUnmounted(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('keydown', handleKeyDown)
-  }
-})
+  window.removeEventListener("keydown", handleKeyDown);
+});
 </script>
 
 <template>
   <Teleport to="body">
-    <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100" leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
-      <div v-if="appStore.isSearchOpen"
-        class="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/60 backdrop-blur-md"
-        @click.self="appStore.closeSearchModal">
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div
+        v-if="appStore.isSearchOpen"
+        class="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/55 px-4 pt-16 backdrop-blur-sm sm:pt-24"
+        @click.self="appStore.closeSearchModal"
+      >
         <div
-          class="w-full max-w-2xl bg-(--color-bg-card) border border-border-main rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
-          <!-- Search Header Input -->
-          <div class="p-4 border-b border-border-main flex items-center gap-3">
-            <svg class="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input ref="inputRef" v-model="searchQuery" type="text" placeholder="Search articles, topics, components..."
-              class="w-full bg-transparent text-text-main placeholder-(--color-text-muted) text-base font-medium outline-none" />
-            <button v-if="searchQuery" @click="searchQuery = ''"
-              class="p-1 rounded-full text-(--color-text-muted) hover:bg-bg-sec">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+          class="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-border-main bg-bg-base shadow-2xl"
+        >
+          <div class="flex items-center gap-3 border-b border-border-main p-4">
+            <AppIcon name="search" :size="20" class="shrink-0 text-primary" />
+            <input
+              ref="inputRef"
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search articles, labels, authors..."
+              class="w-full bg-transparent text-sm font-medium text-text-main outline-none placeholder:text-text-alt"
+            />
+            <button
+              v-if="searchQuery"
+              type="button"
+              class="rounded-full p-1 text-text-alt transition-colors hover:bg-bg-sec hover:text-text-main"
+              @click="searchQuery = ''"
+            >
+              <AppIcon name="x" :size="16" />
             </button>
             <kbd
-              class="px-2 py-1 text-[10px] font-semibold bg-bg-sec text-(--color-text-muted) rounded border border-border-main">
+              class="rounded border border-border-main bg-bg-sec px-2 py-1 text-[10px] font-semibold text-text-alt"
+            >
               ESC
             </kbd>
           </div>
 
-          <!-- Suggested Topics / Results Body -->
-          <div class="p-5 overflow-y-auto space-y-4">
+          <div class="space-y-4 overflow-y-auto p-5">
             <div v-if="!searchQuery">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-(--color-text-muted) mb-3">
-                Suggested Topics
+              <h4
+                class="mb-3 text-xs font-bold uppercase tracking-wide text-text-alt"
+              >
+                Labels
               </h4>
               <div class="flex flex-wrap gap-2">
-                <button v-for="tag in popularTags" :key="tag" @click="searchQuery = tag"
-                  class="px-3 py-1.5 rounded-xl bg-bg-sec hover:bg-primary-light text-text-main hover:text-primary text-xs font-medium border border-border-main transition-colors">
+                <button
+                  v-for="tag in popularTags"
+                  :key="String(tag)"
+                  type="button"
+                  class="rounded-md border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+                  @click="searchQuery = String(tag)"
+                >
                   # {{ tag }}
                 </button>
               </div>
             </div>
 
-            <!-- Dynamic Search Query Feedback -->
             <div v-else class="space-y-3">
-              <div class="text-xs text-(--color-text-muted)">
-                Search results for: <span class="font-bold text-primary">"{{ searchQuery }}"</span>
+              <div class="text-xs text-text-alt">
+                Search results for
+                <span class="font-bold text-primary">"{{ searchQuery }}"</span>
               </div>
+
+              <NuxtLink
+                v-for="post in results"
+                :key="post.path"
+                :to="getPostPath(post)"
+                class="block border border-border-main bg-bg-sec p-3 transition-colors hover:border-primary"
+                @click="appStore.closeSearchModal"
+              >
+                <span
+                  class="block truncate text-sm font-semibold text-text-main"
+                  >{{ post.title }}</span
+                >
+                <span
+                  class="mt-1 line-clamp-2 block text-xs leading-relaxed text-text-alt"
+                  >{{ post.snippet }}</span
+                >
+              </NuxtLink>
+
               <div
-                class="p-4 rounded-xl bg-bg-sec border border-border-main text-sm text-(--color-text-muted) text-center">
-                🔍 Press Enter or browse articles matched with "{{ searchQuery }}".
+                v-if="!results.length"
+                class="border border-border-main bg-bg-sec p-4 text-center text-sm text-text-alt"
+              >
+                Không tìm thấy bài viết phù hợp.
               </div>
             </div>
           </div>
 
-          <!-- Search Footer -->
           <div
-            class="px-5 py-3 bg-bg-sec border-t border-border-main flex items-center justify-between text-xs text-(--color-text-muted)">
-            <span>Search powered by <strong>Nuxt 4</strong></span>
-            <div class="flex items-center gap-3">
-              <span class="flex items-center gap-1">
-                <kbd class="px-1.5 py-0.5 bg-(--color-bg-card) rounded border text-[10px]">↑</kbd>
-                <kbd class="px-1.5 py-0.5 bg-(--color-bg-card) rounded border text-[10px]">↓</kbd>
-                to navigate
-              </span>
-            </div>
+            class="flex items-center justify-between border-t border-border-main bg-bg-sec px-5 py-3 text-xs text-text-alt"
+          >
+            <span>Content search</span>
+            <span
+              >{{ results.length }} result{{
+                results.length === 1 ? "" : "s"
+              }}</span
+            >
           </div>
         </div>
       </div>

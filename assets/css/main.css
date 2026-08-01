@@ -27,10 +27,10 @@
   --side-width: 75px;
   --side-width-expand: 230px;
   --sidebar-width: 280px;
-  --content-max-width: 1300px;
+  --content-max-width: 1220px;
   --content-padding: 22px;
   --content-padding-box: 15px;
-  --content-space: 40px;
+  --content-space: 36px;
   --content-bd-radius: 4px;
   --content-bd-radius-alt: 10px;
   --icon-width: 35px;
@@ -51,13 +51,12 @@
 
   /* Header from XML */
   --header-font: 1.143em;
-  /* Header from XML */
-  --header-font: 1.143em;
   --header-font-weight: 500;
 }
 
 /* Light Mode (default root) */
 :root {
+  color-scheme: light;
   --color-accent: #3740ff;
   --surface: #ffffff;
   --surface-elevated: #f9fafc;
@@ -70,6 +69,7 @@
 /* Dark Mode (when .dark class is active) */
 html.dark,
 .dark {
+  color-scheme: dark;
   --color-accent: #8d7af8;
   --surface: #1a1d24;
   --surface-elevated: #212630;
@@ -79,116 +79,56 @@ html.dark,
   --border: rgba(219, 228, 241, 0.08);
 }
 
-/* ===== Global resets from XML normalize ===== */
-::selection {
-  color: #fffdfc;
-  background-color: var(--color-primary);
-  opacity: 0.85;
-}
-::placeholder {
-  color: var(--color-text-alt);
-}
-::before,
-::after,
-* {
-  box-sizing: border-box;
+/* Heading Base Normalization */
+h1, h2, h3, h4, h5, h6 {
+  color: inherit;
+  font-weight: inherit;
 }
 
-html {
-  scroll-behavior: smooth;
-  overflow-x: hidden;
-  font: 15px/1.6 var(--font-body);
-}
-
-body {
-  position: relative;
-  margin: 0;
-  padding: 0 !important;
-  color: var(--color-text-main);
-  background-color: var(--color-bg-base);
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ===== Exact Junookyo.com 5px Custom Scrollbar ===== */
+/* ===== Custom 6px Scrollbar ===== */
 ::-webkit-scrollbar {
-  width: 5px !important;
-  height: 5px !important;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-button {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+  width: 0;
+  height: 0;
+  display: none;
 }
-::-webkit-scrollbar-track {
-  background: transparent !important;
+
+::-webkit-scrollbar-corner,
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-track-piece {
+  background: var(--surface) !important;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #c5c9d0 !important;
-  border-radius: 10px !important;
+  background: #c5c9d0;
+  border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #9fa4b0 !important;
+  background: #9fa4b0;
 }
 
 html.dark ::-webkit-scrollbar-thumb,
 .dark ::-webkit-scrollbar-thumb {
-  background: #3a3f4b !important;
+  background: #3a3f4b;
 }
+
 html.dark ::-webkit-scrollbar-thumb:hover,
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #565c6c !important;
+  background: #565c6c;
 }
 
 /* Firefox scrollbar */
 * {
-  scrollbar-width: thin !important;
-  scrollbar-color: #c5c9d0 transparent !important;
+  scrollbar-width: thin;
+  scrollbar-color: #c5c9d0 var(--surface);
 }
+
 html.dark *,
 .dark * {
-  scrollbar-color: #3a3f4b transparent !important;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-  font-weight: 400;
-  color: currentColor;
-}
-
-a:hover {
-  filter: brightness(0.9);
-  transition: filter 0.1s;
-}
-
-button,
-.button {
-  cursor: pointer;
-  transition:
-    filter 0.15s ease,
-    opacity 0.15s ease,
-    border-color 0.15s ease,
-    background-color 0.15s ease;
-}
-button:hover,
-.button:hover {
-  filter: brightness(1.1);
-}
-
-img {
-  display: inline-block;
-  max-width: 100%;
-  height: auto;
-}
-
-svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  scrollbar-color: #3a3f4b var(--surface);
 }

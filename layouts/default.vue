@@ -23,26 +23,18 @@ onMounted(() => {
     <div class="flex min-h-[calc(100vh-var(--header-height))]">
       <AppSidebar />
 
-      <div
-        class="min-w-0 flex-1 transition-[margin] duration-200 ease-out"
-        :class="appStore.isSidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'"
-      >
+      <div class="min-w-0 flex-1 transition-[margin] duration-200 ease-out"
+        :class="appStore.isSidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'">
         <main class="pb-(--content-space)">
-          <div
-            class="mx-auto mt-(--content-padding) max-w-(--content-max-width) px-(--content-padding)"
-          >
+          <div class="mx-auto mt-(--content-padding) max-w-310 px-6 xl:pl-6 xl:pr-14">
             <AdBanner class="mb-(--content-space)" />
 
             <div class="flex justify-center gap-(--content-space)">
-              <div
-                class="min-w-0 flex-1 xl:w-[calc(100%-var(--sidebar-width)-var(--content-space))]"
-              >
+              <div class="min-w-0 flex-1 xl:w-[calc(100%-var(--sidebar-width)-var(--content-space))]">
                 <slot />
               </div>
 
-              <aside
-                class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block"
-              >
+              <aside class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block">
                 <div class="sticky top-[calc(var(--header-height)+10px)]">
                   <RightSidebar />
                 </div>

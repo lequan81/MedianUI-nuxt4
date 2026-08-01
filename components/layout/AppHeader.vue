@@ -13,7 +13,7 @@ const appStore = useAppStore();
     <div class="flex h-full w-(--side-width-expand) shrink-0 items-center">
       <button
         type="button"
-        class="flex h-full w-(--side-width) items-center justify-center text-text-alt transition-colors hover:text-primary"
+        class="flex h-full w-(--side-width) items-center justify-center text-text-alt transition-colors hover:text-primary focus:outline-none focus-visible:outline-none outline-none border-none shadow-none"
         aria-label="Toggle sidebar"
         @click="appStore.toggleSidebar"
       >

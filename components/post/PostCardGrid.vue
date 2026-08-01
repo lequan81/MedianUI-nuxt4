@@ -65,9 +65,9 @@ const appStore = useAppStore()
       <!-- Author Meta Footer -->
       <div
         class="pt-2.5 border-t border-border-main flex items-center justify-between text-[11px] text-(--color-text-muted)">
-        <div class="flex items-center gap-1.5">
-          <img :src="post.author.avatar" :alt="post.author.name" class="w-5 h-5 rounded-full object-cover" />
-          <span class="font-medium text-text-main truncate max-w-25">{{ post.author.name }}</span>
+        <div class="flex items-center gap-1.5 min-w-0">
+          <img :src="post.author.avatar" :alt="post.author.name" class="w-5.5 h-5.5 shrink-0 rounded-full object-cover ring-1 ring-border-main/60" />
+          <span class="font-medium text-text-main truncate max-w-28">{{ post.author.name }}</span>
         </div>
         <div class="flex items-center gap-1.5">
           <span>{{ post.date }}</span>

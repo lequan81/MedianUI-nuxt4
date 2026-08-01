@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute, useSeoMeta } from "#imports";
 import { getPostImage, getPostPath } from "~/composables/usePosts";
 import { postText } from "~/app/config/site";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import AuthorBio from "~/components/post/AuthorBio.vue";
 import PostShareBar from "~/components/post/PostShareBar.vue";
+import ShareModal from "~/components/post/ShareModal.vue";
 import TableOfContents from "~/components/post/TableOfContents.vue";
 import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 
 const route = useRoute();
 const slug = computed(() => String(route.params.slug || ""));
+const isShareModalOpen = ref(false);
 
 const { data: post } = await useAsyncData(`post-${slug.value}`, async () => {
   const byPath = await queryCollection("posts")
@@ -71,6 +73,66 @@ const { data: relatedPosts } = await useAsyncData(
   },
 );
 
+const allPostTags = computed(() => {
+  const list: string[] = [];
+  if (post.value?.category) {
+    list.push(post.value.category);
+  }
+  if (post.value?.tags && Array.isArray(post.value.tags)) {
+    post.value.tags.forEach((tag: string) => {
+      if (!list.includes(tag)) {
+        list.push(tag);
+      }
+    });
+  }
+  return list;
+});
+
+const windowWidth = ref(typeof window !== "undefined" ? window.innerWidth : 1200);
+
+function onWindowResize() {
+  windowWidth.value = window.innerWidth;
+}
+
+onMounted(() => {
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", onWindowResize, { passive: true });
+    onWindowResize();
+  }
+});
+
+onBeforeUnmount(() => {
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", onWindowResize);
+  }
+});
+
+// Clean deterministic maxTags limit controlled via Markdown Frontmatter (default: 5)
+const maxTagsLimit = computed(() => {
+  if (typeof (post.value as any)?.maxTags === "number") {
+    return (post.value as any).maxTags;
+  }
+  return 5;
+});
+
+const isOverflowingTags = computed(() => {
+  return allPostTags.value.length > maxTagsLimit.value;
+});
+
+const visiblePostTags = computed(() => {
+  if (isOverflowingTags.value) {
+    return allPostTags.value.slice(0, maxTagsLimit.value - 1);
+  }
+  return allPostTags.value;
+});
+
+const hiddenPostTags = computed(() => {
+  if (isOverflowingTags.value) {
+    return allPostTags.value.slice(maxTagsLimit.value - 1);
+  }
+  return [];
+});
+
 const tocLinks = computed(() => {
   if (!post.value) return [];
   return post.value.body?.toc?.links || (post.value as any).toc?.links || [];
@@ -87,175 +149,139 @@ useSeoMeta({
 </script>
 
 <template>
-  <article v-if="post" class="mx-auto max-w-4xl space-y-12">
-    <nav class="flex min-w-0 items-center gap-1 overflow-hidden text-[13px]">
-      <NuxtLink
-        to="/"
-        class="shrink-0 text-text-alt transition-colors hover:text-primary"
-        >Trang chủ</NuxtLink
-      >
-      <span class="text-text-alt/60">/</span>
-      <NuxtLink
-        :to="`/?category=${encodeURIComponent(post.category)}`"
-        class="truncate font-semibold text-text-main transition-colors hover:text-primary"
-      >
-        {{ post.category }}
-      </NuxtLink>
-    </nav>
+  <article v-if="post" class="mx-auto max-w-4xl space-y-10">
+    <section class="min-w-0 space-y-8">
+      <header>
+        <nav class="flex min-w-0 items-center gap-1.5 overflow-hidden text-sm text-text-alt mb-5">
+          <NuxtLink to="/" class="shrink-0 text-text-alt/70 transition-colors hover:text-primary">Trang chủ</NuxtLink>
+          <span class="text-text-alt/50">/</span>
+          <NuxtLink :to="`/?category=${encodeURIComponent(post.category)}`"
+            class="truncate font-semibold text-text-main transition-colors hover:text-primary">
+            {{ post.category }}
+          </NuxtLink>
+        </nav>
 
-    <section class="min-w-0 space-y-12">
-      <header class="space-y-6">
-        <div
-          class="inline-flex items-center rounded-full border border-border-main bg-bg-sec px-3 py-1 text-xs font-medium text-primary"
-        >
-          {{ post.category }}
-        </div>
+        <h1
+          class="text-3xl font-bold leading-tight tracking-[-0.02em] text-text-main md:text-4xl lg:text-[2.65rem] pb-4 mb-2">
+          {{ post.title }}
+        </h1>
 
-        <div class="space-y-4">
-          <h1
-            class="text-3xl font-bold leading-[1.18] tracking-[-0.02em] text-text-main md:text-5xl"
-          >
-            {{ post.title }}
-          </h1>
-          <p
-            v-if="post.snippet"
-            class="max-w-3xl text-base leading-8 text-text-alt md:text-lg"
-          >
-            {{ post.snippet }}
-          </p>
-        </div>
+        <p v-if="post.snippet" class="max-w-208 text-sm md:text-base leading-relaxed text-text-alt/80 mb-6">
+          {{ post.snippet }}
+        </p>
 
-        <div class="flex flex-wrap items-center gap-4 text-sm text-text-alt">
-          <div class="flex items-center gap-2">
-            <img
-              v-if="post.author?.avatar"
-              :src="post.author.avatar"
-              :alt="post.author.name"
-              class="h-10 w-10 rounded-full object-cover ring-1 ring-border-main"
-              loading="lazy"
-            />
-            <span
-              v-else
-              class="flex h-10 w-10 items-center justify-center rounded-full bg-bg-sec ring-1 ring-border-main"
-            >
-              <AppIcon name="user" :size="18" />
+        <div class="flex items-center justify-between gap-4 pt-1 text-xs">
+          <div class="flex flex-wrap items-center gap-2 text-text-alt">
+            <img v-if="post.author?.avatar" :src="post.author.avatar" :alt="post.author.name"
+              class="h-7 w-7 rounded-full object-cover ring-1 ring-border-main" loading="lazy" />
+            <span v-else
+              class="flex h-7 w-7 items-center justify-center rounded-full bg-bg-sec ring-1 ring-border-main">
+              <AppIcon name="user" :size="13" />
             </span>
-            <div class="min-w-0">
-              <p class="text-[11px] uppercase tracking-[0.16em] text-text-alt">
-                Author
-              </p>
-              <p class="truncate font-medium text-text-main">
-                {{ post.author?.name }}
-              </p>
-            </div>
+            <span class="font-semibold uppercase tracking-wider text-text-main ml-0.5">
+              {{ post.author?.name }}
+            </span>
+            <span class="text-text-alt/70">• {{ post.date }}</span>
+            <span v-if="post.readTime" class="text-text-alt/70">• {{ post.readTime }}</span>
           </div>
 
-          <div class="h-8 w-px bg-border-main/70"></div>
-
-          <div>
-            <p class="text-[11px] uppercase tracking-[0.16em] text-text-alt">
-              Published
-            </p>
-            <p class="font-medium text-text-main">{{ post.date }}</p>
-          </div>
-
-          <div v-if="post.readTime">
-            <p class="text-[11px] uppercase tracking-[0.16em] text-text-alt">
-              Reading time
-            </p>
-            <p class="font-medium text-text-main">{{ post.readTime }}</p>
-          </div>
+          <button type="button"
+            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-text-alt transition-colors hover:bg-bg-sec hover:text-primary"
+            title="Chia sẻ bài viết" aria-label="Chia sẻ bài viết" @click="isShareModalOpen = true">
+            <AppIcon name="share-2" :size="16" />
+          </button>
         </div>
       </header>
 
-      <div
-        class="overflow-hidden rounded-xl border border-border-main bg-bg-sec shadow-sm"
-      >
-        <div class="aspect-video bg-bg-alt">
-          <img
-            :src="getPostImage(post)"
-            :alt="post.title"
-            class="h-full w-full object-cover"
-            loading="eager"
-            decoding="async"
-          />
-        </div>
-      </div>
-
-      <div class="space-y-12">
-        <div
-          class="text-[15px] leading-8 text-text-main [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-8 [&_blockquote]:rounded-xl [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:bg-bg-sec [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:text-[0.95rem] [&_blockquote]:text-text-alt [&_h1]:scroll-mt-[calc(var(--header-height)+24px)] [&_h1]:mb-6 [&_h1]:mt-14 [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:scroll-mt-[calc(var(--header-height)+24px)] [&_h2]:mb-5 [&_h2]:mt-14 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h3]:scroll-mt-[calc(var(--header-height)+24px)] [&_h3]:mb-4 [&_h3]:mt-12 [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:leading-tight [&_h4]:scroll-mt-[calc(var(--header-height)+24px)] [&_h4]:mb-3 [&_h4]:mt-10 [&_h4]:text-xl [&_h4]:font-semibold [&_hr]:my-12 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-border-main/80 [&_img]:my-0 [&_img]:w-full [&_img]:rounded-xl [&_li]:mb-2 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-6 [&_p]:leading-8 [&_pre]:my-8 [&_pre]:overflow-hidden [&_pre]:rounded-xl [&_pre]:border [&_pre]:border-border-main [&_pre]:bg-bg-base [&_pre]:p-0 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_table]:my-8 [&_table]:w-full [&_table]:border-collapse [&_table]:overflow-hidden [&_table]:rounded-xl [&_table]:border [&_table]:border-border-main [&_td]:border-border-main [&_td]:px-4 [&_td]:py-3 [&_th]:border-border-main [&_th]:bg-bg-sec [&_th]:px-4 [&_th]:py-3 [&_th]:text-left [&_ul]:my-6 [&_ul]:list-disc [&_ul]:pl-6"
-        >
+      <div class="space-y-6">
+        <div class="prose-content">
           <ContentRenderer :value="post" />
         </div>
 
-        <AuthorBio :author="post.author" />
+        <!-- Post Footer Meta Row: Hashtags (Left) & Author Bio (Right) -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pt-4 border-t border-border-main/50">
+          <div v-if="allPostTags.length" class="flex flex-wrap items-center gap-2 min-w-0 flex-1 pt-0.5">
+            <NuxtLink v-for="tag in visiblePostTags" :key="tag" :to="`/?category=${encodeURIComponent(tag)}`"
+              class="inline-flex max-w-35 items-center gap-1.5 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs">
+              <span class="text-primary font-bold">#</span>
+              <span class="truncate">{{ tag }}</span>
+            </NuxtLink>
+
+            <!-- +N Hover Tooltip Pill & Interactive Popover -->
+            <div v-if="isOverflowingTags" class="relative group/more inline-block">
+              <span
+                class="inline-flex items-center gap-1 rounded-lg border border-border-main/80 bg-bg-sec px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:border-primary shadow-2xs cursor-pointer">
+                +#{{ hiddenPostTags.length }}
+              </span>
+
+              <!-- Floating Tooltip Popover -->
+              <div class="absolute left-0 bottom-full pb-2 hidden group-hover/more:block z-50 pointer-events-auto">
+                <div class="w-56 p-2.5 rounded-xl border border-border-main bg-bg-base shadow-2xl space-y-1.5">
+                  <div
+                    class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-alt/60 pb-1 border-b border-border-main/40">
+                    <span>Thẻ khác</span>
+                    <span class="text-primary font-bold">+{{ hiddenPostTags.length }}</span>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5 pt-0.5">
+                    <NuxtLink v-for="tag in hiddenPostTags" :key="tag" :to="`/?category=${encodeURIComponent(tag)}`"
+                      class="inline-flex items-center gap-1 rounded-md border border-border-main/80 bg-bg-sec px-2 py-1 text-[11.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary/5">
+                      <span class="text-primary font-bold">#</span>
+                      <span>{{ tag }}</span>
+                    </NuxtLink>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <AuthorBio :author="post.author" class="shrink-0" />
+        </div>
+
         <PostShareBar :title="post.title" />
       </div>
 
-      <section
-        v-if="relatedPosts?.length"
-        class="rounded-xl border border-border-main bg-bg-sec/70 p-5 sm:p-6"
-      >
+      <!-- Related Posts Standalone Section -->
+      <section v-if="relatedPosts?.length" class="mt-6">
         <WidgetTitle :title="postText.relatedTitle" />
 
-        <div class="grid gap-6 md:grid-cols-2">
-          <article
-            v-for="(item, index) in relatedPosts"
-            :key="item.path"
-            class="group overflow-hidden rounded-xl border border-border-main bg-bg-base transition-colors hover:border-primary/50"
-          >
-            <NuxtLink
-              :to="getPostPath(item)"
-              class="grid h-full grid-cols-[minmax(0,1fr)_92px] gap-4 p-4"
-            >
+        <div class="grid gap-3.5 sm:grid-cols-2">
+          <article v-for="(item, index) in relatedPosts" :key="item.path"
+            class="group overflow-hidden rounded-xl border border-border-main/70 bg-bg-sec/40 p-3.5 transition-colors hover:border-primary/60 hover:bg-bg-sec/70">
+            <NuxtLink :to="getPostPath(item)" class="grid h-full grid-cols-[minmax(0,1fr)_84px] gap-3">
               <div class="min-w-0">
-                <div class="flex items-center gap-2 text-xs text-text-alt">
-                  <span class="font-semibold text-primary">{{
-                    String(index + 1).padStart(2, "0")
-                  }}</span>
+                <div class="flex items-center gap-1.5 text-[11px] text-text-alt">
+                  <span class="font-bold text-primary">{{ String(index + 1).padStart(2, "0") }}</span>
                   <span>•</span>
                   <span>{{ item.date }}</span>
                 </div>
 
-                <h2
-                  class="mt-2 line-clamp-2 text-base font-semibold leading-snug text-text-main transition-colors group-hover:text-primary"
-                >
+                <h3
+                  class="mt-1.5 line-clamp-2 text-xs font-semibold leading-snug text-text-main transition-colors group-hover:text-primary">
                   {{ item.title }}
-                </h2>
+                </h3>
 
-                <p
-                  v-if="item.snippet"
-                  class="mt-2 line-clamp-2 text-sm leading-7 text-text-alt"
-                >
+                <p v-if="item.snippet" class="mt-1 line-clamp-2 text-[11px] leading-relaxed text-text-alt/80">
                   {{ item.snippet }}
                 </p>
               </div>
 
-              <div class="overflow-hidden rounded-lg bg-bg-sec">
-                <img
-                  :src="getPostImage(item)"
-                  :alt="item.title"
-                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                  loading="lazy"
-                />
+              <div class="h-20 overflow-hidden rounded-lg bg-bg-sec">
+                <img :src="getPostImage(item)" :alt="item.title"
+                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy" />
               </div>
             </NuxtLink>
           </article>
         </div>
-
-        <div class="mt-6 border-t border-border-main/70 pt-6">
-          <button
-            type="button"
-            class="inline-flex h-12 w-full items-center justify-center rounded-lg border border-border-main bg-bg-base text-sm font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
-          >
-            {{ postText.commentButton }}
-          </button>
-        </div>
       </section>
+
+      <!-- Post Discussion Section -->
+      <PostComments />
     </section>
 
     <TableOfContents v-if="tocLinks.length" :links="tocLinks" />
+    <ShareModal :is-open="isShareModalOpen" :title="post.title" @close="isShareModalOpen = false" />
   </article>
 
   <div v-else class="border border-border-main bg-bg-sec p-10 text-center">
@@ -263,10 +289,7 @@ useSeoMeta({
     <p class="mt-2 text-sm text-text-alt">
       Bài viết bạn tìm kiếm không còn hoặc đường dẫn bị hỏng.
     </p>
-    <NuxtLink
-      to="/"
-      class="mt-5 inline-flex rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white"
-    >
+    <NuxtLink to="/" class="mt-5 inline-flex rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white">
       Về trang chủ
     </NuxtLink>
   </div>

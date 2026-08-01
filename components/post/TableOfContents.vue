@@ -14,6 +14,7 @@ const props = defineProps<{
 
 const isOpen = ref(false);
 const activeId = ref("");
+
 const flatLinks = computed(() => {
   const items: TocItem[] = [];
 
@@ -28,67 +29,76 @@ const flatLinks = computed(() => {
   return items;
 });
 
-let observer: IntersectionObserver | null = null;
-
-function setInitialActiveId() {
-  activeId.value = flatLinks.value[0]?.id || "";
-}
-
-function setupObserver() {
-  observer?.disconnect();
-  observer = null;
-
-  if (!flatLinks.value.length || typeof window === "undefined") {
-    setInitialActiveId();
-    return;
-  }
+function updateActiveHeading() {
+  if (!flatLinks.value.length || typeof window === "undefined") return;
 
   const headings = flatLinks.value
-    .map((link) => document.getElementById(link.id))
-    .filter((heading): heading is HTMLElement => Boolean(heading));
+    .map((link) => ({
+      id: link.id,
+      el: document.getElementById(link.id),
+    }))
+    .filter((item): item is { id: string; el: HTMLElement } => Boolean(item.el));
 
-  if (!headings.length) {
-    setInitialActiveId();
-    return;
-  }
+  if (!headings.length) return;
 
   const firstHeading = headings[0];
-  if (!firstHeading) {
-    setInitialActiveId();
-    return;
+  if (!firstHeading) return;
+
+  // 1. Bottom of page check: highlight the last section if scrolled near the bottom
+  const scrollPosition = window.scrollY + window.innerHeight;
+  const pageHeight = document.documentElement.scrollHeight;
+  if (scrollPosition >= pageHeight - 120) {
+    const lastHeading = headings[headings.length - 1];
+    if (lastHeading) {
+      activeId.value = lastHeading.id;
+      return;
+    }
   }
 
-  const headingIds = new Set(headings.map((heading) => heading.id));
-  activeId.value =
-    activeId.value && headingIds.has(activeId.value)
-      ? activeId.value
-      : firstHeading.id;
+  // 2. Viewport threshold check (120px below header)
+  const threshold = 120;
+  let currentActiveId = firstHeading.id;
 
-  observer = new IntersectionObserver(
-    (entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+  for (const heading of headings) {
+    const rect = heading.el.getBoundingClientRect();
+    if (rect.top <= threshold) {
+      currentActiveId = heading.id;
+    } else {
+      break;
+    }
+  }
 
-      if (visible[0]) {
-        activeId.value = visible[0].target.id;
-      }
-    },
-    {
-      rootMargin: "-18% 0px -62% 0px",
-      threshold: 0.05,
-    },
-  );
-
-  for (const heading of headings) observer.observe(heading);
+  activeId.value = currentActiveId;
 }
 
-watch(flatLinks, setupObserver, { immediate: true });
+let isScrolling = false;
+function onScroll() {
+  if (!isScrolling) {
+    isScrolling = true;
+    requestAnimationFrame(() => {
+      updateActiveHeading();
+      isScrolling = false;
+    });
+  }
+}
 
-onMounted(setupObserver);
+watch(flatLinks, () => {
+  if (typeof window !== "undefined") {
+    setTimeout(updateActiveHeading, 100);
+  }
+}, { immediate: true });
+
+onMounted(() => {
+  if (typeof window !== "undefined") {
+    window.addEventListener("scroll", onScroll, { passive: true });
+    setTimeout(updateActiveHeading, 100);
+  }
+});
 
 onBeforeUnmount(() => {
-  observer?.disconnect();
+  if (typeof window !== "undefined") {
+    window.removeEventListener("scroll", onScroll);
+  }
 });
 
 function toggleToc() {
@@ -99,17 +109,23 @@ function closeToc() {
   isOpen.value = false;
 }
 
-function isItemActive(item: TocItem) {
-  return (
-    item.id === activeId.value ||
-    Boolean(item.children?.some((child) => child.id === activeId.value))
-  );
+function cleanText(text: string) {
+  if (!text) return "";
+  return text.replace(/^(\d+\.)+\d*\s*/, "").trim();
+}
+
+function isExactActive(id: string) {
+  return activeId.value === id;
+}
+
+function isParentActive(link: TocItem) {
+  if (isExactActive(link.id)) return true;
+  return Boolean(link.children?.some((child) => child.id === activeId.value));
 }
 
 function scrollToHeading(id: string) {
   const target = document.getElementById(id);
   if (!target) return;
-
   activeId.value = id;
   target.scrollIntoView({ behavior: "smooth", block: "start" });
   closeToc();
@@ -117,58 +133,63 @@ function scrollToHeading(id: string) {
 </script>
 
 <template>
-  <div v-if="props.links && props.links.length" class="relative">
-    <button
-      type="button"
-      class="fixed right-0 top-45 z-50 inline-flex h-12 w-11 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-border-main bg-bg-base text-text-main shadow-lg transition-colors hover:border-primary hover:text-primary xl:right-[calc(var(--sidebar-width)+8px)]"
-      title="Mục lục"
-      aria-label="Toggle table of contents"
-      @click="toggleToc"
-    >
-      <svg
-        class="h-4 w-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        stroke-width="1.5"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-        />
-      </svg>
-    </button>
+  <div v-if="props.links && props.links.length">
+    <div class="fixed right-0 top-[calc(var(--header-height)+36px)] z-40">
+      <div class="relative flex items-center rounded-l-full bg-bg-sec p-1 shadow-xs">
+        <!-- Top organic concave curve -->
+        <div class="absolute -top-3.5 right-0 h-3.5 w-3.5 bg-bg-sec pointer-events-none">
+          <div class="h-full w-full rounded-br-full bg-bg-base"></div>
+        </div>
+
+        <button
+          type="button"
+          class="flex h-8.5 w-8.5 cursor-pointer items-center justify-center rounded-full bg-bg-sec text-text-main transition-colors hover:bg-primary hover:text-white focus:outline-none focus-visible:outline-none"
+          title="Mục lục bài viết"
+          aria-label="Toggle table of contents"
+          @click="toggleToc"
+        >
+          <svg
+            class="h-4.5 w-4.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            stroke-width="1.75"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+            />
+          </svg>
+        </button>
+
+        <!-- Bottom organic concave curve -->
+        <div class="absolute -bottom-3.5 right-0 h-3.5 w-3.5 bg-bg-sec pointer-events-none">
+          <div class="h-full w-full rounded-tr-full bg-bg-base"></div>
+        </div>
+      </div>
+    </div>
 
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px] xl:hidden"
+      class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity"
       @click="closeToc"
     ></div>
 
     <aside
-      class="fixed right-0 top-0 z-50 h-full w-72 translate-x-full border-l border-border-main bg-bg-base shadow-2xl transition-transform duration-300 ease-out xl:w-80"
-      :class="isOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'"
+      class="fixed right-0 top-0 z-50 flex h-full w-80 max-w-[calc(100vw-32px)] flex-col border-l border-border-main bg-bg-base p-5 transition-all duration-300 ease-out"
+      :class="isOpen ? 'translate-x-0 shadow-2xl' : 'pointer-events-none translate-x-full shadow-none'"
     >
-      <div
-        class="flex items-center justify-between border-b border-border-main px-4 py-4 xl:rounded-t-xl"
-      >
-        <div>
-          <p
-            class="text-xs font-semibold uppercase tracking-[0.18em] text-text-alt"
-          >
-            Table of Contents
-          </p>
-          <p class="mt-1 text-sm text-text-main">Jump to a section</p>
-        </div>
+      <div class="flex items-center justify-between pb-3.5 border-b border-border-main/50">
+        <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-alt/80">Mục lục</span>
         <button
           type="button"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border-main text-text-alt transition-colors hover:border-primary hover:text-primary xl:hidden"
+          class="cursor-pointer text-text-alt transition-colors hover:text-text-main"
           aria-label="Close table of contents"
           @click="closeToc"
         >
           <svg
-            class="h-4 w-4"
+            class="h-4.5 w-4.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -183,62 +204,52 @@ function scrollToHeading(id: string) {
         </button>
       </div>
 
-      <div
-        class="max-h-[calc(100vh-var(--header-height)-2rem)] overflow-y-auto p-3"
-      >
-        <nav
-          class="rounded-xl border border-border-main bg-bg-sec/70 p-3 shadow-sm xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none"
-        >
-          <ol class="space-y-1 text-sm">
-            <li v-for="(link, index) in props.links" :key="link.id">
-              <button
-                type="button"
-                :class="[
-                  'flex w-full items-start gap-3 rounded-lg border-l-2 px-3 py-2 text-left transition-colors',
-                  isItemActive(link)
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-transparent text-text-main hover:border-primary/40 hover:bg-bg-base/70 hover:text-primary',
-                ]"
-                @click="scrollToHeading(link.id)"
-              >
-                <span
-                  class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-[11px] font-semibold text-text-alt"
-                >
-                  {{ String(index + 1).padStart(2, "0") }}
-                </span>
-                <span class="min-w-0 flex-1">
-                  <span class="block text-sm font-medium leading-6">{{
-                    link.text
-                  }}</span>
-                </span>
-              </button>
+      <div class="flex-1 overflow-y-auto pt-3 space-y-1">
+        <div v-for="(link, index) in props.links" :key="link.id" class="space-y-0.5">
+          <button
+            type="button"
+            :class="[
+              'group flex items-baseline gap-2 text-left text-[13px] transition-colors cursor-pointer w-full py-1.5 px-2.5 rounded-lg',
+              isExactActive(link.id)
+                ? 'bg-primary/10 font-semibold text-primary'
+                : isParentActive(link)
+                  ? 'font-semibold text-primary'
+                  : 'text-text-main hover:bg-bg-sec hover:text-primary font-medium',
+            ]"
+            @click="scrollToHeading(link.id)"
+          >
+            <span
+              :class="[
+                'shrink-0 font-medium text-xs',
+                isParentActive(link) ? 'text-primary' : 'text-text-alt/70',
+              ]"
+            >{{ index + 1 }}.</span>
+            <span class="line-clamp-2 leading-snug">{{ cleanText(link.text) }}</span>
+          </button>
 
-              <ol v-if="link.children?.length" class="mt-1 space-y-1 pl-4">
-                <li v-for="child in link.children" :key="child.id">
-                  <button
-                    type="button"
-                    :class="[
-                      'flex w-full items-start gap-3 rounded-lg border-l-2 px-3 py-2 text-left transition-colors',
-                      isItemActive(child)
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-transparent text-text-main/85 hover:border-primary/40 hover:bg-bg-base/70 hover:text-primary',
-                    ]"
-                    @click="scrollToHeading(child.id)"
-                  >
-                    <span
-                      class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-[11px] font-semibold text-text-alt"
-                    >
-                      •
-                    </span>
-                    <span class="min-w-0 flex-1 text-sm leading-6">{{
-                      child.text
-                    }}</span>
-                  </button>
-                </li>
-              </ol>
-            </li>
-          </ol>
-        </nav>
+          <div v-if="link.children?.length" class="space-y-0.5 pl-3">
+            <button
+              v-for="(child, childIdx) in link.children"
+              :key="child.id"
+              type="button"
+              :class="[
+                'group flex items-baseline gap-2 text-left text-[12px] transition-colors cursor-pointer w-full py-1 px-2.5 rounded-lg',
+                isExactActive(child.id)
+                  ? 'bg-primary/10 font-medium text-primary'
+                  : 'text-text-alt hover:bg-bg-sec hover:text-primary font-normal',
+              ]"
+              @click="scrollToHeading(child.id)"
+            >
+              <span
+                :class="[
+                  'shrink-0 text-[11px]',
+                  isExactActive(child.id) ? 'font-semibold text-primary' : 'opacity-70',
+                ]"
+              >{{ index + 1 }}.{{ childIdx + 1 }}</span>
+              <span class="line-clamp-2 leading-relaxed">{{ cleanText(child.text) }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
   </div>

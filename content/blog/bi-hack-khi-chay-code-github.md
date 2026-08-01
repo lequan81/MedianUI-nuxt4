@@ -2,6 +2,15 @@
 title: "Phân tích trường hợp bị hack khi chạy code từ GitHub"
 snippet: "Các bạn lập trình viên hãy cảnh giác trước khi chạy code được tải từ GitHub về máy. Nếu có thể, hãy dùng các môi trường cô lập như Windows Sandbox."
 category: "Security"
+tags:
+  - "Security"
+  - "GitHub"
+  - "Malware"
+  - "Python"
+  - "Windows"
+  - "CyberSecurity"
+  - "J2TEAM"
+  - "DevOps"
 date: "15 Nov 2024"
 author:
   name: "Juno_okyo"

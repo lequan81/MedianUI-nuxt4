@@ -7,7 +7,6 @@ const props = defineProps<{
   src?: string;
   alt?: string;
   width?: string | number;
-  height?: string | number;
 }>();
 
 const isLoaded = ref(false);
@@ -24,39 +23,27 @@ const refinedSrc = computed(() => {
 
   return props.src || "";
 });
-
-const aspectStyle = computed(() => {
-  const width = Number(props.width || 0);
-  const height = Number(props.height || 0);
-
-  if (width > 0 && height > 0) {
-    return { aspectRatio: `${width} / ${height}` };
-  }
-
-  return { aspectRatio: "16 / 9" };
-});
 </script>
 
 <template>
-  <figure
-    class="my-6 overflow-hidden rounded-xl border border-border-main bg-bg-sec shadow-sm"
-  >
-    <div class="relative w-full overflow-hidden" :style="aspectStyle">
+  <figure class="my-10 flex flex-col items-center justify-center w-full">
+    <div class="mx-auto w-full max-w-[80%] sm:max-w-[78%] overflow-hidden rounded-xl border border-border-main bg-bg-sec/40 shadow-xs">
       <div
         v-if="!isLoaded"
-        class="absolute inset-0 animate-pulse bg-bg-alt"
+        class="h-48 w-full animate-pulse bg-bg-sec"
       ></div>
       <img
         :src="refinedSrc"
         :alt="props.alt || ''"
-        :width="props.width"
-        :height="props.height"
-        class="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+        class="h-auto w-full max-w-full rounded-xl object-contain transition-opacity duration-300 block mx-auto"
         :class="isLoaded ? 'opacity-100' : 'opacity-0'"
         loading="lazy"
         decoding="async"
         @load="isLoaded = true"
       />
     </div>
+    <figcaption v-if="props.alt" class="mt-2.5 max-w-[78%] text-center text-xs sm:text-[13px] text-text-alt/85 font-medium leading-normal">
+      {{ props.alt }}
+    </figcaption>
   </figure>
 </template>

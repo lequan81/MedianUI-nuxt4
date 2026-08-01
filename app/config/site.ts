@@ -9,7 +9,9 @@ export type LucideName =
   | 'chevron-right'
   | 'copy'
   | 'external-link'
+  | 'facebook'
   | 'folder'
+  | 'github'
   | 'home'
   | 'layout-grid'
   | 'link'
@@ -25,6 +27,7 @@ export type LucideName =
   | 'sparkles'
   | 'sun'
   | 'tag'
+  | 'twitter'
   | 'user'
   | 'x'
 
@@ -49,6 +52,7 @@ export interface NavItem {
 
 export interface NavSocialIcons {
   label: string
+  to?: string
   href?: string
   icon: LucideName
   external?: boolean

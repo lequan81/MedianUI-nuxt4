@@ -56,47 +56,47 @@ function shareOnTwitter() {
 </script>
 
 <template>
-  <div class="mt-6 border-t border-border-main pt-6">
+  <div class="pt-2">
     <div class="flex flex-wrap items-center gap-2">
-      <span class="mr-1 text-sm text-text-alt">Chia sẻ:</span>
+      <span class="mr-1 text-xs font-medium text-text-alt">Chia sẻ:</span>
 
       <button
         @click="shareOnFacebook"
         type="button"
-        class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-base px-3 py-2 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
         title="Chia sẻ trên Facebook"
       >
-        <AppIcon name="external-link" :size="13" />
+        <AppIcon name="external-link" :size="12" />
         <span>Facebook</span>
       </button>
 
       <button
         @click="shareOnWhatsapp"
         type="button"
-        class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-base px-3 py-2 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
         title="Chia sẻ trên WhatsApp"
       >
-        <AppIcon name="send" :size="13" />
+        <AppIcon name="send" :size="12" />
         <span>WhatsApp</span>
       </button>
 
       <button
         @click="shareOnTwitter"
         type="button"
-        class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-base px-3 py-2 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
         title="Chia sẻ trên X"
       >
-        <AppIcon name="share-2" :size="13" />
+        <AppIcon name="share-2" :size="12" />
         <span>X</span>
       </button>
 
       <button
         @click="copyToClipboard"
         type="button"
-        class="ml-auto inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3 py-2 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        class="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
         :title="copied ? 'Đã sao chép!' : 'Sao chép link'"
       >
-        <AppIcon name="copy" :size="13" />
+        <AppIcon name="copy" :size="12" />
         <span>{{ copied ? "Copied" : "Copy link" }}</span>
       </button>
     </div>

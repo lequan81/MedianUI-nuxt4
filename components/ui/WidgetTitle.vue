@@ -5,12 +5,12 @@ defineProps<{
 </script>
 
 <template>
-  <div class="border-b border-border-main/70 pb-3">
+  <div class="mb-3.5">
     <h3
-      class="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-text-main"
+      class="flex items-center gap-2 text-xs font-semibold tracking-wider text-text-main"
     >
       <span class="whitespace-nowrap">{{ title }}</span>
-      <span class="h-px flex-1 bg-border-main/80"></span>
+      <span class="h-px flex-1 bg-border-main/60"></span>
     </h3>
   </div>
 </template>

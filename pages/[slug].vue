@@ -69,9 +69,7 @@ useSeoMeta({
       </p>
     </header>
 
-    <div
-      class="space-y-8 text-[15px] leading-8 text-text-main [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-6 [&_blockquote]:rounded-xl [&_blockquote]:border-l-2 [&_blockquote]:border-primary/40 [&_blockquote]:bg-bg-sec [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:text-[0.95rem] [&_blockquote]:text-text-alt [&_h1]:scroll-mt-[calc(var(--header-height)+24px)] [&_h1]:mb-5 [&_h1]:mt-12 [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:scroll-mt-[calc(var(--header-height)+24px)] [&_h2]:mb-4 [&_h2]:mt-12 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h3]:scroll-mt-[calc(var(--header-height)+24px)] [&_h3]:mb-3 [&_h3]:mt-10 [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:leading-tight [&_hr]:my-12 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-border-main/80 [&_img]:my-8 [&_img]:w-full [&_img]:rounded-xl [&_li]:mb-2 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-6 [&_p]:leading-8 [&_ul]:my-6 [&_ul]:list-disc [&_ul]:pl-6"
-    >
+    <div class="prose-content">
       <ContentRenderer :value="page" />
     </div>
   </article>

@@ -28,17 +28,19 @@ const { data: post } = await useAsyncData(`post-${slug.value}`, async () => {
 
 const authorInfo = computed(() => {
   const defaultAvatar = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png";
-  const defaultBio = "Founder & Lead Creator tại J2TEAM. Chia sẻ kiến thức lập trình, công nghệ và bảo mật.";
+  const defaultBio = "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân.";
 
   if (post.value?.author && typeof post.value.author === "object") {
     return {
-      name: (post.value.author as any).name || "JUNO_OKYO",
+      name: (post.value.author as any).name || "Lê Quân",
+      handle: (post.value.author as any).handle || "@lequan81",
       avatar: (post.value.author as any).avatar || defaultAvatar,
       bio: (post.value.author as any).bio || defaultBio,
     };
   }
   return {
-    name: typeof post.value?.author === "string" ? post.value.author : "JUNO_OKYO",
+    name: typeof post.value?.author === "string" ? post.value.author : "Lê Quân",
+    handle: "@lequan81",
     avatar: defaultAvatar,
     bio: defaultBio,
   };
@@ -190,8 +192,8 @@ useSeoMeta({
 
         <div class="flex items-center justify-between gap-4 pt-1 text-xs">
           <div class="flex flex-wrap items-center gap-2 text-text-alt">
-            <!-- Author Header với Smart Auto-Positioning Tooltip -->
-            <AuthorTooltip :author="post.author" size="md" />
+            <!-- Author Header cho Lê Quân (@lequan81) -->
+            <AuthorTooltip :author="authorInfo" size="md" />
 
             <span class="text-text-muted">• {{ post.date }}</span>
             <span v-if="post.readTime" class="text-text-muted">• {{ post.readTime }}</span>
@@ -227,8 +229,8 @@ useSeoMeta({
                 +#{{ hiddenPostTags.length }}
               </span>
 
-              <!-- Floating Tooltip Popover -->
-              <div class="tag-tooltip-card absolute left-0 bottom-full mb-2 z-50 flex-col w-60 rounded-xl border border-border-main bg-bg-alt p-3 shadow-2xl backdrop-blur-md">
+              <!-- Floating Tooltip Popover (Shadow md dịu nhẹ) -->
+              <div class="tag-tooltip-card absolute left-0 bottom-full mb-2 z-50 flex-col w-60 rounded-xl border border-border-main bg-bg-alt p-3 shadow-md backdrop-blur-md">
                 <div
                   class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-muted pb-1.5 border-b border-border-subtle mb-2">
                   <span>Thẻ khác</span>
@@ -245,25 +247,25 @@ useSeoMeta({
             </div>
           </div>
 
-          <AuthorBio :author="post.author" class="shrink-0" />
+          <AuthorBio :author="authorInfo" class="shrink-0" />
         </div>
 
         <PostShareBar :title="post.title" />
       </div>
 
-      <!-- Related Posts Standalone Section (Khớp 100% Ảnh 2 Mẫu Gốc Median UI Thanh Thoát Cân Đối) -->
+      <!-- Related Posts Standalone Section -->
       <section v-if="relatedPosts?.length" class="mt-10 pt-4">
         <WidgetTitle title="Bạn có thể thích những bài đăng này" />
 
         <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <article v-for="(item, index) in relatedPosts" :key="item.path"
-            class="group flex items-start justify-between gap-3 pb-5 border-b border-border-subtle cursor-pointer">
+            class="group flex items-start justify-between gap-3.5 pb-5 border-b border-border-subtle cursor-pointer">
             <!-- Số thứ tự 01, 02... -->
-            <span class="w-5 shrink-0 pt-0.5 text-sm font-bold text-text-muted">
+            <span class="w-6 shrink-0 text-sm font-bold text-text-muted leading-snug pt-0.5">
               {{ String(index + 1).padStart(2, "0") }}
             </span>
 
-            <!-- Nội dung chính (Tiêu đề, Mô tả, Ngày tháng) -->
+            <!-- Nội dung chính (Tiêu đề, Mô tả, Category Active Primary & Ngày tháng) -->
             <div class="min-w-0 flex-1 flex flex-col justify-between min-h-20 pr-1">
               <div>
                 <h3
@@ -278,8 +280,17 @@ useSeoMeta({
                 </p>
               </div>
 
-              <div class="mt-2 text-xs font-medium text-text-muted">
-                {{ item.date }}
+              <!-- Meta row: Category text active primary + Date -->
+              <div class="mt-2.5 flex items-center gap-1.5 text-xs">
+                <NuxtLink
+                  :to="`/?category=${encodeURIComponent(item.category)}`"
+                  class="font-semibold text-primary hover:underline truncate max-w-28"
+                  @click.stop
+                >
+                  {{ item.category }}
+                </NuxtLink>
+                <span class="text-text-muted">•</span>
+                <span class="text-text-muted text-[11px] font-medium">{{ item.date }}</span>
               </div>
             </div>
 

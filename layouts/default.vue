@@ -17,6 +17,16 @@ const hasCategoryFilter = computed(() => {
   return Boolean(route.query.category || route.query.categories);
 });
 
+// Tự động ẩn RightSidebar (Popular Posts, Categories) ở các trang tĩnh (About, Contact, TOS, Privacy, FAQ...)
+const isStaticPage = computed(() => {
+  const staticPaths = ["/about", "/contact", "/tos", "/privacy", "/faq", "/disclaimer", "/sitemap"];
+  return staticPaths.includes(route.path);
+});
+
+const hideRightSidebar = computed(() => {
+  return hasCategoryFilter.value || isStaticPage.value;
+});
+
 onMounted(() => {
   appStore.initTheme();
 });
@@ -38,13 +48,13 @@ onMounted(() => {
             <div class="flex justify-center gap-(--content-space)">
               <div
                 class="min-w-0 flex-1"
-                :class="!hasCategoryFilter ? 'xl:w-[calc(100%-var(--sidebar-width)-var(--content-space))]' : 'w-full'"
+                :class="hideRightSidebar ? 'w-full' : 'xl:w-[calc(100%-var(--sidebar-width)-var(--content-space))]'"
               >
                 <slot />
               </div>
 
-              <!-- Tự động ẩn RightSidebar khi đang lọc Danh Mục để tràn viền 4 cột -->
-              <aside v-if="!hasCategoryFilter" class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block">
+              <!-- Tự động ẩn RightSidebar khi đang lọc Danh Mục hoặc ở các Trang Tĩnh -->
+              <aside v-if="!hideRightSidebar" class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block">
                 <div class="sticky top-[calc(var(--header-height)+10px)]">
                   <RightSidebar />
                 </div>

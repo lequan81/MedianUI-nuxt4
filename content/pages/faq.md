@@ -1,17 +1,8 @@
 ---
-title: FAQ
-description: Frequently asked questions about the Median UI blog structure.
+title: Câu Hỏi Thường Gặp (FAQ)
+description: Giải đáp các thắc mắc phổ biến về nội dung, công nghệ và quyền tác giả tại blog lequan81.dev.
 slug: faq
+updatedAt: 01/08/2026
 ---
 
-## Is this a static blog?
-
-It is a Nuxt Content-driven site, so pages and posts are both rendered from markdown.
-
-## Can the pages be extended?
-
-Yes. New markdown pages can be added to the content collection and picked up by the shared route.
-
-## Where do posts live?
-
-Blog posts live under the blog content collection.
+Chào mừng bạn đến với trang **Giải đáp thắc mắc (FAQ)**. Dưới đây là câu trả lời cho những câu hỏi thường gặp nhất của bạn đọc khi truy cập blog cá nhân của Lê Quân.

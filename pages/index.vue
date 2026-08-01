@@ -11,6 +11,7 @@ import { postText } from "~/app/config/site";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
+import { useAuthor } from "~/composables/useAuthor";
 
 const route = useRoute();
 const currentSlide = ref(0);
@@ -23,23 +24,9 @@ const { data: posts } = await useAsyncData("home-posts", () =>
   queryCollection("posts").all(),
 );
 
-// Hỗ trợ thông tin Tác Giả chuẩn cho toàn bộ bài viết
+// Hỗ trợ thông tin Tác Giả tập trung
 function getAuthorInfo(post: any) {
-  const defaultAvatar = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png";
-  const defaultBio = "Founder & Lead Creator tại J2TEAM. Chia sẻ kinh nghiệm công nghệ, thủ thuật và bảo mật.";
-
-  if (post?.author && typeof post.author === "object") {
-    return {
-      name: post.author.name || "JUNO_OKYO",
-      avatar: post.author.avatar || defaultAvatar,
-      bio: post.author.bio || defaultBio,
-    };
-  }
-  return {
-    name: typeof post?.author === "string" ? post.author : "JUNO_OKYO",
-    avatar: defaultAvatar,
-    bio: defaultBio,
-  };
+  return useAuthor(post?.author);
 }
 
 // Hỗ trợ chọn nhiều danh mục dạng phẩy: ?category=Decor,Fitness
@@ -336,9 +323,9 @@ onUnmounted(() => {
               <AppIcon name="chevron-down" :size="12" />
             </button>
 
-            <!-- Dropdown List các danh mục khác -->
+            <!-- Dropdown List các danh mục khác (Shadow-md dịu nhẹ) -->
             <div v-if="isAddCategoryOpen"
-              class="absolute left-0 top-full mt-1.5 z-40 min-w-48 rounded-xl border border-border-main bg-bg-base p-1.5 shadow-2xl space-y-0.5"
+              class="absolute left-0 top-full mt-1.5 z-40 min-w-48 rounded-xl border border-border-main bg-bg-base p-1.5 shadow-md space-y-0.5"
               @click.stop>
               <button v-for="cat in unselectedCategories" :key="cat" type="button"
                 class="w-full text-left rounded-lg px-3 py-1.5 text-xs font-medium text-text-main hover:bg-primary-subtle hover:text-primary transition-colors cursor-pointer flex items-center justify-between group"

@@ -6,9 +6,12 @@ const props = withDefaults(
   defineProps<{
     author?: {
       name?: string;
+      handle?: string;
       avatar?: string;
       bio?: string;
-      socials?: Array<{ label: string; href: string }>;
+      email?: string;
+      website?: string;
+      socials?: Array<{ name?: string; label?: string; icon?: any; href?: string }>;
     } | string;
     size?: "sm" | "md";
   }>(),
@@ -32,16 +35,12 @@ function calculateSmartPosition() {
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
   const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
 
-  // Tooltip height ~220px, width ~300px
   const spaceBelow = vh - rect.bottom;
   const spaceAbove = rect.top;
   const spaceRight = vw - rect.left;
 
-  // Tự động chọn hướng dọc phù hợp với khoảng trống màn hình
-  const vertical = spaceBelow < 240 && spaceAbove > spaceBelow ? "top" : "bottom";
-
-  // Tự động chọn hướng ngang phù hợp để không bị đâm ra ngoài lề màn hình
-  const horizontal = spaceRight < 310 ? "right" : "left";
+  const vertical = spaceBelow < 180 && spaceAbove > spaceBelow ? "top" : "bottom";
+  const horizontal = spaceRight < 270 ? "right" : "left";
 
   computedPos.value = { vertical, horizontal };
 }
@@ -60,23 +59,22 @@ function hideTooltip() {
 
 const defaultAvatar =
   "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png";
-const defaultBio =
-  "Founder & Lead Creator tại J2TEAM. Chia sẻ kiến thức lập trình, công nghệ và bảo mật.";
 
 const authorData = computed(() => {
-  if (props.author && typeof props.author === "object") {
-    return {
-      name: props.author.name || "JUNO_OKYO",
-      avatar: props.author.avatar || defaultAvatar,
-      bio: props.author.bio || defaultBio,
-    };
-  }
   return {
-    name: typeof props.author === "string" ? props.author : "JUNO_OKYO",
+    name: "Lê Quân",
+    handle: "@lequan81",
     avatar: defaultAvatar,
-    bio: defaultBio,
+    bio: "Chia sẻ kiến thức lập trình, công nghệ & thủ thuật cá nhân.",
   };
 });
+
+const authorSocials = [
+  { name: "Facebook", icon: "facebook", href: "https://facebook.com/lequan81" },
+  { name: "GitHub", icon: "github", href: "https://github.com/lequan81" },
+  { name: "Website", icon: "globe", href: "https://lequan81.dev" },
+  { name: "Email", icon: "mail", href: "mailto:contact@lequan81.dev" },
+];
 
 const placementClasses = computed(() => {
   const v = computedPos.value.vertical === "top" ? "bottom-full mb-2" : "top-full mt-2";
@@ -108,40 +106,56 @@ const placementClasses = computed(() => {
       </div>
     </slot>
 
-    <!-- Median UI Author Tooltip Popover Card (Tính vị trí thông minh 100% thời gian thực) -->
+    <!-- Clean Minimalist Median UI Author Tooltip -->
     <Transition name="fade-slide">
       <div
         v-if="isVisible"
         :class="[
-          'absolute z-50 w-72 sm:w-80 rounded-2xl border border-border-main bg-bg-alt p-4 shadow-2xl backdrop-blur-xl text-left pointer-events-auto',
+          'absolute z-50 w-64 rounded-xl border border-border-main bg-bg-alt p-3.5 shadow-xl text-left pointer-events-auto',
           placementClasses
         ]"
         @mouseenter="showTooltip"
         @mouseleave="hideTooltip"
       >
-        <div class="flex items-center gap-3">
+        <!-- Header Info: Avatar (h-9 w-9), Name, Handle -->
+        <div class="flex items-center gap-2.5">
           <img
             :src="authorData.avatar"
             :alt="authorData.name"
-            class="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-primary/50 shadow-md"
+            class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border-main"
           />
           <div class="min-w-0 flex-1">
-            <h4 class="font-bold text-sm text-text-main truncate">
+            <h4 class="font-bold text-sm text-text-main truncate leading-tight">
               {{ authorData.name }}
             </h4>
-            <span class="text-[11px] font-semibold text-primary">Tác giả Median UI</span>
+            <!-- Handle @lequan81 dùng màu tím Primary -->
+            <p class="text-xs text-primary font-semibold mt-0.5">
+              {{ authorData.handle }}
+            </p>
           </div>
         </div>
 
-        <p class="mt-3 text-xs leading-relaxed text-text-alt line-clamp-3">
+        <!-- Clean Bio Line -->
+        <p class="mt-2.5 text-xs leading-relaxed text-text-alt">
           {{ authorData.bio }}
         </p>
 
-        <div class="mt-3.5 pt-2.5 border-t border-border-subtle flex items-center justify-between text-[11px] text-text-muted">
-          <NuxtLink to="/" class="font-medium text-primary hover:underline flex items-center gap-1">
-            <span>Xem bài viết của tác giả</span>
-            <AppIcon name="chevron-right" :size="12" />
-          </NuxtLink>
+        <!-- Social Icons Row (Minimalist Icons Only) -->
+        <div class="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between">
+          <span class="text-[11px] font-medium text-text-muted">Liên hệ:</span>
+          <div class="flex items-center gap-1.5">
+            <a
+              v-for="social in authorSocials"
+              :key="social.name"
+              :href="social.href"
+              target="_blank"
+              rel="noreferrer"
+              :title="social.name"
+              class="flex h-7 w-7 items-center justify-center rounded-lg border border-border-main bg-bg-sec text-text-alt transition-colors hover:border-primary hover:text-primary hover:bg-bg-base"
+            >
+              <AppIcon :name="social.icon" :size="14" />
+            </a>
+          </div>
         </div>
       </div>
     </Transition>
@@ -151,7 +165,7 @@ const placementClasses = computed(() => {
 <style scoped>
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 .fade-slide-enter-from,
 .fade-slide-leave-to {

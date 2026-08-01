@@ -12,7 +12,13 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: "Median UI v1.7 - Nuxt 4",
+      title: "Lê Quân (@lequan81) - Blog Cá Nhân",
+      script: [
+        {
+          innerHTML: `(function(){try{var t=localStorage.getItem('median_theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})()`,
+          type: 'text/javascript',
+        },
+      ],
       link: [
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {

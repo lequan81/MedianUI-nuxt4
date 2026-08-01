@@ -66,7 +66,8 @@ const formattedBioParts = computed(() => {
             </p>
 
             <div v-if="author.socials?.length" class="pt-1.5 flex flex-wrap gap-2">
-              <a v-for="social in author.socials" :key="social.href" :href="social.href" target="_blank" rel="noreferrer"
+              <a v-for="social in author.socials" :key="social.href" :href="social.href" target="_blank"
+                rel="noreferrer"
                 class="inline-flex items-center gap-1.5 rounded-md border border-border-main bg-bg-base px-2 py-0.5 text-[11px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
                 @click.stop>
                 <AppIcon name="external-link" :size="11" />

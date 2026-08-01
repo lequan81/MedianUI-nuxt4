@@ -30,7 +30,10 @@ function toggleDropdown(id: string) {
 
 function isActive(path?: string) {
   if (!path) return false;
-  return path === "/" ? route.path === "/" : route.path.startsWith(path);
+  if (path === "/") {
+    return route.path === "/" || route.path.startsWith("/blog");
+  }
+  return route.path.startsWith(path);
 }
 
 function isChildActive(children?: NavChild[]) {
@@ -83,13 +86,17 @@ watch(
         ]" @mouseenter="openTooltip(item.id)" @mouseleave="closeTooltip(item.id)">
           <template v-if="item.children">
             <button type="button" :aria-expanded="isOpen(item)" :class="[
-              'flex h-10 w-full items-center text-left text-[13.5px] font-medium transition-colors',
+              'relative flex h-10 w-full items-center text-left text-[13.5px] font-medium transition-colors',
               isChildActive(item.children)
                 ? 'text-primary'
                 : 'text-text-main hover:text-primary',
             ]" @click="toggleDropdown(item.id)">
+              <!-- Thanh vạch tím Active dài và mảnh (h-7.5 w-[2px] rounded-l-xs) -->
+              <span v-if="isChildActive(item.children)"
+                class="absolute right-0 top-1/2 h-7.5 w-0.5 -translate-y-1/2 rounded-l-xs bg-primary"></span>
+
               <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
-                <AppIcon :name="item.icon" :size="20" />
+                <AppIcon :name="item.icon" :size="20" :class="isChildActive(item.children) ? 'text-primary' : ''" />
               </span>
               <span v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen"
                 class="flex min-w-0 flex-1 items-center justify-between pr-4">
@@ -118,7 +125,7 @@ watch(
             </ul>
 
             <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
-              class="absolute left-17.5 top-1/2 z-50 w-56 -translate-y-1/2 rounded-xl border border-border-main bg-bg-alt p-2.5 text-xs shadow-2xl">
+              class="absolute left-17.5 top-1/2 z-50 w-56 -translate-y-1/2 rounded-xl border border-border-main bg-bg-alt p-2.5 text-xs shadow-md">
               <div class="sr-only">submenu</div>
               <ul class="space-y-1">
                 <li v-for="child in item.children" :key="child.label">
@@ -147,10 +154,12 @@ watch(
                 ? 'text-primary'
                 : 'text-text-main hover:text-primary',
             ]">
+              <!-- Thanh vạch tím Active dài và mảnh (h-7.5 w-[2px] rounded-l-xs) -->
               <span v-if="isActive(item.to)"
-                class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-primary"></span>
+                class="absolute right-0 top-1/2 h-7.5 w-0.5 -translate-y-1/2 rounded-l-xs bg-primary"></span>
+
               <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
-                <AppIcon :name="item.icon" :size="20" />
+                <AppIcon :name="item.icon" :size="20" :class="isActive(item.to) ? 'text-primary' : ''" />
               </span>
               <span v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen"
                 class="flex min-w-0 items-center gap-2 pr-4">
@@ -173,7 +182,7 @@ watch(
             </a>
 
             <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
-              class="absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-xl">
+              class="absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-md">
               {{ item.label }}
             </div>
           </template>

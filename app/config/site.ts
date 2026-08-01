@@ -12,6 +12,7 @@ export type LucideName =
   | 'facebook'
   | 'folder'
   | 'github'
+  | 'globe'
   | 'home'
   | 'layout-grid'
   | 'link'
@@ -58,12 +59,46 @@ export interface NavSocialIcons {
   external?: boolean
 }
 
+export interface AuthorSocial {
+  name: string
+  icon: LucideName
+  href: string
+}
+
+export interface AuthorConfig {
+  name: string
+  handle: string
+  avatar: string
+  roleBadge: string
+  bio: string
+  email: string
+  website: string
+  socials: AuthorSocial[]
+}
+
+// Cấu hình tập trung cho Tác Giả Blog Cá Nhân
+export const authorConfig: AuthorConfig = {
+  name: "Lê Quân",
+  handle: "@lequan81",
+  avatar: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png",
+  roleBadge: "Blog cá nhân",
+  bio: "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân.",
+  email: "contact@lequan81.dev",
+  website: "https://lequan81.dev",
+  socials: [
+    { name: "Facebook", icon: "facebook", href: "https://facebook.com/lequan81" },
+    { name: "GitHub", icon: "github", href: "https://github.com/lequan81" },
+    { name: "Website", icon: "globe", href: "https://lequan81.dev" },
+    { name: "Email", icon: "mail", href: "mailto:contact@lequan81.dev" },
+  ],
+}
+
 export const siteConfig = {
-  name: "Juno_okyo's Blog",
+  name: "Lê Quân's Blog",
   shortName: 'Median UI',
   description:
-    'A Nuxt-powered Median UI inspired blog focused on security, tools, products, and practical writing.',
-  copyright: '2026. Median UI.',
+    'A Nuxt-powered Median UI inspired personal blog focused on technology, programming, and personal sharing.',
+  copyright: '2026. Lê Quân.',
   searchPlaceholder: 'e.g. Typography',
 }
 
@@ -119,9 +154,9 @@ export const footerLinks: NavChild[] = [
 ]
 
 export const footerSocials: NavSocialIcons[] = [
-  { label: 'Facebook', href: 'https://www.facebook.com/j2team', icon: 'facebook', external: true },
-  { label: 'Twitter', href: 'https://twitter.com/j2team', icon: 'twitter', external: true },
-  { label: 'GitHub', href: 'https://github.com/j2team', icon: 'github', external: true },
+  { label: 'Facebook', href: 'https://www.facebook.com/lequan81', icon: 'facebook', external: true },
+  { label: 'Twitter', href: 'https://twitter.com/lequan81', icon: 'twitter', external: true },
+  { label: 'GitHub', href: 'https://github.com/lequan81', icon: 'github', external: true },
 ]
 
 export const mobileNavItems: NavItem[] = [
@@ -135,7 +170,7 @@ export const postText = {
   pinnedTitle: 'Pinned Post',
   latestTitle: 'Bài đăng mới nhất',
   allStoriesTitle: 'All stories',
-  relatedTitle: 'Related posts',
+  relatedTitle: 'Bạn có thể thích những bài đăng này',
   commentButton: 'Join the discussion',
   shareLabel: 'Chia sẻ:',
 }

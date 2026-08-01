@@ -46,7 +46,7 @@ useSeoMeta({
         class="shrink-0 text-text-alt transition-colors hover:text-primary"
         >Trang chủ</NuxtLink
       >
-      <span class="text-text-alt/60">/</span>
+      <span class="text-text-muted">/</span>
       <span class="truncate font-semibold text-text-main">{{
         page.title
       }}</span>

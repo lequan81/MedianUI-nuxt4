@@ -2,7 +2,7 @@
 title: "Median UI - Blogger Template (Sample Post Product)"
 snippet: "Median UI is designed with the dashboard concept, the template is recommended to be used for news blogs, UI components, and digital stores."
 category: "Product"
-date: "3 years ago"
+date: "2024-11-10"
 author:
   name: "Muhammad Maki"
   avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80"

@@ -39,10 +39,10 @@ const formattedBioParts = computed(() => {
 
 <template>
   <section
-    class="w-fit max-w-full rounded-xl border border-border-main/70 bg-bg-sec/50 px-4 py-3 transition-colors hover:border-border-main">
+    class="w-fit max-w-full rounded-xl border border-border-main bg-bg-subtle px-4 py-3 transition-colors hover:border-primary">
     <div class="flex items-center gap-3">
       <div
-        class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-base ring-1 ring-border-main/80 shadow-2xs">
+        class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-base ring-1 ring-border-main shadow-2xs">
         <img v-if="author.avatar" :src="author.avatar" :alt="author.name" class="h-full w-full object-cover"
           loading="lazy" />
         <AppIcon v-else name="user" :size="18" class="text-text-alt" />

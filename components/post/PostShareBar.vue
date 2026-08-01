@@ -63,7 +63,7 @@ function shareOnTwitter() {
       <button
         @click="shareOnFacebook"
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary cursor-pointer"
         title="Chia sẻ trên Facebook"
       >
         <AppIcon name="external-link" :size="12" />
@@ -73,7 +73,7 @@ function shareOnTwitter() {
       <button
         @click="shareOnWhatsapp"
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary cursor-pointer"
         title="Chia sẻ trên WhatsApp"
       >
         <AppIcon name="send" :size="12" />
@@ -83,21 +83,27 @@ function shareOnTwitter() {
       <button
         @click="shareOnTwitter"
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary cursor-pointer"
         title="Chia sẻ trên X"
       >
         <AppIcon name="share-2" :size="12" />
         <span>X</span>
       </button>
 
+      <!-- Nút Copy Link có đổi icon sang Check khi đã sao chép -->
       <button
         @click="copyToClipboard"
         type="button"
-        class="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
-        :title="copied ? 'Đã sao chép!' : 'Sao chép link'"
+        :class="[
+          'ml-auto inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs',
+          copied
+            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-500 font-bold'
+            : 'border-border-main bg-bg-sec text-text-main hover:border-primary hover:text-primary'
+        ]"
+        :title="copied ? 'Đã sao chép vào bộ nhớ tạm!' : 'Sao chép đường dẫn bài viết'"
       >
-        <AppIcon name="copy" :size="12" />
-        <span>{{ copied ? "Copied" : "Copy link" }}</span>
+        <AppIcon :name="copied ? 'check' : 'copy'" :size="13" />
+        <span>{{ copied ? 'Đã sao chép!' : 'Copy link' }}</span>
       </button>
     </div>
   </div>

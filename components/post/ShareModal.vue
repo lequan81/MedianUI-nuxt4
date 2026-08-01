@@ -109,7 +109,7 @@ const sharePlatforms = [
           class="w-full max-w-lg overflow-hidden rounded-xl border border-border-main bg-bg-base p-6 shadow-2xl sm:p-7"
         >
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b border-border-main/70 pb-4">
+          <div class="flex items-center justify-between border-b border-border-subtle pb-4">
             <h3 class="text-sm font-semibold text-text-main">
               Chia sẻ với ứng dụng khác
             </h3>
@@ -134,7 +134,7 @@ const sharePlatforms = [
                 @click="openShare(item.id)"
               >
                 <div
-                  class="flex h-13 w-13 items-center justify-center rounded-full border border-border-main/60 bg-bg-sec text-text-main transition-all duration-200 group-hover:scale-105 group-hover:border-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-md"
+                  class="flex h-13 w-13 items-center justify-center rounded-full border border-border-subtle bg-bg-sec text-text-main transition-all duration-200 group-hover:scale-105 group-hover:border-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-md"
                 >
                   <AppIcon :name="item.icon" :size="20" />
                 </div>
@@ -148,7 +148,7 @@ const sharePlatforms = [
           </div>
 
           <!-- Modal Copy Link Section -->
-          <div class="border-t border-border-main/70 pt-4">
+          <div class="border-t border-border-subtle pt-4">
             <p class="mb-2 text-xs font-medium text-text-alt">
               or copy link
             </p>

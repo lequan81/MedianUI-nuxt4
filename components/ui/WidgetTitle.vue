@@ -10,7 +10,7 @@ defineProps<{
       class="flex items-center gap-2 text-xs font-semibold tracking-wider text-text-main"
     >
       <span class="whitespace-nowrap">{{ title }}</span>
-      <span class="h-px flex-1 bg-border-main/60"></span>
+      <span class="h-px flex-1 bg-border-subtle"></span>
     </h3>
   </div>
 </template>

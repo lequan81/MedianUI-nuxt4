@@ -79,14 +79,14 @@ watch(
       <ul class="flex w-full list-none flex-col p-0">
         <li v-for="item in sidebarItems" :key="item.id" :class="[
           'group relative w-full py-1',
-          item.dividerAfter ? 'mb-2 border-b border-border-main/60 pb-2' : '',
+          item.dividerAfter ? 'mb-2 border-b border-border-subtle pb-2' : '',
         ]" @mouseenter="openTooltip(item.id)" @mouseleave="closeTooltip(item.id)">
           <template v-if="item.children">
             <button type="button" :aria-expanded="isOpen(item)" :class="[
               'flex h-10 w-full items-center text-left text-[13.5px] font-medium transition-colors',
               isChildActive(item.children)
                 ? 'text-primary'
-                : 'text-text-main/85 hover:text-primary',
+                : 'text-text-main hover:text-primary',
             ]" @click="toggleDropdown(item.id)">
               <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
                 <AppIcon :name="item.icon" :size="20" />
@@ -118,14 +118,16 @@ watch(
             </ul>
 
             <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
-              class="absolute left-17.5 top-1/2 z-50 w-56 -translate-y-1/2 border border-border-main bg-bg-alt p-2.5 text-xs shadow-2xl">
-              <div class="mb-1 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-text-alt">
-                {{ item.label }}
-              </div>
+              class="absolute left-17.5 top-1/2 z-50 w-56 -translate-y-1/2 rounded-xl border border-border-main bg-bg-alt p-2.5 text-xs shadow-2xl">
+              <div class="sr-only">submenu</div>
               <ul class="space-y-1">
                 <li v-for="child in item.children" :key="child.label">
-                  <NuxtLink v-if="child.to" :to="child.to"
-                    class="block truncate rounded-md px-2.5 py-2 font-medium text-text-main transition-colors hover:bg-bg-sec hover:text-primary">
+                  <NuxtLink v-if="child.to" :to="child.to" :class="[
+                    'block truncate rounded-md px-2.5 py-2 font-medium transition-colors',
+                    isActive(child.to)
+                      ? 'bg-primary-subtle text-primary'
+                      : 'text-text-main hover:bg-bg-sec hover:text-primary',
+                  ]">
                     {{ child.label }}
                   </NuxtLink>
                   <a v-else :href="child.href"
@@ -143,9 +145,10 @@ watch(
               'relative flex h-10 w-full items-center text-[13.5px] font-medium transition-colors',
               isActive(item.to)
                 ? 'text-primary'
-                : 'text-text-main/85 hover:text-primary',
+                : 'text-text-main hover:text-primary',
             ]">
-              <span v-if="isActive(item.to)" class="absolute bottom-1 left-0 top-1 w-0.5 rounded-r bg-primary"></span>
+              <span v-if="isActive(item.to)"
+                class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-primary"></span>
               <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
                 <AppIcon :name="item.icon" :size="20" />
               </span>
@@ -157,7 +160,7 @@ watch(
             </NuxtLink>
 
             <a v-else :href="item.href"
-              class="relative flex h-10 w-full items-center text-[13.5px] font-medium text-text-main/85 transition-colors hover:text-primary"
+              class="relative flex h-10 w-full items-center text-[13.5px] font-medium text-text-main transition-colors hover:text-primary"
               :target="item.external ? '_blank' : undefined" :rel="item.external ? 'noreferrer' : undefined">
               <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
                 <AppIcon :name="item.icon" :size="20" />
@@ -170,7 +173,7 @@ watch(
             </a>
 
             <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
-              class="absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-xl">
+              class="absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-xl">
               {{ item.label }}
             </div>
           </template>
@@ -178,20 +181,20 @@ watch(
       </ul>
     </nav>
 
-    <div v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen" class="border-t border-border-main/60 p-3">
+    <div v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen" class="border-t border-border-subtle p-3">
       <div class="p-3 text-center">
-        <p class="text-[12px] font-medium leading-relaxed text-text-main/90">
-          Re-built with <span class="font-semibold text-primary">Nuxt 4</span>
+        <p class="text-[12px] font-medium leading-relaxed text-text-main">
+          Re-built with <span class="font-semibold text-green-400">Nuxt 4</span>
         </p>
-        <p class="mt-0.5 text-[11px] leading-tight text-text-alt/80">
+        <p class="mt-0.5 text-[11px] leading-tight text-text-muted">
           Inspired by
           <a href="https://median-ui.jagodesain.com/"
-            class="font-medium text-text-main underline decoration-primary/40 underline-offset-2 transition-colors hover:text-primary"
+            class="font-medium text-text-main hover:underline decoration-primary underline-offset-2 transition-colors hover:text-primary"
             target="_blank" rel="noreferrer">
             Median UI
           </a>
         </p>
-        <div class="mt-2.5 flex items-center justify-center gap-2.5 border-t border-border-main/40 pt-2.5">
+        <div class="mt-2.5 flex items-center justify-center gap-2.5 pt-2.5">
           <template v-for="link in footerSocials" :key="link.label">
             <NuxtLink v-if="link.to" :to="link.to"
               class="flex h-7 w-7 items-center justify-center rounded-lg border border-border-main bg-bg-base text-text-alt transition-colors hover:border-primary hover:text-primary"

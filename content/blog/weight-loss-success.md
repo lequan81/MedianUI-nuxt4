@@ -2,7 +2,7 @@
 title: "14 Things Your Boss Expects You Know About Weight Loss Success Stories"
 snippet: "What experts are saying about weight loss meal plans. 5 things your boss expects you know about travel vaccines and wellness."
 category: "Fitness"
-date: "3 years ago"
+date: "2024-10-12"
 author:
   name: "Dr. Alex Rivera"
   avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useAppStore } from "~/stores/useAppStore";
 import AppHeader from "~/components/layout/AppHeader.vue";
 import AppSidebar from "~/components/layout/AppSidebar.vue";
@@ -10,6 +11,11 @@ import AppFooter from "~/components/layout/AppFooter.vue";
 import AdBanner from "~/components/ui/AdBanner.vue";
 
 const appStore = useAppStore();
+const route = useRoute();
+
+const hasCategoryFilter = computed(() => {
+  return Boolean(route.query.category || route.query.categories);
+});
 
 onMounted(() => {
   appStore.initTheme();
@@ -17,24 +23,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="top" class="min-h-screen bg-bg-base text-text-main antialiased">
+  <div id="top" class="flex min-h-screen flex-col bg-bg-base text-text-main antialiased">
     <AppHeader />
 
-    <div class="flex min-h-[calc(100vh-var(--header-height))]">
+    <div class="flex flex-1 min-h-[calc(100vh-var(--header-height))]">
       <AppSidebar />
 
-      <div class="min-w-0 flex-1 transition-[margin] duration-200 ease-out"
+      <div class="flex flex-1 flex-col min-w-0 transition-[margin] duration-200 ease-out"
         :class="appStore.isSidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'">
-        <main class="pb-(--content-space)">
+        <main class="flex-1 pb-(--content-space)">
           <div class="mx-auto mt-(--content-padding) max-w-310 px-6 xl:pl-6 xl:pr-14">
             <AdBanner class="mb-(--content-space)" />
 
             <div class="flex justify-center gap-(--content-space)">
-              <div class="min-w-0 flex-1 xl:w-[calc(100%-var(--sidebar-width)-var(--content-space))]">
+              <div
+                class="min-w-0 flex-1"
+                :class="!hasCategoryFilter ? 'xl:w-[calc(100%-var(--sidebar-width)-var(--content-space))]' : 'w-full'"
+              >
                 <slot />
               </div>
 
-              <aside class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block">
+              <!-- Tự động ẩn RightSidebar khi đang lọc Danh Mục để tràn viền 4 cột -->
+              <aside v-if="!hasCategoryFilter" class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block">
                 <div class="sticky top-[calc(var(--header-height)+10px)]">
                   <RightSidebar />
                 </div>

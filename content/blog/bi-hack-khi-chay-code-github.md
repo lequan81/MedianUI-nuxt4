@@ -17,7 +17,7 @@ author:
   avatar: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png"
   bio: "Leader at J2TEAM. Website: https://j2team.dev/"
 readTime: "7 min read"
-comments: 0
+comments: 12
 image: "https://blogger.googleusercontent.com/img/a/AVvXsEioLO-oj5vqy2zFqRRXTelxPMPwQCVA01zE8IDxOBvGi0yuZ2TdUe3TAHw8IpSXV76vpnWuVlLE_nL__FzJbquhh5UHxV-eXamTqi5kMAd-3Xp7OQfPvkoPsqvmU3e4S41ksuYyakbeNm9yQqDNC3bNNyTUBSPhQreyhMB6zEJFaMojXwjYTyE5Jm8Xe1XA=w640-h213"
 pinned: true
 ---

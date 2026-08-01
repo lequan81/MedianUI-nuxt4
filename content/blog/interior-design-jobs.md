@@ -2,7 +2,7 @@
 title: "The 6 Worst Interior Design Jobs In History"
 snippet: "How hollywood got apartment guides all wrong. The complete beginner's guide to interior design ideas. 17 ways living room decors could lead to inspiration."
 category: "Decor"
-date: "3 years ago"
+date: "2024-10-25"
 author:
   name: "Jane Doe"
   avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80"

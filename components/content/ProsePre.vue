@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
+import AppIcon from "~/components/ui/AppIcon.vue";
 
 const props = defineProps<{
   code?: string;
@@ -14,7 +15,7 @@ const copied = ref(false);
 let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
 const languageLabel = computed(() => {
-  if (!props.language) return "Code";
+  if (!props.language) return "CODE";
   return props.language.toUpperCase();
 });
 
@@ -42,34 +43,35 @@ onBeforeUnmount(() => {
 
 <template>
   <figure
-    class="overflow-hidden rounded-xl border border-border-main bg-bg-base"
+    class="my-6 overflow-hidden rounded-xl border border-border-main bg-bg-sec/90 shadow-sm"
   >
     <figcaption
-      class="flex items-center gap-3 border-b border-border-main bg-bg-sec px-4 py-3 text-xs text-text-alt"
+      class="flex items-center justify-between border-b border-border-subtle bg-bg-base/80 px-4 py-2 text-xs"
     >
-      <span
-        class="inline-flex items-center rounded-md border border-border-main bg-bg-base px-2 py-1 font-semibold tracking-[0.12em] text-text-main"
-      >
-        {{ languageLabel }}
-      </span>
-      <span
-        v-if="filenameLabel"
-        class="min-w-0 flex-1 truncate font-medium text-text-main"
-      >
-        {{ filenameLabel }}
-      </span>
+      <div class="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+        <span class="rounded bg-primary-subtle px-2 py-0.5 text-primary">{{ languageLabel }}</span>
+        <span v-if="filenameLabel" class="normal-case text-text-alt">{{ filenameLabel }}</span>
+      </div>
+
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-md border border-border-main bg-bg-base px-2.5 py-1.5 font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+        :class="[
+          'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer',
+          copied
+            ? 'bg-emerald-500/10 text-emerald-500 font-bold'
+            : 'text-text-alt hover:bg-bg-sec hover:text-primary'
+        ]"
+        :title="copied ? 'Đã sao chép!' : 'Sao chép đoạn mã'"
         @click="copyCode"
       >
-        <span>{{ copied ? "Copied" : "Copy" }}</span>
+        <AppIcon :name="copied ? 'check' : 'copy'" :size="13" />
+        <span>{{ copied ? "Copied!" : "Copy" }}</span>
       </button>
     </figcaption>
 
     <pre
       :class="[
-        'overflow-x-auto p-4 font-code text-[13.5px] leading-7 text-text-main',
+        'overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-text-main',
         props.class,
       ]"
     >

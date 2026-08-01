@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useSeoMeta } from "#imports";
 import { getPostImage, getPostPath } from "~/composables/usePosts";
 import { postText } from "~/app/config/site";
@@ -24,6 +24,24 @@ const { data: post } = await useAsyncData(`post-${slug.value}`, async () => {
   return (
     all.find((item: any) => getPostPath(item) === `/blog/${slug.value}`) || null
   );
+});
+
+const authorInfo = computed(() => {
+  const defaultAvatar = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png";
+  const defaultBio = "Founder & Lead Creator tại J2TEAM. Chia sẻ kiến thức lập trình, công nghệ và bảo mật.";
+
+  if (post.value?.author && typeof post.value.author === "object") {
+    return {
+      name: (post.value.author as any).name || "JUNO_OKYO",
+      avatar: (post.value.author as any).avatar || defaultAvatar,
+      bio: (post.value.author as any).bio || defaultBio,
+    };
+  }
+  return {
+    name: typeof post.value?.author === "string" ? post.value.author : "JUNO_OKYO",
+    avatar: defaultAvatar,
+    bio: defaultBio,
+  };
 });
 
 const { data: relatedPosts } = await useAsyncData(
@@ -153,8 +171,8 @@ useSeoMeta({
     <section class="min-w-0 space-y-8">
       <header>
         <nav class="flex min-w-0 items-center gap-1.5 overflow-hidden text-sm text-text-alt mb-5">
-          <NuxtLink to="/" class="shrink-0 text-text-alt/70 transition-colors hover:text-primary">Trang chủ</NuxtLink>
-          <span class="text-text-alt/50">/</span>
+          <NuxtLink to="/" class="shrink-0 text-text-muted transition-colors hover:text-primary">Trang chủ</NuxtLink>
+          <span class="text-text-muted">/</span>
           <NuxtLink :to="`/?category=${encodeURIComponent(post.category)}`"
             class="truncate font-semibold text-text-main transition-colors hover:text-primary">
             {{ post.category }}
@@ -166,23 +184,44 @@ useSeoMeta({
           {{ post.title }}
         </h1>
 
-        <p v-if="post.snippet" class="max-w-208 text-sm md:text-base leading-relaxed text-text-alt/80 mb-6">
+        <p v-if="post.snippet" class="max-w-208 text-sm md:text-base leading-relaxed text-text-muted mb-6">
           {{ post.snippet }}
         </p>
 
         <div class="flex items-center justify-between gap-4 pt-1 text-xs">
           <div class="flex flex-wrap items-center gap-2 text-text-alt">
-            <img v-if="post.author?.avatar" :src="post.author.avatar" :alt="post.author.name"
-              class="h-7 w-7 rounded-full object-cover ring-1 ring-border-main" loading="lazy" />
-            <span v-else
-              class="flex h-7 w-7 items-center justify-center rounded-full bg-bg-sec ring-1 ring-border-main">
-              <AppIcon name="user" :size="13" />
-            </span>
-            <span class="font-semibold uppercase tracking-wider text-text-main ml-0.5">
-              {{ post.author?.name }}
-            </span>
-            <span class="text-text-alt/70">• {{ post.date }}</span>
-            <span v-if="post.readTime" class="text-text-alt/70">• {{ post.readTime }}</span>
+            <!-- Author Header với Hover Tooltip -->
+            <div class="author-tooltip-trigger flex items-center gap-2 cursor-pointer">
+              <img :src="authorInfo.avatar" :alt="authorInfo.name"
+                class="h-7 w-7 rounded-full object-cover ring-1 ring-border-main" loading="lazy" />
+              <span
+                class="font-semibold uppercase tracking-wider text-text-main ml-0.5 hover:text-primary transition-colors">
+                {{ authorInfo.name }}
+              </span>
+
+              <!-- Tooltip Popover Card khi Hover Author Header -->
+              <div
+                class="author-tooltip-card absolute top-full left-0 mt-2 z-50 flex-col w-72 rounded-xl border border-border-main bg-bg-alt p-4 shadow-2xl backdrop-blur-md text-left">
+                <div class="flex items-center gap-3">
+                  <img :src="authorInfo.avatar" :alt="authorInfo.name"
+                    class="w-11 h-11 shrink-0 rounded-full object-cover ring-2 ring-primary/40 shadow-sm" />
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-sm text-text-main truncate">{{ authorInfo.name }}</h4>
+                    <span class="text-[11px] font-semibold text-primary">Tác giả bài viết</span>
+                  </div>
+                </div>
+                <p class="mt-2.5 text-xs leading-relaxed text-text-alt">
+                  {{ authorInfo.bio }}
+                </p>
+                <div
+                  class="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between text-[11px] text-text-muted">
+                  <span class="font-medium text-primary hover:underline">Bài viết từ tác giả →</span>
+                </div>
+              </div>
+            </div>
+
+            <span class="text-text-muted">• {{ post.date }}</span>
+            <span v-if="post.readTime" class="text-text-muted">• {{ post.readTime }}</span>
           </div>
 
           <button type="button"
@@ -200,7 +239,7 @@ useSeoMeta({
 
         <!-- Post Footer Meta Row: Hashtags (Left) & Author Bio (Right) -->
         <div
-          class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pt-4 border-t border-border-main/50">
+          class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pt-4 border-t border-border-subtle">
           <div v-if="allPostTags.length" class="flex flex-wrap items-center gap-2 min-w-0 flex-1 pt-0.5">
             <NuxtLink v-for="tag in visiblePostTags" :key="tag" :to="`/?category=${encodeURIComponent(tag)}`"
               class="inline-flex max-w-35 items-center gap-1.5 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs">
@@ -211,7 +250,7 @@ useSeoMeta({
             <!-- +N Hover Tooltip Pill & Interactive Popover -->
             <div v-if="isOverflowingTags" class="relative group/more inline-block">
               <span
-                class="inline-flex items-center gap-1 rounded-lg border border-border-main/80 bg-bg-sec px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:border-primary shadow-2xs cursor-pointer">
+                class="inline-flex items-center gap-1 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:border-primary shadow-2xs cursor-pointer">
                 +#{{ hiddenPostTags.length }}
               </span>
 
@@ -219,13 +258,13 @@ useSeoMeta({
               <div class="absolute left-0 bottom-full pb-2 hidden group-hover/more:block z-50 pointer-events-auto">
                 <div class="w-56 p-2.5 rounded-xl border border-border-main bg-bg-base shadow-2xl space-y-1.5">
                   <div
-                    class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-alt/60 pb-1 border-b border-border-main/40">
+                    class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-muted pb-1 border-b border-border-subtle">
                     <span>Thẻ khác</span>
                     <span class="text-primary font-bold">+{{ hiddenPostTags.length }}</span>
                   </div>
                   <div class="flex flex-wrap gap-1.5 pt-0.5">
                     <NuxtLink v-for="tag in hiddenPostTags" :key="tag" :to="`/?category=${encodeURIComponent(tag)}`"
-                      class="inline-flex items-center gap-1 rounded-md border border-border-main/80 bg-bg-sec px-2 py-1 text-[11.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary/5">
+                      class="inline-flex items-center gap-1 rounded-md border border-border-main bg-bg-sec px-2 py-1 text-[11.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary-subtle">
                       <span class="text-primary font-bold">#</span>
                       <span>{{ tag }}</span>
                     </NuxtLink>
@@ -247,7 +286,7 @@ useSeoMeta({
 
         <div class="grid gap-3.5 sm:grid-cols-2">
           <article v-for="(item, index) in relatedPosts" :key="item.path"
-            class="group overflow-hidden rounded-xl border border-border-main/70 bg-bg-sec/40 p-3.5 transition-colors hover:border-primary/60 hover:bg-bg-sec/70">
+            class="group overflow-hidden rounded-xl border border-border-main bg-bg-subtle p-3.5 transition-colors hover:border-primary hover:bg-bg-sec">
             <NuxtLink :to="getPostPath(item)" class="grid h-full grid-cols-[minmax(0,1fr)_84px] gap-3">
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 text-[11px] text-text-alt">
@@ -257,11 +296,11 @@ useSeoMeta({
                 </div>
 
                 <h3
-                  class="mt-1.5 line-clamp-2 text-xs font-semibold leading-snug text-text-main transition-colors group-hover:text-primary">
+                  class="mt-1.5 line-clamp-2 text-sm font-semibold leading-snug text-text-main transition-colors group-hover:text-primary">
                   {{ item.title }}
                 </h3>
 
-                <p v-if="item.snippet" class="mt-1 line-clamp-2 text-[11px] leading-relaxed text-text-alt/80">
+                <p v-if="item.snippet" class="mt-2 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
                   {{ item.snippet }}
                 </p>
               </div>

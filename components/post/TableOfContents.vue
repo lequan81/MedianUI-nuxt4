@@ -37,7 +37,9 @@ function updateActiveHeading() {
       id: link.id,
       el: document.getElementById(link.id),
     }))
-    .filter((item): item is { id: string; el: HTMLElement } => Boolean(item.el));
+    .filter((item): item is { id: string; el: HTMLElement } =>
+      Boolean(item.el),
+    );
 
   if (!headings.length) return;
 
@@ -82,11 +84,15 @@ function onScroll() {
   }
 }
 
-watch(flatLinks, () => {
-  if (typeof window !== "undefined") {
-    setTimeout(updateActiveHeading, 100);
-  }
-}, { immediate: true });
+watch(
+  flatLinks,
+  () => {
+    if (typeof window !== "undefined") {
+      setTimeout(updateActiveHeading, 100);
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
   if (typeof window !== "undefined") {
@@ -141,25 +147,11 @@ function scrollToHeading(id: string) {
           <div class="h-full w-full rounded-br-full bg-bg-base"></div>
         </div>
 
-        <button
-          type="button"
+        <button type="button"
           class="flex h-8.5 w-8.5 cursor-pointer items-center justify-center rounded-full bg-bg-sec text-text-main transition-colors hover:bg-primary hover:text-white focus:outline-none focus-visible:outline-none"
-          title="Mục lục bài viết"
-          aria-label="Toggle table of contents"
-          @click="toggleToc"
-        >
-          <svg
-            class="h-4.5 w-4.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            stroke-width="1.75"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-            />
+          title="Mục lục bài viết" aria-label="Toggle table of contents" @click="toggleToc">
+          <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
 
@@ -170,83 +162,60 @@ function scrollToHeading(id: string) {
       </div>
     </div>
 
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity"
-      @click="closeToc"
-    ></div>
+    <div v-if="isOpen" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity" @click="closeToc">
+    </div>
 
     <aside
       class="fixed right-0 top-0 z-50 flex h-full w-80 max-w-[calc(100vw-32px)] flex-col border-l border-border-main bg-bg-base p-5 transition-all duration-300 ease-out"
-      :class="isOpen ? 'translate-x-0 shadow-2xl' : 'pointer-events-none translate-x-full shadow-none'"
-    >
-      <div class="flex items-center justify-between pb-3.5 border-b border-border-main/50">
-        <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-alt/80">Mục lục</span>
-        <button
-          type="button"
-          class="cursor-pointer text-text-alt transition-colors hover:text-text-main"
-          aria-label="Close table of contents"
-          @click="closeToc"
-        >
-          <svg
-            class="h-4.5 w-4.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
+      :class="isOpen
+        ? 'translate-x-0 shadow-2xl'
+        : 'pointer-events-none translate-x-full shadow-none'
+        ">
+      <div class="flex items-center justify-between pb-3.5 border-b border-border-subtle">
+        <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">Mục lục</span>
+        <button type="button" class="cursor-pointer text-text-alt transition-colors hover:text-text-main"
+          aria-label="Close table of contents" @click="closeToc">
+          <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
       <div class="flex-1 overflow-y-auto pt-3 space-y-1">
         <div v-for="(link, index) in props.links" :key="link.id" class="space-y-0.5">
-          <button
-            type="button"
-            :class="[
-              'group flex items-baseline gap-2 text-left text-[13px] transition-colors cursor-pointer w-full py-1.5 px-2.5 rounded-lg',
-              isExactActive(link.id)
-                ? 'bg-primary/10 font-semibold text-primary'
-                : isParentActive(link)
-                  ? 'font-semibold text-primary'
-                  : 'text-text-main hover:bg-bg-sec hover:text-primary font-medium',
-            ]"
-            @click="scrollToHeading(link.id)"
-          >
-            <span
-              :class="[
-                'shrink-0 font-medium text-xs',
-                isParentActive(link) ? 'text-primary' : 'text-text-alt/70',
-              ]"
-            >{{ index + 1 }}.</span>
-            <span class="line-clamp-2 leading-snug">{{ cleanText(link.text) }}</span>
+          <button type="button" :class="[
+            'group flex items-baseline gap-2 text-left text-[13px] transition-colors cursor-pointer w-full py-1.5 px-2.5 rounded',
+            isExactActive(link.id)
+              ? 'bg-primary-subtle font-semibold text-primary'
+              : isParentActive(link)
+                ? 'font-semibold text-primary'
+                : 'text-text-main hover:bg-bg-sec hover:text-primary font-medium',
+          ]" @click="scrollToHeading(link.id)">
+            <span :class="[
+              'shrink-0 font-medium text-xs',
+              isParentActive(link) ? 'text-primary' : 'text-text-muted',
+            ]">{{ index + 1 }}.</span>
+            <span class="line-clamp-2 leading-snug">{{
+              cleanText(link.text)
+            }}</span>
           </button>
 
           <div v-if="link.children?.length" class="space-y-0.5 pl-3">
-            <button
-              v-for="(child, childIdx) in link.children"
-              :key="child.id"
-              type="button"
-              :class="[
-                'group flex items-baseline gap-2 text-left text-[12px] transition-colors cursor-pointer w-full py-1 px-2.5 rounded-lg',
+            <button v-for="(child, childIdx) in link.children" :key="child.id" type="button" :class="[
+              'group flex items-baseline gap-2 text-left text-[12px] transition-colors cursor-pointer w-full py-1 px-2.5 rounded',
+              isExactActive(child.id)
+                ? 'bg-primary-subtle font-medium text-primary'
+                : 'text-text-alt hover:bg-bg-sec hover:text-primary font-normal',
+            ]" @click="scrollToHeading(child.id)">
+              <span :class="[
+                'shrink-0 text-[11px]',
                 isExactActive(child.id)
-                  ? 'bg-primary/10 font-medium text-primary'
-                  : 'text-text-alt hover:bg-bg-sec hover:text-primary font-normal',
-              ]"
-              @click="scrollToHeading(child.id)"
-            >
-              <span
-                :class="[
-                  'shrink-0 text-[11px]',
-                  isExactActive(child.id) ? 'font-semibold text-primary' : 'opacity-70',
-                ]"
-              >{{ index + 1 }}.{{ childIdx + 1 }}</span>
-              <span class="line-clamp-2 leading-relaxed">{{ cleanText(child.text) }}</span>
+                  ? 'font-semibold text-primary'
+                  : 'opacity-70',
+              ]">{{ index + 1 }}.{{ childIdx + 1 }}</span>
+              <span class="line-clamp-2 leading-relaxed">{{
+                cleanText(child.text)
+              }}</span>
             </button>
           </div>
         </div>

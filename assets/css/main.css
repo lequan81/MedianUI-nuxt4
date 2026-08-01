@@ -22,6 +22,13 @@
   --color-text-alt: var(--foreground-muted);
   --color-border-main: var(--border);
 
+  /* Solid Semantic Tokens để triệt tiêu vạch mờ & lẫn màu */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-bg-subtle: var(--surface-subtle);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-text-muted: var(--foreground-muted-solid);
+
   /* XML exact layout dimensions */
   --header-height: 65px;
   --side-width: 75px;
@@ -64,6 +71,13 @@
   --foreground: #2d323c;
   --foreground-muted: #5f6570;
   --border: #e8eaee;
+
+  /* Solid Tokens cho Light Mode */
+  --border-subtle: #f0f2f5;
+  --border-strong: #d0d4dc;
+  --surface-subtle: #f8f9fa;
+  --primary-subtle: #eef0ff;
+  --foreground-muted-solid: #6b7280;
 }
 
 /* Dark Mode (when .dark class is active) */
@@ -77,6 +91,13 @@ html.dark,
   --foreground: #dbe4f1;
   --foreground-muted: rgba(219, 228, 241, 0.72);
   --border: rgba(219, 228, 241, 0.08);
+
+  /* Solid Tokens cho Dark Mode */
+  --border-subtle: #252b36;
+  --border-strong: #333b4a;
+  --surface-subtle: #1e222b;
+  --primary-subtle: #24274c;
+  --foreground-muted-solid: #9ca3af;
 }
 
 /* Heading Base Normalization */

@@ -153,3 +153,23 @@ html.dark *,
 .dark * {
   scrollbar-color: #3a3f4b var(--surface);
 }
+
+/* ===== Tag Hover Tooltip ===== */
+.tag-tooltip-trigger {
+  position: relative;
+}
+
+.tag-tooltip-trigger .tag-tooltip-card {
+  display: none !important;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.tag-tooltip-trigger:hover .tag-tooltip-card {
+  display: flex !important;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}

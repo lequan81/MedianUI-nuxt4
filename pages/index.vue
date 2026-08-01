@@ -10,6 +10,7 @@ import {
 import { postText } from "~/app/config/site";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import WidgetTitle from "~/components/ui/WidgetTitle.vue";
+import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 
 const route = useRoute();
 const currentSlide = ref(0);
@@ -401,41 +402,22 @@ onUnmounted(() => {
               </p>
             </div>
 
-            <!-- Footer bài viết chứa Author info có Tooltip Bio khi Hover -->
+            <!-- Footer bài viết chứa Author info có Tooltip & Date -->
             <div class="mt-3 flex items-center justify-between text-xs text-text-alt pt-2 border-t border-border-subtle">
-              <div class="author-tooltip-trigger flex items-center gap-1.5 min-w-0 cursor-pointer">
-                <img
-                  :src="getAuthorInfo(post).avatar"
-                  :alt="getAuthorInfo(post).name"
-                  class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-border-main"
-                />
-                <span class="font-medium text-text-main truncate max-w-24 hover:text-primary transition-colors text-[11px]">
-                  {{ getAuthorInfo(post).name }}
-                </span>
-
-                <!-- Tooltip Popover Card khi Hover Author -->
-                <div
-                  class="author-tooltip-card absolute bottom-full left-0 mb-2.5 z-50 flex-col w-64 rounded-xl border border-border-main bg-bg-alt p-3.5 shadow-2xl backdrop-blur-md text-left"
-                >
-                  <div class="flex items-center gap-3">
+              <AuthorTooltip :author="getAuthorInfo(post)" size="sm">
+                <template #default="{ author }">
+                  <div class="flex items-center gap-1.5 min-w-0">
                     <img
-                      :src="getAuthorInfo(post).avatar"
-                      :alt="getAuthorInfo(post).name"
-                      class="w-10 h-10 shrink-0 rounded-full object-cover ring-2 ring-primary/40 shadow-sm"
+                      :src="author.avatar"
+                      :alt="author.name"
+                      class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-border-main"
                     />
-                    <div class="min-w-0">
-                      <h4 class="font-bold text-xs text-text-main truncate">{{ getAuthorInfo(post).name }}</h4>
-                      <span class="text-[10px] font-semibold text-primary">Tác giả bài viết</span>
-                    </div>
+                    <span class="font-medium text-text-main truncate max-w-24 text-[11px] hover:text-primary transition-colors">
+                      {{ author.name }}
+                    </span>
                   </div>
-                  <p class="mt-2 text-[11px] leading-relaxed text-text-alt line-clamp-3">
-                    {{ getAuthorInfo(post).bio }}
-                  </p>
-                  <div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between text-[10px] text-text-muted">
-                    <span class="font-medium text-primary hover:underline">Xem thêm bài viết →</span>
-                  </div>
-                </div>
-              </div>
+                </template>
+              </AuthorTooltip>
 
               <div class="flex items-center gap-1.5 text-[11px]">
                 <span>{{ post.date }}</span>

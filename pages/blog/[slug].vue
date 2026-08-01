@@ -2,9 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useSeoMeta } from "#imports";
 import { getPostImage, getPostPath } from "~/composables/usePosts";
-import { postText } from "~/app/config/site";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import AuthorBio from "~/components/post/AuthorBio.vue";
+import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 import PostShareBar from "~/components/post/PostShareBar.vue";
 import ShareModal from "~/components/post/ShareModal.vue";
 import TableOfContents from "~/components/post/TableOfContents.vue";
@@ -190,35 +190,8 @@ useSeoMeta({
 
         <div class="flex items-center justify-between gap-4 pt-1 text-xs">
           <div class="flex flex-wrap items-center gap-2 text-text-alt">
-            <!-- Author Header với Hover Tooltip -->
-            <div class="author-tooltip-trigger flex items-center gap-2 cursor-pointer">
-              <img :src="authorInfo.avatar" :alt="authorInfo.name"
-                class="h-7 w-7 rounded-full object-cover ring-1 ring-border-main" loading="lazy" />
-              <span
-                class="font-semibold uppercase tracking-wider text-text-main ml-0.5 hover:text-primary transition-colors">
-                {{ authorInfo.name }}
-              </span>
-
-              <!-- Tooltip Popover Card khi Hover Author Header -->
-              <div
-                class="author-tooltip-card absolute top-full left-0 mt-2 z-50 flex-col w-72 rounded-xl border border-border-main bg-bg-alt p-4 shadow-2xl backdrop-blur-md text-left">
-                <div class="flex items-center gap-3">
-                  <img :src="authorInfo.avatar" :alt="authorInfo.name"
-                    class="w-11 h-11 shrink-0 rounded-full object-cover ring-2 ring-primary/40 shadow-sm" />
-                  <div class="min-w-0">
-                    <h4 class="font-bold text-sm text-text-main truncate">{{ authorInfo.name }}</h4>
-                    <span class="text-[11px] font-semibold text-primary">Tác giả bài viết</span>
-                  </div>
-                </div>
-                <p class="mt-2.5 text-xs leading-relaxed text-text-alt">
-                  {{ authorInfo.bio }}
-                </p>
-                <div
-                  class="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between text-[11px] text-text-muted">
-                  <span class="font-medium text-primary hover:underline">Bài viết từ tác giả →</span>
-                </div>
-              </div>
-            </div>
+            <!-- Author Header với Smart Auto-Positioning Tooltip -->
+            <AuthorTooltip :author="post.author" size="md" />
 
             <span class="text-text-muted">• {{ post.date }}</span>
             <span v-if="post.readTime" class="text-text-muted">• {{ post.readTime }}</span>
@@ -248,27 +221,25 @@ useSeoMeta({
             </NuxtLink>
 
             <!-- +N Hover Tooltip Pill & Interactive Popover -->
-            <div v-if="isOverflowingTags" class="relative group/more inline-block">
+            <div v-if="isOverflowingTags" class="tag-tooltip-trigger inline-block">
               <span
                 class="inline-flex items-center gap-1 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:border-primary shadow-2xs cursor-pointer">
                 +#{{ hiddenPostTags.length }}
               </span>
 
               <!-- Floating Tooltip Popover -->
-              <div class="absolute left-0 bottom-full pb-2 hidden group-hover/more:block z-50 pointer-events-auto">
-                <div class="w-56 p-2.5 rounded-xl border border-border-main bg-bg-base shadow-2xl space-y-1.5">
-                  <div
-                    class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-muted pb-1 border-b border-border-subtle">
-                    <span>Thẻ khác</span>
-                    <span class="text-primary font-bold">+{{ hiddenPostTags.length }}</span>
-                  </div>
-                  <div class="flex flex-wrap gap-1.5 pt-0.5">
-                    <NuxtLink v-for="tag in hiddenPostTags" :key="tag" :to="`/?category=${encodeURIComponent(tag)}`"
-                      class="inline-flex items-center gap-1 rounded-md border border-border-main bg-bg-sec px-2 py-1 text-[11.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary-subtle">
-                      <span class="text-primary font-bold">#</span>
-                      <span>{{ tag }}</span>
-                    </NuxtLink>
-                  </div>
+              <div class="tag-tooltip-card absolute left-0 bottom-full mb-2 z-50 flex-col w-60 rounded-xl border border-border-main bg-bg-alt p-3 shadow-2xl backdrop-blur-md">
+                <div
+                  class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-muted pb-1.5 border-b border-border-subtle mb-2">
+                  <span>Thẻ khác</span>
+                  <span class="text-primary font-bold">+{{ hiddenPostTags.length }}</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <NuxtLink v-for="tag in hiddenPostTags" :key="tag" :to="`/?category=${encodeURIComponent(tag)}`"
+                    class="inline-flex items-center gap-1 rounded-md border border-border-main bg-bg-sec px-2 py-1 text-[11.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary-subtle">
+                    <span class="text-primary font-bold">#</span>
+                    <span>{{ tag }}</span>
+                  </NuxtLink>
                 </div>
               </div>
             </div>
@@ -280,35 +251,45 @@ useSeoMeta({
         <PostShareBar :title="post.title" />
       </div>
 
-      <!-- Related Posts Standalone Section -->
-      <section v-if="relatedPosts?.length" class="mt-6">
-        <WidgetTitle :title="postText.relatedTitle" />
+      <!-- Related Posts Standalone Section (Khớp 100% Ảnh 2 Mẫu Gốc Median UI Thanh Thoát Cân Đối) -->
+      <section v-if="relatedPosts?.length" class="mt-10 pt-4">
+        <WidgetTitle title="Bạn có thể thích những bài đăng này" />
 
-        <div class="grid gap-3.5 sm:grid-cols-2">
+        <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <article v-for="(item, index) in relatedPosts" :key="item.path"
-            class="group overflow-hidden rounded-xl border border-border-main bg-bg-subtle p-3.5 transition-colors hover:border-primary hover:bg-bg-sec">
-            <NuxtLink :to="getPostPath(item)" class="grid h-full grid-cols-[minmax(0,1fr)_84px] gap-3">
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5 text-[11px] text-text-alt">
-                  <span class="font-bold text-primary">{{ String(index + 1).padStart(2, "0") }}</span>
-                  <span>•</span>
-                  <span>{{ item.date }}</span>
-                </div>
+            class="group flex items-start justify-between gap-3 pb-5 border-b border-border-subtle cursor-pointer">
+            <!-- Số thứ tự 01, 02... -->
+            <span class="w-5 shrink-0 pt-0.5 text-sm font-bold text-text-muted">
+              {{ String(index + 1).padStart(2, "0") }}
+            </span>
 
+            <!-- Nội dung chính (Tiêu đề, Mô tả, Ngày tháng) -->
+            <div class="min-w-0 flex-1 flex flex-col justify-between min-h-20 pr-1">
+              <div>
                 <h3
-                  class="mt-1.5 line-clamp-2 text-sm font-semibold leading-snug text-text-main transition-colors group-hover:text-primary">
-                  {{ item.title }}
+                  class="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-text-main transition-colors group-hover:text-primary">
+                  <NuxtLink :to="getPostPath(item)">
+                    {{ item.title }}
+                  </NuxtLink>
                 </h3>
 
-                <p v-if="item.snippet" class="mt-2 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
+                <p v-if="item.snippet" class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-alt font-normal">
                   {{ item.snippet }}
                 </p>
               </div>
 
-              <div class="h-20 overflow-hidden rounded-lg bg-bg-sec">
-                <img :src="getPostImage(item)" :alt="item.title"
-                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  loading="lazy" />
+              <div class="mt-2 text-xs font-medium text-text-muted">
+                {{ item.date }}
+              </div>
+            </div>
+
+            <!-- Khung Ảnh Vuông ở bên phải -->
+            <NuxtLink :to="getPostPath(item)" class="relative h-20 w-20 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
+              <img v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy" />
+              <div v-else class="flex h-full w-full items-center justify-center text-[10px] text-text-muted">
+                No image
               </div>
             </NuxtLink>
           </article>

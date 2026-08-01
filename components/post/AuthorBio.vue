@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import AppIcon from "~/components/ui/AppIcon.vue";
+import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 
 const props = defineProps<{
   author: {
@@ -38,38 +39,43 @@ const formattedBioParts = computed(() => {
 </script>
 
 <template>
-  <section
-    class="w-fit max-w-full rounded-xl border border-border-main bg-bg-subtle px-4 py-3 transition-colors hover:border-primary">
-    <div class="flex items-center gap-3">
-      <div
-        class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-base ring-1 ring-border-main shadow-2xs">
-        <img v-if="author.avatar" :src="author.avatar" :alt="author.name" class="h-full w-full object-cover"
-          loading="lazy" />
-        <AppIcon v-else name="user" :size="18" class="text-text-alt" />
-      </div>
+  <AuthorTooltip :author="author" size="md">
+    <template #default>
+      <section
+        class="w-fit max-w-full rounded-xl border border-border-main bg-bg-subtle px-4 py-3 transition-colors hover:border-primary cursor-pointer shadow-2xs">
+        <div class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-base ring-1 ring-border-main shadow-2xs">
+            <img v-if="author.avatar" :src="author.avatar" :alt="author.name" class="h-full w-full object-cover"
+              loading="lazy" />
+            <AppIcon v-else name="user" :size="18" class="text-text-alt" />
+          </div>
 
-      <div class="min-w-0">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-text-main">
-          {{ author.name }}
-        </h2>
-        <p v-if="author.bio" class="mt-0.5 text-xs leading-relaxed text-text-alt">
-          <template v-for="(part, i) in formattedBioParts" :key="i">
-            <a v-if="part.isUrl" :href="part.url" target="_blank" rel="noreferrer"
-              class="font-medium text-primary hover:underline">
-              {{ part.text }}
-            </a>
-            <span v-else>{{ part.text }}</span>
-          </template>
-        </p>
+          <div class="min-w-0">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-text-main">
+              {{ author.name }}
+            </h2>
+            <p v-if="author.bio" class="mt-0.5 text-xs leading-relaxed text-text-alt">
+              <template v-for="(part, i) in formattedBioParts" :key="i">
+                <a v-if="part.isUrl" :href="part.url" target="_blank" rel="noreferrer"
+                  class="font-medium text-primary hover:underline" @click.stop>
+                  {{ part.text }}
+                </a>
+                <span v-else>{{ part.text }}</span>
+              </template>
+            </p>
 
-        <div v-if="author.socials?.length" class="pt-1.5 flex flex-wrap gap-2">
-          <a v-for="social in author.socials" :key="social.href" :href="social.href" target="_blank" rel="noreferrer"
-            class="inline-flex items-center gap-1.5 rounded-md border border-border-main bg-bg-base px-2 py-0.5 text-[11px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary">
-            <AppIcon name="external-link" :size="11" />
-            <span>{{ social.label }}</span>
-          </a>
+            <div v-if="author.socials?.length" class="pt-1.5 flex flex-wrap gap-2">
+              <a v-for="social in author.socials" :key="social.href" :href="social.href" target="_blank" rel="noreferrer"
+                class="inline-flex items-center gap-1.5 rounded-md border border-border-main bg-bg-base px-2 py-0.5 text-[11px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary"
+                @click.stop>
+                <AppIcon name="external-link" :size="11" />
+                <span>{{ social.label }}</span>
+              </a>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </section>
+      </section>
+    </template>
+  </AuthorTooltip>
 </template>

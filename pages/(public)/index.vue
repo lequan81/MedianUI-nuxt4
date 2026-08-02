@@ -15,7 +15,8 @@ import { useAuthor } from "~/composables/useAuthor";
 
 const route = useRoute();
 const currentSlide = ref(0);
-const pageSize = 20; // 20 bài viết 1 trang chuẩn yêu cầu
+const pageSize = 8; // 8 bài viết 1 trang khi lọc
+const displayCount = ref(6); // 6 bài ban đầu ở Trang Chủ, nhấn "Tải thêm bài đăng" để xem tiếp
 const currentPage = ref(1);
 const isAddCategoryOpen = ref(false);
 const dropdownContainer = ref<HTMLElement | null>(null);
@@ -82,19 +83,30 @@ const storyPosts = computed(() => {
   return filteredPosts.value.filter((post: any) => !post.pinned);
 });
 
-// Phân trang chuẩn: 20 bài 1 trang (Trang 1: 1-20, Trang 2: 21-40, ...)
+// Phân trang khi lọc hoặc cuộn danh sách
 const totalPages = computed(() => {
   return Math.ceil(storyPosts.value.length / pageSize) || 1;
 });
 
 const visibleStoryPosts = computed(() => {
+  if (!selectedCategories.value.length) {
+    return storyPosts.value.slice(0, displayCount.value);
+  }
   const start = (currentPage.value - 1) * pageSize;
   const end = start + pageSize;
   return storyPosts.value.slice(start, end);
 });
 
+const hasMoreHomeStories = computed(() => {
+  return !selectedCategories.value.length && displayCount.value < storyPosts.value.length;
+});
+
 const hasPrevPage = computed(() => currentPage.value > 1);
 const hasNextPage = computed(() => currentPage.value < totalPages.value);
+
+function loadMoreStories() {
+  displayCount.value += 6;
+}
 
 function nextPage() {
   if (hasNextPage.value) {
@@ -143,14 +155,12 @@ function removeCategory(categoryName: string) {
   }
 }
 
-// Xóa sạch query tham số, điều hướng dứt điểm về Trang Chủ Mặc Định '/'
 function clearAllCategories() {
   currentPage.value = 1;
   isAddCategoryOpen.value = false;
   navigateTo("/");
 }
 
-// Tự động đóng Dropdown khi click ra ngoài
 function handleClickOutside(event: MouseEvent) {
   if (
     dropdownContainer.value &&
@@ -196,8 +206,8 @@ onUnmounted(() => {
     </div>
 
     <!-- SLIDER CAROUSEL (Chỉ hiện ở Trang Chủ khi không lọc danh mục) -->
-    <section v-if="!selectedCategories.length && sliderPosts.length" class="mb-(--content-space)">
-      <div class="relative overflow-hidden rounded-(--slider-bd-radius) bg-bg-sec shadow-md">
+    <section v-if="!selectedCategories.length && sliderPosts.length" class="mb-8">
+      <div class="relative overflow-hidden rounded-xl bg-bg-sec shadow-md">
         <div class="relative aspect-16/7 min-h-65 overflow-hidden md:aspect-16/6">
           <TransitionGroup name="fade" tag="div" class="h-full w-full">
             <article v-for="(post, index) in sliderPosts" v-show="currentSlide === index" :key="post.path"
@@ -207,7 +217,7 @@ onUnmounted(() => {
                   class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   loading="eager" />
                 <div
-                  class="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/85 via-black/35 to-transparent p-5 sm:p-7">
+                  class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/35 to-transparent p-5 sm:p-7">
                   <span class="mb-2 w-fit rounded-[3px] bg-primary px-2.5 py-1 text-xs font-medium text-white">
                     {{ post.category }}
                   </span>
@@ -251,14 +261,14 @@ onUnmounted(() => {
     </section>
 
     <!-- PINNED POSTS SECTION (Chỉ hiện ở Trang Chủ khi không lọc danh mục) -->
-    <section v-if="!selectedCategories.length && pinnedPosts.length" class="mb-(--content-space)">
+    <section v-if="!selectedCategories.length && pinnedPosts.length" class="mb-8">
       <WidgetTitle :title="postText.pinnedTitle" />
 
       <div class="space-y-6">
         <article v-for="post in pinnedPosts" :key="post.path"
           class="group grid gap-5 sm:grid-cols-[minmax(220px,288px)_1fr]">
           <NuxtLink :to="getPostPath(post)"
-            class="relative block aspect-video overflow-hidden rounded-(--content-bd-radius) bg-bg-sec">
+            class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <img :src="getPostImage(post)" :alt="post.title"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy" />
@@ -313,7 +323,7 @@ onUnmounted(() => {
             </button>
           </div>
 
-          <!-- Nút Dropdown Chọn Thêm Danh Mục (Có Click Outside Tự Động Thu Gọn) -->
+          <!-- Nút Dropdown Chọn Thêm Danh Mục -->
           <div v-if="unselectedCategories.length" ref="dropdownContainer" class="relative">
             <button type="button"
               class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-sec px-2.5 py-1 text-xs font-semibold text-text-main hover:border-primary hover:text-primary transition-colors cursor-pointer shadow-2xs"
@@ -323,7 +333,6 @@ onUnmounted(() => {
               <AppIcon name="chevron-down" :size="12" />
             </button>
 
-            <!-- Dropdown List các danh mục khác (Shadow-md dịu nhẹ) -->
             <div v-if="isAddCategoryOpen"
               class="absolute left-0 top-full mt-1.5 z-40 min-w-48 rounded-xl border border-border-main bg-bg-base p-1.5 shadow-md space-y-0.5"
               @click.stop>
@@ -354,7 +363,7 @@ onUnmounted(() => {
       ]">
         <article v-for="post in visibleStoryPosts" :key="post.path" class="group flex min-w-0 flex-col">
           <NuxtLink :to="getPostPath(post)"
-            class="relative mb-3 block aspect-video overflow-hidden rounded-(--content-bd-radius) bg-bg-sec">
+            class="relative mb-3 block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <img :src="getPostImage(post)" :alt="post.title"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy" />
@@ -389,7 +398,7 @@ onUnmounted(() => {
               </p>
             </div>
 
-            <!-- Footer bài viết chứa Author info có Tooltip & Date -->
+            <!-- Footer bài viết -->
             <div class="mt-3 flex items-center justify-between text-xs text-text-alt pt-2 border-t border-border-subtle">
               <AuthorTooltip :author="getAuthorInfo(post)" size="sm">
                 <template #default="{ author }">
@@ -426,17 +435,18 @@ onUnmounted(() => {
         Không có bài viết thuộc các danh mục đã chọn.
       </div>
 
-      <!-- 1. NÚT TẢI THÊM BÀI ĐĂNG Ở TRANG CHỦ -->
-      <div v-if="!selectedCategories.length && hasNextPage" class="text-center pt-8">
+      <!-- 1. NÚT TẢI THÊM BÀI ĐĂNG Ở TRANG CHỦ (LUÔN HIỆN KHI CÒN BÀI VIẾT NỐI TIẾP) -->
+      <div v-if="hasMoreHomeStories" class="text-center pt-8">
         <button type="button"
-          class="group inline-flex items-center justify-center gap-2 rounded border border-primary bg-bg-sec px-4 py-2.5 text-[13px] font-medium text-primary shadow-2xs transition-all duration-200 hover:bg-primary hover:text-white cursor-pointer"
-          @click="nextPage">
+          class="group inline-flex items-center justify-center gap-2 rounded-lg border border-border-main bg-bg-sec px-6 py-2.5 text-xs font-bold text-text-main transition-all duration-200 hover:border-primary hover:text-primary shadow-2xs cursor-pointer"
+          @click="loadMoreStories">
           <span>Tải thêm bài đăng</span>
+          <AppIcon name="chevron-down" :size="14" class="text-text-alt group-hover:text-primary transition-colors" />
         </button>
       </div>
 
-      <!-- 2. THANH PHÂN TRANG 20 BÀI/TRANG KHI LỌC DANH MỤC OR TRANG CHỦ -->
-      <div v-else-if="selectedCategories.length || totalPages > 1"
+      <!-- 2. THANH PHÂN TRANG KHI LỌC DANH MỤC -->
+      <div v-else-if="selectedCategories.length && totalPages > 1"
         class="mt-10 flex items-center justify-between gap-4 pt-4 border-t border-border-subtle">
         <button type="button" :disabled="!hasPrevPage" :class="[
           'inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-semibold transition-all shadow-2xs',
@@ -445,7 +455,7 @@ onUnmounted(() => {
             : 'bg-bg-subtle border border-border-subtle text-text-muted cursor-not-allowed opacity-50'
         ]" @click="prevPage">
           <AppIcon name="chevron-left" :size="14" />
-          <span>Mới nhất (Trang {{ currentPage > 1 ? currentPage - 1 : 1 }})</span>
+          <span>Trang trước</span>
         </button>
 
         <NuxtLink to="/"
@@ -460,7 +470,7 @@ onUnmounted(() => {
             ? 'bg-primary text-white hover:bg-primary/90 cursor-pointer shadow-md'
             : 'bg-bg-subtle border border-border-subtle text-text-muted cursor-not-allowed opacity-50'
         ]" @click="nextPage">
-          <span>Cũ nhất (Trang {{ hasNextPage ? currentPage + 1 : totalPages }})</span>
+          <span>Trang sau</span>
           <AppIcon name="chevron-right" :size="14" />
         </button>
       </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import AppIcon from "~/components/ui/AppIcon.vue";
 
 const props = defineProps<{
@@ -100,32 +100,33 @@ const sharePlatforms = [
       leave-from-class="opacity-100 scale-100"
       leave-to-class="opacity-0 scale-95"
     >
+      <!-- Fixed Modal Backdrop: z-[100] đè hoàn toàn trên MobileNav bar với lớp làm mờ đen mờ 75% -->
       <div
         v-if="props.isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
         @click.self="emit('close')"
       >
         <div
-          class="w-full max-w-lg overflow-hidden rounded-xl border border-border-main bg-bg-base p-6 shadow-2xl sm:p-7"
+          class="w-full max-w-md overflow-hidden rounded-2xl border border-border-main bg-bg-base p-5 shadow-2xl sm:p-6"
         >
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b border-border-subtle pb-4">
-            <h3 class="text-sm font-semibold text-text-main">
-              Chia sẻ với ứng dụng khác
+          <div class="flex items-center justify-between border-b border-border-subtle pb-3.5">
+            <h3 class="text-sm font-bold text-text-main">
+              Chia sẻ bài viết
             </h3>
             <button
               type="button"
-              class="rounded-full p-1 text-text-alt transition-colors hover:bg-bg-sec hover:text-text-main cursor-pointer"
+              class="flex h-7 w-7 items-center justify-center rounded-full text-text-alt transition-colors hover:bg-bg-sec hover:text-text-main cursor-pointer"
               aria-label="Close modal"
               @click="emit('close')"
             >
-              <AppIcon name="x" :size="18" />
+              <AppIcon name="x" :size="16" />
             </button>
           </div>
 
-          <!-- Modal Body Grid -->
-          <div class="py-6">
-            <div class="grid grid-cols-4 gap-y-5 gap-x-3 sm:grid-cols-5">
+          <!-- Modal Body Grid Share Apps -->
+          <div class="py-5">
+            <div class="grid grid-cols-4 gap-y-4 gap-x-2">
               <button
                 v-for="item in sharePlatforms"
                 :key="item.id"
@@ -134,12 +135,12 @@ const sharePlatforms = [
                 @click="openShare(item.id)"
               >
                 <div
-                  class="flex h-13 w-13 items-center justify-center rounded-full border border-border-subtle bg-bg-sec text-text-main transition-all duration-200 group-hover:scale-105 group-hover:border-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-md"
+                  class="flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-bg-sec text-text-main transition-all duration-200 group-hover:scale-105 group-hover:border-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-md"
                 >
-                  <AppIcon :name="item.icon" :size="20" />
+                  <AppIcon :name="item.icon" :size="18" />
                 </div>
                 <span
-                  class="mt-2 text-xs font-medium text-text-alt transition-colors group-hover:text-text-main"
+                  class="mt-1.5 text-[11px] font-medium text-text-alt transition-colors group-hover:text-text-main"
                 >
                   {{ item.name }}
                 </span>
@@ -149,13 +150,13 @@ const sharePlatforms = [
 
           <!-- Modal Copy Link Section -->
           <div class="border-t border-border-subtle pt-4">
-            <p class="mb-2 text-xs font-medium text-text-alt">
-              or copy link
+            <p class="mb-2 text-[11px] font-medium text-text-muted uppercase tracking-wider">
+              Sao chép đường dẫn
             </p>
             <div
-              class="flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec p-2.5"
+              class="flex items-center gap-2 rounded-xl border border-border-main bg-bg-sec p-2"
             >
-              <AppIcon name="link" :size="16" class="shrink-0 text-text-alt ml-1" />
+              <AppIcon name="link" :size="15" class="shrink-0 text-text-alt ml-1" />
               <input
                 type="text"
                 readonly
@@ -165,10 +166,10 @@ const sharePlatforms = [
               />
               <button
                 type="button"
-                class="shrink-0 rounded-md border border-border-main bg-bg-base px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary hover:bg-primary hover:text-white"
+                class="shrink-0 rounded-lg border border-primary bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-primary-hover shadow-2xs cursor-pointer"
                 @click="handleCopy"
               >
-                {{ isCopied ? "Đã sao chép! ✓" : "Sao chép" }}
+                {{ isCopied ? "Đã chép! ✓" : "Sao chép" }}
               </button>
             </div>
           </div>

@@ -100,12 +100,6 @@ html.dark,
   --foreground-muted-solid: #9ca3af;
 }
 
-/* Heading Base Normalization */
-h1, h2, h3, h4, h5, h6 {
-  color: inherit;
-  font-weight: inherit;
-}
-
 /* ===== Custom 6px Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 6px;

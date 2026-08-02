@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useSeoMeta } from "#imports";
 import { getPostImage, getPostPath } from "~/composables/usePosts";
+import { useAuthor } from "~/composables/useAuthor";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import AuthorBio from "~/components/post/AuthorBio.vue";
 import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
@@ -27,23 +28,7 @@ const { data: post } = await useAsyncData(`post-${slug.value}`, async () => {
 });
 
 const authorInfo = computed(() => {
-  const defaultAvatar = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png";
-  const defaultBio = "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân.";
-
-  if (post.value?.author && typeof post.value.author === "object") {
-    return {
-      name: (post.value.author as any).name || "Lê Quân",
-      handle: (post.value.author as any).handle || "@lequan81",
-      avatar: (post.value.author as any).avatar || defaultAvatar,
-      bio: (post.value.author as any).bio || defaultBio,
-    };
-  }
-  return {
-    name: typeof post.value?.author === "string" ? post.value.author : "Lê Quân",
-    handle: "@lequan81",
-    avatar: defaultAvatar,
-    bio: defaultBio,
-  };
+  return useAuthor(post.value?.author);
 });
 
 const { data: relatedPosts } = await useAsyncData(
@@ -127,7 +112,6 @@ onBeforeUnmount(() => {
   }
 });
 
-// Clean deterministic maxTags limit controlled via Markdown Frontmatter (default: 5)
 const maxTagsLimit = computed(() => {
   if (typeof (post.value as any)?.maxTags === "number") {
     return (post.value as any).maxTags;
@@ -160,8 +144,8 @@ const tocLinks = computed(() => {
 
 useSeoMeta({
   title: () =>
-    post.value?.title ? `${post.value.title} - Median UI` : "Blog - Median UI",
-  description: () => post.value?.snippet || "",
+    post.value?.title ? `${post.value.title} - Median UI` : "Bài viết không tồn tại - Median UI",
+  description: () => post.value?.snippet || "Bài viết bạn tìm kiếm không tồn tại hoặc đã bị xóa.",
   ogTitle: () => post.value?.title,
   ogDescription: () => post.value?.snippet,
   ogImage: () => post.value?.image,
@@ -191,10 +175,8 @@ useSeoMeta({
         </p>
 
         <div class="flex items-center justify-between gap-4 pt-1 text-xs">
-          <div class="flex flex-wrap items-center gap-2 text-text-alt">
-            <!-- Author Header cho Lê Quân (@lequan81) -->
+          <div class="flex flex-wrap items-center gap-2">
             <AuthorTooltip :author="authorInfo" size="md" />
-
             <span class="text-text-muted">• {{ post.date }}</span>
             <span v-if="post.readTime" class="text-text-muted">• {{ post.readTime }}</span>
           </div>
@@ -212,7 +194,6 @@ useSeoMeta({
           <ContentRenderer :value="post" />
         </div>
 
-        <!-- Post Footer Meta Row: Hashtags (Left) & Author Bio (Right) -->
         <div
           class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pt-4 border-t border-border-subtle">
           <div v-if="allPostTags.length" class="flex flex-wrap items-center gap-2 min-w-0 flex-1 pt-0.5">
@@ -222,14 +203,12 @@ useSeoMeta({
               <span class="truncate">{{ tag }}</span>
             </NuxtLink>
 
-            <!-- +N Hover Tooltip Pill & Interactive Popover -->
             <div v-if="isOverflowingTags" class="tag-tooltip-trigger inline-block">
               <span
                 class="inline-flex items-center gap-1 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:border-primary shadow-2xs cursor-pointer">
                 +#{{ hiddenPostTags.length }}
               </span>
 
-              <!-- Floating Tooltip Popover (Shadow md dịu nhẹ) -->
               <div class="tag-tooltip-card absolute left-0 bottom-full mb-2 z-50 flex-col w-60 rounded-xl border border-border-main bg-bg-alt p-3 shadow-md backdrop-blur-md">
                 <div
                   class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-muted pb-1.5 border-b border-border-subtle mb-2">
@@ -253,19 +232,16 @@ useSeoMeta({
         <PostShareBar :title="post.title" />
       </div>
 
-      <!-- Related Posts Standalone Section -->
       <section v-if="relatedPosts?.length" class="mt-10 pt-4">
         <WidgetTitle title="Bạn có thể thích những bài đăng này" />
 
         <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <article v-for="(item, index) in relatedPosts" :key="item.path"
             class="group flex items-start justify-between gap-3.5 pb-5 border-b border-border-subtle cursor-pointer">
-            <!-- Số thứ tự 01, 02... -->
             <span class="w-6 shrink-0 text-sm font-bold text-text-muted leading-snug pt-0.5">
               {{ String(index + 1).padStart(2, "0") }}
             </span>
 
-            <!-- Nội dung chính (Tiêu đề, Mô tả, Category Active Primary & Ngày tháng) -->
             <div class="min-w-0 flex-1 flex flex-col justify-between min-h-20 pr-1">
               <div>
                 <h3
@@ -280,7 +256,6 @@ useSeoMeta({
                 </p>
               </div>
 
-              <!-- Meta row: Category text active primary + Date -->
               <div class="mt-2.5 flex items-center gap-1.5 text-xs">
                 <NuxtLink
                   :to="`/?category=${encodeURIComponent(item.category)}`"
@@ -294,7 +269,6 @@ useSeoMeta({
               </div>
             </div>
 
-            <!-- Khung Ảnh Vuông ở bên phải -->
             <NuxtLink :to="getPostPath(item)" class="relative h-20 w-20 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
               <img v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -307,7 +281,6 @@ useSeoMeta({
         </div>
       </section>
 
-      <!-- Post Discussion Section -->
       <PostComments />
     </section>
 
@@ -315,13 +288,134 @@ useSeoMeta({
     <ShareModal :is-open="isShareModalOpen" :title="post.title" @close="isShareModalOpen = false" />
   </article>
 
-  <div v-else class="border border-border-main bg-bg-sec p-10 text-center">
-    <h2 class="text-xl font-bold">Bài viết không tồn tại</h2>
-    <p class="mt-2 text-sm text-text-alt">
-      Bài viết bạn tìm kiếm không còn hoặc đường dẫn bị hỏng.
-    </p>
-    <NuxtLink to="/" class="mt-5 inline-flex rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white">
-      Về trang chủ
-    </NuxtLink>
+  <!-- 404 Page: Tối ưu UI/UX Mobile & Desktop Chuẩn Đẹp Tự Động -->
+  <div v-else class="not-found-page">
+    <div class="not-found-number">404</div>
+
+    <div class="not-found-body">
+      <h1 class="not-found-title">Post Not Found</h1>
+      <p class="not-found-desc">
+        Bài viết
+        <code class="not-found-code">/blog/{{ slug }}</code>
+        không tồn tại hoặc đã bị gỡ bỏ.
+      </p>
+    </div>
+
+    <div class="not-found-actions">
+      <NuxtLink to="/" class="not-found-btn-primary">
+        <AppIcon name="arrow-left" :size="16" />
+        <span>Back to Home</span>
+      </NuxtLink>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.not-found-page {
+  height: calc(100dvh - 195px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(1rem, 3dvh, 2.5rem);
+  padding: 0.5rem 1rem;
+}
+
+@media (max-width: 1023px) {
+  .not-found-page {
+    height: calc(100dvh - 245px);
+    gap: clamp(0.75rem, 2dvh, 1.5rem);
+  }
+}
+
+.not-found-number {
+  font-size: clamp(3.5rem, 11dvh, 9rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--color-primary);
+  user-select: none;
+}
+
+.not-found-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.375rem, 1.2dvh, 0.875rem);
+}
+
+.not-found-title {
+  font-size: clamp(1.125rem, 3dvh, 2rem);
+  font-weight: 700;
+  color: var(--color-text-main);
+  letter-spacing: -0.02em;
+}
+
+.not-found-desc {
+  font-size: clamp(0.7rem, 1.5dvh, 0.875rem);
+  color: var(--color-text-alt);
+  line-height: 1.6;
+  max-width: 28rem;
+}
+
+.not-found-code {
+  background: var(--color-bg-sec);
+  color: var(--color-primary);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  word-break: break-all;
+}
+
+.not-found-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 20rem;
+}
+
+@media (min-width: 480px) {
+  .not-found-actions {
+    width: auto;
+    max-width: none;
+  }
+}
+
+.not-found-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.625rem;
+  padding: 0.625rem 1.25rem;
+  min-height: 42px;
+  font-size: clamp(0.75rem, 1.5dvh, 0.875rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+  width: 100%;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+@media (min-width: 480px) {
+  .not-found-btn-primary {
+    width: auto;
+  }
+}
+
+.not-found-btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+:deep(.prose-content > h1:first-child) {
+  display: none;
+}
+</style>

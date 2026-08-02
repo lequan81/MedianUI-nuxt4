@@ -13,18 +13,21 @@ import AdBanner from "~/components/ui/AdBanner.vue";
 const appStore = useAppStore();
 const route = useRoute();
 
+const isAdminPage = computed(() => {
+  return route.path.startsWith("/admin");
+});
+
 const hasCategoryFilter = computed(() => {
   return Boolean(route.query.category || route.query.categories);
 });
 
-// Tự động ẩn RightSidebar (Popular Posts, Categories) ở các trang tĩnh (About, Contact, TOS, Privacy, FAQ...)
-const isStaticPage = computed(() => {
-  const staticPaths = ["/about", "/contact", "/tos", "/privacy", "/faq", "/disclaimer", "/sitemap"];
-  return staticPaths.includes(route.path);
-});
-
+// Chỉ hiển thị RightSidebar (Popular Posts) ở Trang chủ (/) và các Trang bài viết (/blog/:slug).
+// Tự động ẩn ở các trang tĩnh, trang Admin và trang 404.
 const hideRightSidebar = computed(() => {
-  return hasCategoryFilter.value || isStaticPage.value;
+  if (hasCategoryFilter.value || isAdminPage.value) return true;
+  if (route.path === "/") return false;
+  if (route.path.startsWith("/blog/")) return false;
+  return true;
 });
 
 onMounted(() => {
@@ -39,11 +42,11 @@ onMounted(() => {
     <div class="flex flex-1 min-h-[calc(100vh-var(--header-height))]">
       <AppSidebar />
 
-      <div class="flex flex-1 flex-col min-w-0 transition-[margin] duration-200 ease-out"
+      <div class="flex flex-1 flex-col min-w-0 transition-[margin] duration-200 ease-out pb-16 lg:pb-0"
         :class="appStore.isSidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'">
         <main class="flex-1 pb-(--content-space)">
-          <div class="mx-auto mt-(--content-padding) max-w-310 px-6 xl:pl-6 xl:pr-14">
-            <AdBanner class="mb-(--content-space)" />
+          <div class="mx-auto mt-(--content-padding) max-w-310 px-4 sm:px-6 xl:pl-6 xl:pr-14">
+            <AdBanner v-if="!isAdminPage && !hideRightSidebar" class="mb-(--content-space)" />
 
             <div class="flex justify-center gap-(--content-space)">
               <div
@@ -53,7 +56,7 @@ onMounted(() => {
                 <slot />
               </div>
 
-              <!-- Tự động ẩn RightSidebar khi đang lọc Danh Mục hoặc ở các Trang Tĩnh -->
+              <!-- Tự động ẩn RightSidebar (Popular Posts) khi cần -->
               <aside v-if="!hideRightSidebar" class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block">
                 <div class="sticky top-[calc(var(--header-height)+10px)]">
                   <RightSidebar />

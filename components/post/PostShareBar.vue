@@ -90,12 +90,11 @@ function shareOnTwitter() {
         <span>X</span>
       </button>
 
-      <!-- Nút Copy Link có đổi icon sang Check khi đã sao chép -->
       <button
         @click="copyToClipboard"
         type="button"
         :class="[
-          'ml-auto inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs',
+          'sm:ml-auto inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs',
           copied
             ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-500 font-bold'
             : 'border-border-main bg-bg-sec text-text-main hover:border-primary hover:text-primary'

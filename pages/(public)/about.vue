@@ -82,8 +82,9 @@ const timelineEvents = [
 
           <div class="relative space-y-3.5">
             <div class="flex items-center gap-2.5">
+              <!-- Avatar Viền Ring CSS Tròn Tuyệt Đối 100% Không Lệch Hàng -->
               <img :src="authorConfig.avatar" :alt="authorConfig.name"
-                class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 shadow-sm transition-transform duration-300 group-hover:scale-105" />
+                class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 hover:ring-primary hover:scale-105 cursor-pointer" />
               <div class="min-w-0 flex-1">
                 <h2 class="text-sm font-bold text-text-main leading-tight group-hover:text-primary transition-colors">
                   {{ authorConfig.name }}
@@ -167,7 +168,8 @@ const timelineEvents = [
       </div>
 
       <div class="relative space-y-6">
-        <div v-for="(event, idx) in timelineEvents" :key="idx" class="group relative flex items-start cursor-pointer">
+        <div v-for="(event, idx) in timelineEvents" :key="idx"
+          class="group relative flex items-start cursor-pointer">
           <!-- Phân Đoạn Đường Kẻ Nối Từ Tâm Node Hiện Tại Sang Tâm Node Tiếp Theo -->
           <div v-if="idx < timelineEvents.length - 1"
             class="absolute left-3.75 top-4.5 -bottom-6 w-0.5 border-l-2 border-dashed border-border-main group-hover:border-primary/80 transition-colors duration-300">
@@ -224,8 +226,8 @@ const timelineEvents = [
               Bạn muốn trao đổi hoặc hợp tác?
             </h4>
             <p class="text-xs leading-relaxed text-text-alt">
-              Hãy thoải mái kết nối với mình qua Email hoặc các kênh truyền thông xã hội để cùng thảo luận về lập trình,
-              an toàn thông tin hoặc ý tưởng dự án mới nhé!
+              Hãy thoải mái kết nối với mình qua Email hoặc các kênh truyền thông xã hội để cùng thảo luận về lập
+              trình, an toàn thông tin hoặc ý tưởng dự án mới nhé!
             </p>
           </div>
 

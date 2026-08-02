@@ -1,18 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import AppIcon from "~/components/ui/AppIcon.vue";
+import { useAuthor } from "~/composables/useAuthor";
 
 const props = withDefaults(
   defineProps<{
-    author?: {
-      name?: string;
-      handle?: string;
-      avatar?: string;
-      bio?: string;
-      email?: string;
-      website?: string;
-      socials?: Array<{ name?: string; label?: string; icon?: any; href?: string }>;
-    } | string;
+    author?: any;
     size?: "sm" | "md";
   }>(),
   {
@@ -57,24 +50,9 @@ function hideTooltip() {
   }, 180);
 }
 
-const defaultAvatar =
-  "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png";
-
 const authorData = computed(() => {
-  return {
-    name: "Lê Quân",
-    handle: "@lequan81",
-    avatar: defaultAvatar,
-    bio: "Chia sẻ kiến thức lập trình, công nghệ & thủ thuật cá nhân.",
-  };
+  return useAuthor(props.author);
 });
-
-const authorSocials = [
-  { name: "Facebook", icon: "facebook", href: "https://facebook.com/lequan81" },
-  { name: "GitHub", icon: "github", href: "https://github.com/lequan81" },
-  { name: "Website", icon: "globe", href: "https://lequan81.dev" },
-  { name: "Email", icon: "mail", href: "mailto:contact@lequan81.dev" },
-];
 
 const placementClasses = computed(() => {
   const v = computedPos.value.vertical === "top" ? "bottom-full mb-2" : "top-full mt-2";
@@ -86,27 +64,28 @@ const placementClasses = computed(() => {
 <template>
   <div
     ref="triggerRef"
-    class="relative inline-flex items-center"
+    class="relative inline-flex items-center text-text-main group/badge"
     @mouseenter="showTooltip"
     @mouseleave="hideTooltip"
   >
+    <!-- Slot Mặc Định Cho Phần Post Meta Badge: Avatar có viền Ring CSS Tròn Tuyệt Đối 100% khi Hover -->
     <slot :author="authorData">
       <div class="flex items-center gap-2 cursor-pointer">
         <img
           :src="authorData.avatar"
           :alt="authorData.name"
           :class="[
-            'rounded-full object-cover ring-1 ring-border-main transition-transform hover:scale-105',
+            'rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 group-hover/badge:ring-primary group-hover/badge:scale-105 hover:ring-primary hover:scale-105',
             size === 'sm' ? 'h-5 w-5' : 'h-7 w-7'
           ]"
         />
-        <span class="font-semibold uppercase tracking-wider text-text-main hover:text-primary transition-colors">
+        <span class="font-semibold uppercase tracking-wider text-text-main group-hover/badge:text-primary transition-colors">
           {{ authorData.name }}
         </span>
       </div>
     </slot>
 
-    <!-- Clean Minimalist Median UI Author Tooltip -->
+    <!-- Card Tooltip Popover -->
     <Transition name="fade-slide">
       <div
         v-if="isVisible"
@@ -117,18 +96,17 @@ const placementClasses = computed(() => {
         @mouseenter="showTooltip"
         @mouseleave="hideTooltip"
       >
-        <!-- Header Info: Avatar (h-9 w-9), Name, Handle -->
+        <!-- Header Info Inside Tooltip Popover với Avatar Viền Ring CSS Tròn Tuyệt Đối 100% -->
         <div class="flex items-center gap-2.5">
           <img
             :src="authorData.avatar"
             :alt="authorData.name"
-            class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border-main"
+            class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 hover:ring-primary hover:scale-105 cursor-pointer"
           />
           <div class="min-w-0 flex-1">
             <h4 class="font-bold text-sm text-text-main truncate leading-tight">
               {{ authorData.name }}
             </h4>
-            <!-- Handle @lequan81 dùng màu tím Primary -->
             <p class="text-xs text-primary font-semibold mt-0.5">
               {{ authorData.handle }}
             </p>
@@ -136,24 +114,24 @@ const placementClasses = computed(() => {
         </div>
 
         <!-- Clean Bio Line -->
-        <p class="mt-2.5 text-xs leading-relaxed text-text-alt">
+        <p v-if="authorData.bio" class="mt-2.5 text-xs leading-relaxed text-text-alt">
           {{ authorData.bio }}
         </p>
 
-        <!-- Social Icons Row (Minimalist Icons Only) -->
-        <div class="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between">
+        <!-- Social Icons Row -->
+        <div v-if="authorData.socials?.length" class="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between">
           <span class="text-[11px] font-medium text-text-muted">Liên hệ:</span>
           <div class="flex items-center gap-1.5">
             <a
-              v-for="social in authorSocials"
-              :key="social.name"
+              v-for="social in authorData.socials"
+              :key="social.href || social.name"
               :href="social.href"
               target="_blank"
               rel="noreferrer"
               :title="social.name"
               class="flex h-7 w-7 items-center justify-center rounded-lg border border-border-main bg-bg-sec text-text-alt transition-colors hover:border-primary hover:text-primary hover:bg-bg-base"
             >
-              <AppIcon :name="social.icon" :size="14" />
+              <AppIcon :name="social.icon || 'globe'" :size="14" />
             </a>
           </div>
         </div>

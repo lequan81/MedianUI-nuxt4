@@ -9,6 +9,22 @@ export default defineNuxtConfig({
   modules: ["@pinia/nuxt", "@nuxt/content"],
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [],
+      exclude: [
+        "@nuxtjs/mdc",
+        "remark-gfm",
+        "remark-emoji",
+        "remark-mdc",
+        "remark-rehype",
+        "rehype-raw",
+        "parse5",
+        "unist-util-visit",
+        "unified",
+        "debug",
+        "extend",
+      ],
+    },
   },
   app: {
     head: {

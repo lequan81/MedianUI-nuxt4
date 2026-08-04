@@ -153,7 +153,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <article v-if="post" class="mx-auto max-w-4xl space-y-10">
+  <article v-if="post" class="mx-auto max-w-4xl space-y-10 min-w-0 break-words">
     <section class="min-w-0 space-y-8">
       <header>
         <nav class="flex min-w-0 items-center gap-1.5 overflow-hidden text-sm text-text-alt mb-5">
@@ -166,18 +166,18 @@ useSeoMeta({
         </nav>
 
         <h1
-          class="text-3xl font-bold leading-tight tracking-[-0.02em] text-text-main md:text-4xl lg:text-[2.65rem] pb-4 mb-2">
+          class="text-lg sm:text-2xl md:text-3xl font-bold leading-snug tracking-tight text-text-main pb-2 mb-1">
           {{ post.title }}
         </h1>
 
-        <p v-if="post.snippet" class="max-w-208 text-sm md:text-base leading-relaxed text-text-muted mb-6">
+        <p v-if="post.snippet" class="max-w-208 text-xs sm:text-sm md:text-base leading-relaxed text-text-muted mb-5">
           {{ post.snippet }}
         </p>
 
-        <div class="flex items-center justify-between gap-4 pt-1 text-xs">
-          <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center justify-between gap-3 pt-1 text-[11.5px] sm:text-xs">
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <AuthorTooltip :author="authorInfo" size="md" />
-            <span class="text-text-muted">• {{ post.date }}</span>
+            <span class="text-text-muted">• Cập nhật: {{ post.updatedAt || post.date }}</span>
             <span v-if="post.readTime" class="text-text-muted">• {{ post.readTime }}</span>
           </div>
 
@@ -232,20 +232,61 @@ useSeoMeta({
         <PostShareBar :title="post.title" />
       </div>
 
-      <section v-if="relatedPosts?.length" class="mt-10 pt-4">
+      <section v-if="relatedPosts?.length" class="mt-8 pt-2">
         <WidgetTitle title="Bạn có thể thích những bài đăng này" />
 
-        <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-          <article v-for="(item, index) in relatedPosts" :key="item.path"
-            class="group flex items-start justify-between gap-3.5 pb-5 border-b border-border-subtle cursor-pointer">
+        <!-- 1. Giao diện Mobile (< sm): Grid 2 Card / 1 Hàng dạng Card Dọc -->
+        <div class="grid grid-cols-2 gap-3 sm:hidden">
+          <article
+            v-for="item in relatedPosts"
+            :key="item.path"
+            class="group flex flex-col overflow-hidden rounded-xl border border-border-main bg-bg-alt/70 p-2.5 transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt shadow-2xs cursor-pointer"
+          >
+            <NuxtLink :to="getPostPath(item)" class="relative mb-2 aspect-video w-full overflow-hidden rounded-lg bg-bg-sec border border-border-subtle shrink-0">
+              <img
+                v-if="getPostImage(item)"
+                :src="getPostImage(item)"
+                :alt="item.title"
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+              <div v-else class="flex h-full w-full items-center justify-center text-[10px] text-text-muted">
+                No image
+              </div>
+              <span class="absolute left-1.5 top-1.5 rounded-md bg-black/60 backdrop-blur-xs px-1.5 py-0.5 text-[9.5px] font-semibold text-white border border-white/10 shadow-xs truncate max-w-[85%]">
+                {{ item.category }}
+              </span>
+            </NuxtLink>
+
+            <div class="flex flex-1 flex-col justify-between min-w-0 space-y-1.5">
+              <h3 class="line-clamp-2 text-xs font-bold leading-snug text-text-main group-hover:text-primary transition-colors">
+                <NuxtLink :to="getPostPath(item)">
+                  {{ item.title }}
+                </NuxtLink>
+              </h3>
+
+              <div class="flex items-center justify-between pt-1 text-[10px] text-text-muted border-t border-border-subtle/70 mt-auto">
+                <span class="truncate">{{ item.date }}</span>
+                <span v-if="item.readTime" class="font-medium text-primary shrink-0 ml-1">{{ item.readTime }}</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- 2. Giao diện Desktop (>= sm): Chuẩn 100% Layout Median UI v1.7 (Số thứ tự + Tiêu đề + Snippet + Ảnh nhỏ bên phải) -->
+        <div class="hidden sm:grid sm:grid-cols-2 gap-x-8 gap-y-6">
+          <article
+            v-for="(item, index) in relatedPosts"
+            :key="item.path"
+            class="group flex items-start justify-between gap-3.5 pb-5 border-b border-border-subtle cursor-pointer"
+          >
             <span class="w-6 shrink-0 text-sm font-bold text-text-muted leading-snug pt-0.5">
               {{ String(index + 1).padStart(2, "0") }}
             </span>
 
             <div class="min-w-0 flex-1 flex flex-col justify-between min-h-20 pr-1">
               <div>
-                <h3
-                  class="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-text-main transition-colors group-hover:text-primary">
+                <h3 class="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-text-main transition-colors group-hover:text-primary">
                   <NuxtLink :to="getPostPath(item)">
                     {{ item.title }}
                   </NuxtLink>
@@ -270,9 +311,13 @@ useSeoMeta({
             </div>
 
             <NuxtLink :to="getPostPath(item)" class="relative h-20 w-20 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
-              <img v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
+              <img
+                v-if="getPostImage(item)"
+                :src="getPostImage(item)"
+                :alt="item.title"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy" />
+                loading="lazy"
+              />
               <div v-else class="flex h-full w-full items-center justify-center text-[10px] text-text-muted">
                 No image
               </div>

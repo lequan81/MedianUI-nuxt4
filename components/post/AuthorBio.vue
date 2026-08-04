@@ -76,9 +76,10 @@ const formattedBioParts = computed(() => {
         <div v-if="author.socials?.length" class="pt-0.5 flex flex-wrap items-center gap-1.5">
           <a v-for="social in author.socials" :key="social.href" :href="social.href" target="_blank"
             rel="noreferrer"
-            class="inline-flex items-center gap-1 rounded-md border border-border-main bg-bg-sec px-2 py-0.5 text-[10.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary-subtle/40">
-            <AppIcon :name="social.icon || 'external-link'" :size="11" />
-            <span>{{ social.name || social.label || "Liên hệ" }}</span>
+            :title="social.name || social.label"
+            class="inline-flex items-center gap-1 rounded-md border border-border-main bg-bg-sec px-2 py-1 text-[10.5px] font-medium text-text-main transition-all hover:border-primary hover:text-primary hover:bg-primary-subtle/40 active:scale-95 cursor-pointer select-none">
+            <AppIcon :name="social.icon || 'external-link'" :size="12" />
+            <span class="hidden sm:inline">{{ social.name || social.label || "Liên hệ" }}</span>
           </a>
         </div>
       </div>

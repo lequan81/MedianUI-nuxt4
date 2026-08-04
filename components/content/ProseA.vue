@@ -9,8 +9,6 @@ defineProps<{
   <NuxtLink
     :to="href"
     :target="target"
-    class="text-primary underline underline-offset-4 transition-colors hover:opacity-85"
-  >
-    <slot />
-  </NuxtLink>
+    class="text-primary underline underline-offset-4 transition-colors hover:opacity-85 break-words"
+  ><slot /></NuxtLink>
 </template>

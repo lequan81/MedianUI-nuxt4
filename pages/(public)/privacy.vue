@@ -20,15 +20,18 @@ useSeoMeta({
 
 <template>
   <article class="mx-auto max-w-4xl space-y-6">
-    <div class="space-y-1">
-      <nav class="flex min-w-0 items-center gap-1 overflow-hidden text-xs text-text-alt mb-2">
+    <div class="space-y-2">
+      <nav class="flex min-w-0 items-center gap-1.5 overflow-hidden text-sm text-text-alt mb-5">
         <NuxtLink to="/" class="shrink-0 text-text-muted transition-colors hover:text-primary">Trang chủ</NuxtLink>
         <span class="text-text-muted">/</span>
         <span class="truncate font-semibold text-text-main">Chính sách bảo mật</span>
       </nav>
-      <h1 class="text-2xl font-bold text-text-main md:text-3xl">
+      <h1 class="text-xl sm:text-2xl md:text-3xl font-bold leading-snug tracking-tight text-text-main">
         Chính sách bảo mật
       </h1>
+      <p v-if="page?.updatedAt || page?.date" class="text-[11px] italic text-text-muted mt-1">
+        Cập nhật lần cuối: {{ page?.updatedAt || page?.date }}
+      </p>
     </div>
 
     <div v-if="page" class="prose-content">

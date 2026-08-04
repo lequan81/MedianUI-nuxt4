@@ -2,15 +2,19 @@
 import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "~/stores/useAppStore";
+import { useLangStore } from "~/stores/useLangStore";
 import AppHeader from "~/components/layout/AppHeader.vue";
 import AppSidebar from "~/components/layout/AppSidebar.vue";
 import RightSidebar from "~/components/layout/RightSidebar.vue";
 import MobileNav from "~/components/layout/MobileNav.vue";
 import SearchModal from "~/components/ui/SearchModal.vue";
+import LanguageModal from "~/components/ui/LanguageModal.vue";
 import AppFooter from "~/components/layout/AppFooter.vue";
 import AdBanner from "~/components/ui/AdBanner.vue";
+import FloatingTopButton from "~/components/ui/FloatingTopButton.vue";
 
 const appStore = useAppStore();
+const langStore = useLangStore();
 const route = useRoute();
 
 const isAdminPage = computed(() => {
@@ -32,6 +36,10 @@ const hideRightSidebar = computed(() => {
 
 onMounted(() => {
   appStore.initTheme();
+  langStore.initLang();
+  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }
 });
 </script>
 
@@ -56,7 +64,7 @@ onMounted(() => {
                 <slot />
               </div>
 
-              <!-- Tự động ẩn RightSidebar (Popular Posts) khi cần -->
+              <!-- RightSidebar Container trên Desktop -->
               <aside v-if="!hideRightSidebar" class="hidden w-(--sidebar-width) max-w-125 shrink-0 xl:block">
                 <div class="sticky top-[calc(var(--header-height)+10px)]">
                   <RightSidebar />
@@ -72,5 +80,7 @@ onMounted(() => {
 
     <MobileNav />
     <SearchModal />
+    <LanguageModal />
+    <FloatingTopButton />
   </div>
 </template>

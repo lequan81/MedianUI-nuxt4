@@ -14,7 +14,7 @@ const appStore = useAppStore()
     class="group rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border-main)] overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col sm:flex-row items-stretch"
   >
     <!-- Thumbnail -->
-    <div class="relative w-full sm:w-48 aspect-[16/9] sm:aspect-auto overflow-hidden bg-[var(--color-bg-sec)] flex-shrink-0">
+    <div class="relative w-full h-36 sm:w-48 sm:h-auto sm:aspect-auto overflow-hidden bg-[var(--color-bg-sec)] flex-shrink-0">
       <img 
         :src="post.thumbnail" 
         :alt="post.title"

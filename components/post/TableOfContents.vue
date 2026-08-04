@@ -13,9 +13,7 @@ const props = defineProps<{
 }>();
 
 const isOpen = ref(false);
-const isVisible = ref(true);
 const activeId = ref("");
-let lastScrollY = 0;
 
 const flatLinks = computed(() => {
   const items: TocItem[] = [];
@@ -75,19 +73,6 @@ function updateActiveHeading() {
 
 let isScrolling = false;
 function onScroll() {
-  if (typeof window === "undefined") return;
-
-  const currentScrollY = window.scrollY;
-
-  // Tự động ẩn nút TOC trên mobile khi cuộn xuống và hiện lại khi cuộn lên
-  if (currentScrollY > 120 && currentScrollY > lastScrollY + 8) {
-    isVisible.value = false;
-    isOpen.value = false;
-  } else if (currentScrollY < lastScrollY - 8 || currentScrollY <= 120) {
-    isVisible.value = true;
-  }
-  lastScrollY = currentScrollY;
-
   if (!isScrolling) {
     isScrolling = true;
     requestAnimationFrame(() => {
@@ -109,7 +94,6 @@ watch(
 
 onMounted(() => {
   if (typeof window !== "undefined") {
-    lastScrollY = window.scrollY;
     window.addEventListener("scroll", onScroll, { passive: true });
     setTimeout(updateActiveHeading, 100);
   }
@@ -154,11 +138,7 @@ function scrollToHeading(id: string) {
 
 <template>
   <div v-if="props.links && props.links.length">
-    <!-- Nút mở TOC: Trên mobile tự động trượt ẩn khi cuộn xuống, hiện lại khi cuộn lên -->
-    <div
-      class="fixed right-0 top-[calc(var(--header-height)+36px)] z-40 transition-transform duration-300 ease-out"
-      :class="isVisible ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'"
-    >
+    <div class="fixed right-0 top-[calc(var(--header-height)+36px)] z-40">
       <div class="relative flex items-center rounded-l-full bg-bg-sec p-1 shadow-xs">
         <!-- Top organic concave curve -->
         <div class="absolute -top-3.5 right-0 h-3.5 w-3.5 bg-bg-sec pointer-events-none">
@@ -184,9 +164,9 @@ function scrollToHeading(id: string) {
     </div>
 
     <aside
-      class="fixed right-0 top-0 z-50 flex h-full w-80 max-w-[calc(100vw-32px)] flex-col border-l border-border-main bg-bg-base p-5 transition-all duration-300 ease-out"
+      class="fixed right-0 top-0 z-50 flex h-full w-80 max-w-[calc(100vw-32px)] flex-col bg-bg-base p-5 transition-all duration-300 ease-out"
       :class="isOpen
-        ? 'translate-x-0 shadow-2xl'
+        ? 'translate-x-0 shadow-2xl border-l border-border-main'
         : 'pointer-events-none translate-x-full shadow-none'
         ">
       <div class="flex items-center justify-between pb-3.5 border-b border-border-subtle">

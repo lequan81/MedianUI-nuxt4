@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import { useAuthor } from "~/composables/useAuthor";
 
@@ -47,8 +47,35 @@ function showTooltip() {
 function hideTooltip() {
   hideTimer = setTimeout(() => {
     isVisible.value = false;
-  }, 180);
+  }, 220);
 }
+
+function handleTriggerClick(e: Event) {
+  e.stopPropagation();
+  if (hideTimer) clearTimeout(hideTimer);
+  calculateSmartPosition();
+  isVisible.value = !isVisible.value;
+}
+
+function handleClickOutside(e: Event) {
+  if (triggerRef.value && !triggerRef.value.contains(e.target as Node)) {
+    isVisible.value = false;
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== "undefined") {
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+  }
+});
+
+onUnmounted(() => {
+  if (typeof window !== "undefined") {
+    document.removeEventListener("click", handleClickOutside);
+    document.removeEventListener("touchstart", handleClickOutside);
+  }
+});
 
 const authorData = computed(() => {
   return useAuthor(props.author);
@@ -64,22 +91,34 @@ const placementClasses = computed(() => {
 <template>
   <div
     ref="triggerRef"
-    class="relative inline-flex items-center text-text-main group/badge"
+    class="relative inline-flex items-center text-text-main group/badge cursor-pointer select-none"
     @mouseenter="showTooltip"
     @mouseleave="hideTooltip"
+    @click="handleTriggerClick"
+    @touchend.prevent="handleTriggerClick"
   >
-    <!-- Slot Mặc Định Cho Phần Post Meta Badge: Avatar có viền Ring CSS Tròn Tuyệt Đối 100% khi Hover -->
-    <slot :author="authorData">
-      <div class="flex items-center gap-2 cursor-pointer">
+    <!-- Slot Mặc Định Cho Phần Post Meta Badge với Active State khi Tap/Hover -->
+    <slot :author="authorData" :isVisible="isVisible">
+      <div class="flex items-center gap-2 cursor-pointer active:opacity-80">
         <img
           :src="authorData.avatar"
           :alt="authorData.name"
           :class="[
-            'rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 group-hover/badge:ring-primary group-hover/badge:scale-105 hover:ring-primary hover:scale-105',
+            'rounded-full object-cover ring-2 shadow-xs transition-all duration-300',
+            isVisible
+              ? 'ring-primary scale-105'
+              : 'ring-primary/20 group-hover/badge:ring-primary group-hover/badge:scale-105 group-active/badge:ring-primary group-active/badge:scale-105',
             size === 'sm' ? 'h-5 w-5' : 'h-7 w-7'
           ]"
         />
-        <span class="font-semibold uppercase tracking-wider text-text-main group-hover/badge:text-primary transition-colors">
+        <span
+          :class="[
+            'font-semibold uppercase tracking-wider transition-colors',
+            isVisible
+              ? 'text-primary'
+              : 'text-text-main group-hover/badge:text-primary group-active/badge:text-primary'
+          ]"
+        >
           {{ authorData.name }}
         </span>
       </div>
@@ -95,13 +134,15 @@ const placementClasses = computed(() => {
         ]"
         @mouseenter="showTooltip"
         @mouseleave="hideTooltip"
+        @click.stop
+        @touchend.stop
       >
-        <!-- Header Info Inside Tooltip Popover với Avatar Viền Ring CSS Tròn Tuyệt Đối 100% -->
+        <!-- Header Info Inside Tooltip Popover -->
         <div class="flex items-center gap-2.5">
           <img
             :src="authorData.avatar"
             :alt="authorData.name"
-            class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 hover:ring-primary hover:scale-105 cursor-pointer"
+            class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 hover:ring-primary hover:scale-105 active:scale-105 cursor-pointer"
           />
           <div class="min-w-0 flex-1">
             <h4 class="font-bold text-sm text-text-main truncate leading-tight">
@@ -129,7 +170,7 @@ const placementClasses = computed(() => {
               target="_blank"
               rel="noreferrer"
               :title="social.name"
-              class="flex h-7 w-7 items-center justify-center rounded-lg border border-border-main bg-bg-sec text-text-alt transition-colors hover:border-primary hover:text-primary hover:bg-bg-base"
+              class="flex h-7 w-7 items-center justify-center rounded-lg border border-border-main bg-bg-sec text-text-alt transition-colors hover:border-primary hover:text-primary hover:bg-bg-base active:scale-95"
             >
               <AppIcon :name="social.icon || 'globe'" :size="14" />
             </a>

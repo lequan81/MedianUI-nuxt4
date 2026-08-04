@@ -29,8 +29,8 @@ const appStore = useAppStore()
 <template>
   <article
     class="group rounded-xl bg-(--color-bg-card) border border-border-main overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
-    <!-- Thumbnail Header (16:9 Aspect Ratio) -->
-    <div class="relative w-full aspect-video overflow-hidden bg-bg-sec">
+    <!-- Thumbnail Header -->
+    <div class="relative w-full aspect-[16/7] sm:aspect-video overflow-hidden bg-bg-sec">
       <img :src="post.thumbnail" :alt="post.title"
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
 

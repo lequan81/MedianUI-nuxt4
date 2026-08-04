@@ -1,5 +1,3 @@
 <template>
-  <p class="my-4 leading-[1.8] text-base text-text-main">
-    <slot />
-  </p>
+  <p class="my-4 sm:my-5 text-sm sm:text-base leading-[1.8] text-text-main"><slot /></p>
 </template>

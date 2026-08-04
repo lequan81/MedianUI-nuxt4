@@ -57,44 +57,44 @@ function shareOnTwitter() {
 
 <template>
   <div class="pt-2">
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="flex items-center gap-2">
       <span class="mr-1 text-xs font-medium text-text-alt">Chia sẻ:</span>
 
       <button
         @click="shareOnFacebook"
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary cursor-pointer"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-text-main transition-all hover:border-primary hover:text-primary active:scale-95 select-none cursor-pointer"
         title="Chia sẻ trên Facebook"
       >
-        <AppIcon name="external-link" :size="12" />
-        <span>Facebook</span>
+        <AppIcon name="external-link" :size="13" />
+        <span class="hidden sm:inline">Facebook</span>
       </button>
 
       <button
         @click="shareOnWhatsapp"
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary cursor-pointer"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-text-main transition-all hover:border-primary hover:text-primary active:scale-95 select-none cursor-pointer"
         title="Chia sẻ trên WhatsApp"
       >
-        <AppIcon name="send" :size="12" />
-        <span>WhatsApp</span>
+        <AppIcon name="send" :size="13" />
+        <span class="hidden sm:inline">WhatsApp</span>
       </button>
 
       <button
         @click="shareOnTwitter"
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2.5 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary hover:text-primary cursor-pointer"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-base px-2 py-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-text-main transition-all hover:border-primary hover:text-primary active:scale-95 select-none cursor-pointer"
         title="Chia sẻ trên X"
       >
-        <AppIcon name="share-2" :size="12" />
-        <span>X</span>
+        <AppIcon name="share-2" :size="13" />
+        <span class="hidden sm:inline">X</span>
       </button>
 
       <button
         @click="copyToClipboard"
         type="button"
         :class="[
-          'sm:ml-auto inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs',
+          'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 select-none',
           copied
             ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-500 font-bold'
             : 'border-border-main bg-bg-sec text-text-main hover:border-primary hover:text-primary'
@@ -102,7 +102,7 @@ function shareOnTwitter() {
         :title="copied ? 'Đã sao chép vào bộ nhớ tạm!' : 'Sao chép đường dẫn bài viết'"
       >
         <AppIcon :name="copied ? 'check' : 'copy'" :size="13" />
-        <span>{{ copied ? 'Đã sao chép!' : 'Copy link' }}</span>
+        <span class="hidden sm:inline">{{ copied ? 'Đã sao chép!' : 'Copy link' }}</span>
       </button>
     </div>
   </div>

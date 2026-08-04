@@ -16,10 +16,10 @@ function scrollToTop(e: MouseEvent) {
 <template>
   <footer class="relative mt-auto bg-bg-base text-[13px] text-text-alt">
     <div
-      class="mx-auto flex max-w-(--content-max-width) flex-col items-center justify-center gap-3 border-t border-border-main px-(--content-padding) py-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+      class="mx-auto flex max-w-(--content-max-width) flex-col gap-5 border-t border-border-main px-(--content-padding) py-2 sm:flex-row sm:items-center sm:justify-between">
       <span class="truncate text-text-muted text-xs">&copy; {{ siteConfig.copyright }}</span>
 
-      <nav class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xs text-text-muted">
+      <nav class="flex flex-wrap items-center gap-2 px-3 py-2 text-xs text-text-muted">
         <template v-for="(link, index) in footerLinks" :key="link.label">
           <NuxtLink v-if="link.to" :to="link.to" class="transition-colors hover:text-primary">
             {{ link.label }}
@@ -27,14 +27,15 @@ function scrollToTop(e: MouseEvent) {
           <a v-else :href="link.href" class="transition-colors hover:text-primary" target="_blank" rel="noreferrer">
             {{ link.label }}
           </a>
-          <span v-if="index < footerLinks.length - 1" class="text-border-main">/</span>
+          <span v-if="index < footerLinks.length - 1" class="px-1 text-border-main">/</span>
         </template>
 
+        <!-- Top Button — desktop only (mobile has FloatingTopButton) -->
         <a href="#top"
-          class="ml-1 inline-flex items-center gap-1 rounded-full border border-border-main px-2.5 py-0.5 text-[11px] transition-colors hover:border-primary hover:text-primary cursor-pointer"
+          class="ml-2 hidden lg:inline-flex items-center gap-1 rounded-full border border-border-main px-3 py-1 transition-colors hover:border-primary hover:text-primary cursor-pointer"
           @click="scrollToTop">
           Top
-          <AppIcon name="arrow-up" :size="12" />
+          <AppIcon name="arrow-up" :size="14" />
         </a>
       </nav>
     </div>

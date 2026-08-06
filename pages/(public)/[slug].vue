@@ -30,23 +30,21 @@ const { data: page } = await useAsyncData(`page-${slug.value}`, async () => {
   );
 });
 
-useSeoMeta({
-  title: () =>
-    page.value?.title ? `${page.value.title} - Median UI` : "Trang không tồn tại - Median UI",
-  description: () => page.value?.description || "Trang bạn tìm kiếm không tồn tại.",
-  ogTitle: () => page.value?.title,
-  ogDescription: () => page.value?.description,
-});
+if (import.meta.server) {
+  useSeoMeta({
+    title: () =>
+      page.value?.title ? `${page.value.title} - Median UI` : "Trang không tồn tại - Median UI",
+    description: () => page.value?.description || "Trang bạn tìm kiếm không tồn tại.",
+    ogTitle: () => page.value?.title,
+    ogDescription: () => page.value?.description,
+  });
+}
 </script>
 
 <template>
   <article v-if="page" class="mx-auto max-w-3xl space-y-8">
     <nav class="flex min-w-0 items-center gap-1 overflow-hidden text-[13px]">
-      <NuxtLink
-        to="/"
-        class="shrink-0 text-text-alt transition-colors hover:text-primary"
-        >Trang chủ</NuxtLink
-      >
+      <NuxtLink to="/" class="shrink-0 text-text-alt transition-colors hover:text-primary">Trang chủ</NuxtLink>
       <span class="text-text-muted">/</span>
       <span class="truncate font-semibold text-text-main">{{
         page.title
@@ -54,18 +52,13 @@ useSeoMeta({
     </nav>
 
     <header class="space-y-3">
-      <p
-        class="text-xs font-semibold uppercase tracking-[0.22em] text-text-alt"
-      >
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-text-alt">
         Page
       </p>
       <h1 class="text-3xl font-bold leading-tight text-text-main md:text-5xl">
         {{ page.title }}
       </h1>
-      <p
-        v-if="page.description"
-        class="max-w-3xl text-base leading-8 text-text-alt md:text-lg"
-      >
+      <p v-if="page.description" class="max-w-3xl text-base leading-8 text-text-alt md:text-lg">
         {{ page.description }}
       </p>
     </header>
@@ -197,6 +190,7 @@ useSeoMeta({
 }
 
 @media (min-width: 480px) {
+
   .not-found-btn-primary,
   .not-found-btn-secondary {
     width: auto;

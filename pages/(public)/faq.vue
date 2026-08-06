@@ -6,9 +6,9 @@ const { data: page } = await useAsyncData("page-faq", async () => {
   return (await queryCollection("pages").path("/pages/faq").first()) || null;
 });
 
-useSeoMeta({
-  title: () => page.value?.title ? `${page.value.title} - Median UI` : "Câu hỏi thường gặp (FAQ) - Median UI",
-  description: () => page.value?.description || "Giải đáp các câu hỏi thường gặp về blog cá nhân và mã nguồn Median UI.",
+usePageSeo({
+  title: page.value?.title || "Câu hỏi thường gặp (FAQ)",
+  description: page.value?.description || "Giải đáp các câu hỏi thường gặp về blog cá nhân và mã nguồn Median UI.",
 });
 
 const openIndex = ref<number | null>(null);
@@ -73,30 +73,19 @@ const faqs = [
 
     <!-- Accordion FAQ -->
     <div class="space-y-3">
-      <div
-        v-for="(item, i) in faqs"
-        :key="i"
-        class="rounded-xl border transition-all duration-200"
-        :class="openIndex === i
-          ? 'border-primary/60 bg-bg-alt shadow-sm'
-          : 'border-border-main bg-bg-alt/50 hover:border-border-main'"
-      >
+      <div v-for="(item, i) in faqs" :key="i" class="rounded-xl border transition-all duration-200" :class="openIndex === i
+        ? 'border-primary/60 bg-bg-alt shadow-sm'
+        : 'border-border-main bg-bg-alt/50 hover:border-border-main'">
         <!-- Question row -->
-        <button
-          type="button"
+        <button type="button"
           class="flex w-full items-start justify-between gap-4 px-5 py-4 text-left cursor-pointer select-none"
-          @click="toggle(i)"
-        >
-          <span
-            class="text-sm font-semibold leading-snug transition-colors"
-            :class="openIndex === i ? 'text-primary' : 'text-text-main'"
-          >
+          @click="toggle(i)">
+          <span class="text-sm font-semibold leading-snug transition-colors"
+            :class="openIndex === i ? 'text-primary' : 'text-text-main'">
             {{ item.q }}
           </span>
-          <span
-            class="mt-0.5 shrink-0 transition-transform duration-200"
-            :class="openIndex === i ? 'rotate-180 text-primary' : 'text-text-muted'"
-          >
+          <span class="mt-0.5 shrink-0 transition-transform duration-200"
+            :class="openIndex === i ? 'rotate-180 text-primary' : 'text-text-muted'">
             <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
@@ -104,10 +93,7 @@ const faqs = [
         </button>
 
         <!-- Answer panel -->
-        <div
-          v-show="openIndex === i"
-          class="px-5 pb-4 pt-0"
-        >
+        <div v-show="openIndex === i" class="px-5 pb-4 pt-0">
           <div class="border-t border-border-subtle pt-3">
             <p class="text-sm leading-relaxed text-text-muted">{{ item.a }}</p>
           </div>

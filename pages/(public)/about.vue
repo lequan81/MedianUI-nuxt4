@@ -3,7 +3,8 @@ import { computed, ref } from "vue";
 import { useSeoMeta } from "#imports";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import TableOfContents from "~/components/post/TableOfContents.vue";
-import { authorConfig } from "~/app/config/site";
+const appConfig = useAppConfig();
+const authorConfig = appConfig.author;
 
 const { data: page } = await useAsyncData("page-about", async () => {
   return (await queryCollection("pages").path("/pages/about").first()) || null;
@@ -14,9 +15,9 @@ const tocLinks = computed(() => {
   return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
 });
 
-useSeoMeta({
-  title: () => page.value?.title ? `${page.value.title} - Lê Quân` : "Giới thiệu - Lê Quân (@lequan81)",
-  description: () => page.value?.description || "Giới thiệu bản thân, hành trình học vấn và blog cá nhân Lê Quân.",
+usePageSeo({
+  title: page.value?.title || "Giới thiệu",
+  description: page.value?.description || "Giới thiệu bản thân, hành trình học vấn và blog cá nhân Lê Quân.",
 });
 
 const skillCategories = [
@@ -86,15 +87,12 @@ function toggleCard(id: string) {
     <div class="grid gap-4 lg:gap-6 lg:grid-cols-12 items-stretch">
       <!-- Cột Trái (Author Profile Card - Tap Active trên Mobile) -->
       <div class="lg:col-span-5 flex flex-col">
-        <div
-          @click="toggleCard('author')"
-          :class="[
-            'group relative overflow-hidden rounded-xl border border-dashed p-4.5 sm:p-5 shadow-2xs transition-all duration-300 cursor-pointer select-none flex-1 flex flex-col justify-between space-y-4',
-            activeCard === 'author'
-              ? 'border-primary bg-bg-alt shadow-md'
-              : 'border-border-main bg-bg-alt/60 hover:border-primary/60 hover:bg-bg-alt hover:shadow-md'
-          ]"
-        >
+        <div @click="toggleCard('author')" :class="[
+          'group relative overflow-hidden rounded-xl border border-dashed p-4.5 sm:p-5 shadow-2xs transition-all duration-300 cursor-pointer select-none flex-1 flex flex-col justify-between space-y-4',
+          activeCard === 'author'
+            ? 'border-primary bg-bg-alt shadow-md'
+            : 'border-border-main bg-bg-alt/60 hover:border-primary/60 hover:bg-bg-alt hover:shadow-md'
+        ]">
           <div
             class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
           </div>
@@ -102,12 +100,10 @@ function toggleCard(id: string) {
           <div class="relative space-y-3.5">
             <div class="flex items-center gap-2.5">
               <!-- Avatar Viền Ring CSS Tròn Tuyệt Đối 100% -->
-              <img :src="authorConfig.avatar" :alt="authorConfig.name"
-                :class="[
-                  'h-9 w-9 shrink-0 rounded-full object-cover ring-2 shadow-xs transition-all duration-300',
-                  activeCard === 'author' ? 'ring-primary scale-105' : 'ring-primary/20 group-hover:ring-primary group-hover:scale-105'
-                ]"
-              />
+              <NuxtImg :src="authorConfig.avatar" :alt="authorConfig.name" :class="[
+                'h-9 w-9 shrink-0 rounded-full object-cover ring-2 shadow-xs transition-all duration-300',
+                activeCard === 'author' ? 'ring-primary scale-105' : 'ring-primary/20 group-hover:ring-primary group-hover:scale-105'
+              ]" format="webp" loading="lazy" />
               <div class="min-w-0 flex-1">
                 <h2 :class="[
                   'text-sm font-bold leading-tight inline-block transition-colors',
@@ -147,28 +143,22 @@ function toggleCard(id: string) {
 
       <!-- Cột Phải (Tech Stack Cards - Tap Active trên Mobile) -->
       <div class="lg:col-span-7 flex flex-col justify-between space-y-2.5">
-        <div
-          v-for="cat in skillCategories"
-          :key="cat.title"
-          @click="toggleCard(cat.title)"
-          :class="[
-            'group relative overflow-hidden rounded-xl border border-dashed p-3 space-y-2 shadow-2xs transition-all duration-300 cursor-pointer select-none flex-1 flex flex-col justify-center',
-            activeCard === cat.title
-              ? 'border-primary bg-bg-alt shadow-md'
-              : 'border-border-main bg-bg-alt/60 hover:border-primary/60 hover:bg-bg-alt hover:shadow-md'
-          ]"
-        >
+        <div v-for="cat in skillCategories" :key="cat.title" @click="toggleCard(cat.title)" :class="[
+          'group relative overflow-hidden rounded-xl border border-dashed p-3 space-y-2 shadow-2xs transition-all duration-300 cursor-pointer select-none flex-1 flex flex-col justify-center',
+          activeCard === cat.title
+            ? 'border-primary bg-bg-alt shadow-md'
+            : 'border-border-main bg-bg-alt/60 hover:border-primary/60 hover:bg-bg-alt hover:shadow-md'
+        ]">
           <div
             class="absolute -right-8 -top-8 h-16 w-16 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           </div>
 
           <div class="relative flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-              <div
-                :class="[
-                  'flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-subtle text-primary transition-transform duration-300',
-                  activeCard === cat.title ? 'scale-110' : 'group-hover:scale-110'
-                ]">
+              <div :class="[
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-subtle text-primary transition-transform duration-300',
+                activeCard === cat.title ? 'scale-110' : 'group-hover:scale-110'
+              ]">
                 <AppIcon :name="cat.icon" :size="13" class="flex items-center justify-center" />
               </div>
               <h3 :class="[
@@ -208,38 +198,30 @@ function toggleCard(id: string) {
       </div>
 
       <div class="relative space-y-6">
-        <div
-          v-for="(event, idx) in timelineEvents"
-          :key="idx"
-          class="group relative flex items-start cursor-pointer select-none"
-          @click="toggleTimeline(idx)"
-        >
+        <div v-for="(event, idx) in timelineEvents" :key="idx"
+          class="group relative flex items-start cursor-pointer select-none" @click="toggleTimeline(idx)">
           <!-- Phân Đoạn Đường Kẻ Nối Từ Tâm Node Hiện Tại Sang Tâm Node Tiếp Theo -->
-          <div v-if="idx < timelineEvents.length - 1"
-            :class="[
-              'absolute left-3.75 top-4.5 -bottom-6 w-0.5 border-l-2 border-dashed transition-colors duration-300',
-              expandedTimeline === idx ? 'border-primary/80' : 'border-border-main group-hover:border-primary/80'
-            ]">
+          <div v-if="idx < timelineEvents.length - 1" :class="[
+            'absolute left-3.75 top-4.5 -bottom-6 w-0.5 border-l-2 border-dashed transition-colors duration-300',
+            expandedTimeline === idx ? 'border-primary/80' : 'border-border-main group-hover:border-primary/80'
+          ]">
           </div>
 
           <!-- Timeline Icon Badge Node -->
-          <div
-            :class="[
-              'absolute left-0 top-0.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border bg-bg-alt text-primary ring-4 ring-bg-base transition-all duration-300 shadow-2xs',
-              expandedTimeline === idx ? 'border-primary bg-primary-subtle scale-110' : 'border-border-main group-hover:border-primary group-hover:bg-primary-subtle group-hover:scale-110'
-            ]">
+          <div :class="[
+            'absolute left-0 top-0.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border bg-bg-alt text-primary ring-4 ring-bg-base transition-all duration-300 shadow-2xs',
+            expandedTimeline === idx ? 'border-primary bg-primary-subtle scale-110' : 'border-border-main group-hover:border-primary group-hover:bg-primary-subtle group-hover:scale-110'
+          ]">
             <AppIcon :name="event.icon" :size="14" class="text-primary" />
           </div>
 
           <!-- Timeline Event Card -->
-          <div
-            :class="[
-              'ml-10 sm:ml-12 flex-1 rounded-xl border border-dashed p-3 sm:p-4.5 space-y-2 sm:space-y-3 transition-all duration-300 shadow-2xs active:scale-[0.99]',
-              expandedTimeline === idx
-                ? 'border-primary/80 bg-bg-alt shadow-md'
-                : 'border-border-main bg-bg-alt/60 group-hover:border-primary/60 group-hover:bg-bg-alt'
-            ]"
-          >
+          <div :class="[
+            'ml-10 sm:ml-12 flex-1 rounded-xl border border-dashed p-3 sm:p-4.5 space-y-2 sm:space-y-3 transition-all duration-300 shadow-2xs active:scale-[0.99]',
+            expandedTimeline === idx
+              ? 'border-primary/80 bg-bg-alt shadow-md'
+              : 'border-border-main bg-bg-alt/60 group-hover:border-primary/60 group-hover:bg-bg-alt'
+          ]">
             <div class="space-y-1 min-w-0">
               <h4 class="text-sm font-bold text-text-main group-hover:text-primary transition-colors leading-snug">
                 {{ event.title }}
@@ -257,12 +239,10 @@ function toggleCard(id: string) {
             </div>
 
             <!-- Mô Tả Chi Tiết: Bật Mở Khi Tap Trên Mobile Hoặc Tự Động Hiện Trên Desktop -->
-            <p
-              :class="[
-                'text-xs leading-relaxed text-text-alt pt-2.5 border-t border-border-subtle transition-all duration-300',
-                expandedTimeline === idx ? 'block' : 'hidden sm:block'
-              ]"
-            >
+            <p :class="[
+              'text-xs leading-relaxed text-text-alt pt-2.5 border-t border-border-subtle transition-all duration-300',
+              expandedTimeline === idx ? 'block' : 'hidden sm:block'
+            ]">
               {{ event.description }}
             </p>
           </div>
@@ -272,20 +252,18 @@ function toggleCard(id: string) {
 
     <!-- Banner Thông Tin Liên Hệ -->
     <section class="pt-2">
-      <div
-        @click="toggleCard('contact-banner')"
-        :class="[
-          'relative overflow-hidden rounded-2xl border bg-bg-alt/70 p-6 shadow-2xs transition-all duration-300 cursor-pointer select-none',
-          activeCard === 'contact-banner'
-            ? 'border-primary/80 bg-bg-alt shadow-md'
-            : 'border-border-main hover:border-primary/60 hover:bg-bg-alt hover:shadow-md'
-        ]"
-      >
+      <div @click="toggleCard('contact-banner')" :class="[
+        'relative overflow-hidden rounded-2xl border bg-bg-alt/70 p-6 shadow-2xs transition-all duration-300 cursor-pointer select-none',
+        activeCard === 'contact-banner'
+          ? 'border-primary/80 bg-bg-alt shadow-md'
+          : 'border-border-main hover:border-primary/60 hover:bg-bg-alt hover:shadow-md'
+      ]">
         <div
           class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/5 blur-2xl opacity-0 hover:opacity-100 transition-opacity duration-500">
         </div>
 
-        <div class="relative flex flex-col sm:flex-row items-center sm:items-center justify-between text-center sm:text-left gap-5">
+        <div
+          class="relative flex flex-col sm:flex-row items-center sm:items-center justify-between text-center sm:text-left gap-5">
           <div class="space-y-2 max-w-xl mx-auto sm:mx-0">
             <h4 class="text-base sm:text-lg font-bold text-text-main leading-snug">
               Bạn muốn trao đổi hoặc hợp tác?

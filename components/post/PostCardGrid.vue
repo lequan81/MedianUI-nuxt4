@@ -30,9 +30,10 @@ const appStore = useAppStore()
   <article
     class="group rounded-xl bg-(--color-bg-card) border border-border-main overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
     <!-- Thumbnail Header -->
-    <div class="relative w-full aspect-[16/7] sm:aspect-video overflow-hidden bg-bg-sec">
-      <img :src="post.thumbnail" :alt="post.title"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+    <div class="relative w-full aspect-16/7 sm:aspect-video overflow-hidden bg-bg-sec">
+      <NuxtImg :src="post.thumbnail" :alt="post.title"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy"
+        format="webp" />
 
       <!-- Category Label Overlay -->
       <span
@@ -69,11 +70,8 @@ const appStore = useAppStore()
         <AuthorTooltip :author="post.author" size="sm">
           <template #default="{ author }">
             <div class="flex items-center gap-1.5 min-w-0">
-              <img
-                :src="author.avatar"
-                :alt="author.name"
-                class="w-5.5 h-5.5 shrink-0 rounded-full object-cover ring-1 ring-border-main"
-              />
+              <img :src="author.avatar" :alt="author.name"
+                class="w-5.5 h-5.5 shrink-0 rounded-full object-cover ring-1 ring-border-main" />
               <span class="font-medium text-text-main truncate max-w-28 hover:text-primary transition-colors">
                 {{ author.name }}
               </span>

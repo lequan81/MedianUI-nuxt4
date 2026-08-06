@@ -10,24 +10,31 @@ export default defineContentConfig({
         snippet: z.string(),
         category: z.string(),
         tags: z.array(z.string()).optional(),
+        updatedAt: z.string().optional(),
         date: z.string(),
         author: z.object({
           name: z.string(),
           avatar: z.string(),
           bio: z.string().optional(),
-          socials: z.array(z.object({
-            label: z.string(),
-            href: z.string(),
-          })).optional(),
+          socials: z
+            .array(
+              z.object({
+                label: z.string(),
+                href: z.string(),
+              }),
+            )
+            .optional(),
         }),
         readTime: z.string().optional(),
         comments: z.number().optional(),
         image: z.string(),
         pinned: z.boolean().optional(),
-        price: z.object({
-          original: z.string(),
-          sale: z.string(),
-        }).optional(),
+        price: z
+          .object({
+            original: z.string(),
+            sale: z.string(),
+          })
+          .optional(),
         discount: z.string().optional(),
         isProduct: z.boolean().optional(),
       }),
@@ -45,4 +52,3 @@ export default defineContentConfig({
     }),
   },
 });
-

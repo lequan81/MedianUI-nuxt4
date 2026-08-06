@@ -7,11 +7,13 @@ import {
   getLabelCounts,
   sortPinnedFirst,
 } from "~/composables/usePosts";
-import { postText } from "~/app/config/site";
-import AppIcon from "~/components/ui/AppIcon.vue";
-import WidgetTitle from "~/components/ui/WidgetTitle.vue";
-import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
-import { useAuthor } from "~/composables/useAuthor";
+const appConfig = useAppConfig();
+const postText = appConfig.postText;
+
+usePageSeo({
+  title: "Trang chủ",
+  description: appConfig.site.description,
+});
 
 const route = useRoute();
 const currentSlide = ref(0);
@@ -217,7 +219,7 @@ onUnmounted(() => {
                   class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   loading="eager" />
                 <div
-                  class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/35 to-transparent p-5 sm:p-7">
+                  class="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/85 via-black/35 to-transparent p-5 sm:p-7">
                   <span class="mb-2 w-fit rounded-[3px] bg-primary px-2.5 py-1 text-xs font-medium text-white">
                     {{ post.category }}
                   </span>
@@ -267,8 +269,7 @@ onUnmounted(() => {
       <div class="space-y-6">
         <article v-for="post in pinnedPosts" :key="post.path"
           class="group grid gap-5 sm:grid-cols-[minmax(220px,288px)_1fr]">
-          <NuxtLink :to="getPostPath(post)"
-            class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
+          <NuxtLink :to="getPostPath(post)" class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <img :src="getPostImage(post)" :alt="post.title"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy" />
@@ -399,16 +400,15 @@ onUnmounted(() => {
             </div>
 
             <!-- Footer bài viết -->
-            <div class="mt-3 flex items-center justify-between text-xs text-text-alt pt-2 border-t border-border-subtle">
+            <div
+              class="mt-3 flex items-center justify-between text-xs text-text-alt pt-2 border-t border-border-subtle">
               <AuthorTooltip :author="getAuthorInfo(post)" size="sm">
                 <template #default="{ author }">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <img
-                      :src="author.avatar"
-                      :alt="author.name"
-                      class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-border-main"
-                    />
-                    <span class="font-medium text-text-main truncate max-w-24 text-[11px] hover:text-primary transition-colors">
+                    <img :src="author.avatar" :alt="author.name"
+                      class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-border-main" />
+                    <span
+                      class="font-medium text-text-main truncate max-w-24 text-[11px] hover:text-primary transition-colors">
                       {{ author.name }}
                     </span>
                   </div>
@@ -420,10 +420,10 @@ onUnmounted(() => {
                 <div v-if="post.price" class="flex items-center gap-1 ml-1">
                   <span class="text-[10px] text-text-alt line-through">{{
                     post.price.original
-                  }}</span>
+                    }}</span>
                   <span class="font-semibold text-primary">{{
                     post.price.sale
-                  }}</span>
+                    }}</span>
                 </div>
               </div>
             </div>

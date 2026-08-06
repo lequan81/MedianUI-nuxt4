@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import { useAuthor } from "~/composables/useAuthor";
+import { useFloatingPopover } from "~/composables/useFloatingPopover";
 
 const props = withDefaults(
   defineProps<{
@@ -15,32 +16,19 @@ const props = withDefaults(
 
 const isVisible = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
-const computedPos = ref<{ vertical: "top" | "bottom"; horizontal: "left" | "right" }>({
-  vertical: "bottom",
-  horizontal: "left",
-});
+const floatingRef = ref<HTMLElement | null>(null);
 
 let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
-function calculateSmartPosition() {
-  if (!triggerRef.value) return;
-  const rect = triggerRef.value.getBoundingClientRect();
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
-
-  const spaceBelow = vh - rect.bottom;
-  const spaceAbove = rect.top;
-  const spaceRight = vw - rect.left;
-
-  const vertical = spaceBelow < 180 && spaceAbove > spaceBelow ? "top" : "bottom";
-  const horizontal = spaceRight < 270 ? "right" : "left";
-
-  computedPos.value = { vertical, horizontal };
-}
+// Floating UI Auto-Flip & Shift positioning against viewport overflow
+const { x, y } = useFloatingPopover(triggerRef, floatingRef, isVisible, {
+  placement: "top",
+  offsetDistance: 8,
+  padding: 8,
+});
 
 function showTooltip() {
   if (hideTimer) clearTimeout(hideTimer);
-  calculateSmartPosition();
   isVisible.value = true;
 }
 
@@ -53,12 +41,11 @@ function hideTooltip() {
 function handleTriggerClick(e: Event) {
   e.stopPropagation();
   if (hideTimer) clearTimeout(hideTimer);
-  calculateSmartPosition();
   isVisible.value = !isVisible.value;
 }
 
 function handleClickOutside(e: Event) {
-  if (triggerRef.value && !triggerRef.value.contains(e.target as Node)) {
+  if (triggerRef.value && !triggerRef.value.contains(e.target as Node) && floatingRef.value && !floatingRef.value.contains(e.target as Node)) {
     isVisible.value = false;
   }
 }
@@ -80,12 +67,6 @@ onUnmounted(() => {
 const authorData = computed(() => {
   return useAuthor(props.author);
 });
-
-const placementClasses = computed(() => {
-  const v = computedPos.value.vertical === "top" ? "bottom-full mb-2" : "top-full mt-2";
-  const h = computedPos.value.horizontal === "right" ? "right-0" : "left-0";
-  return `${v} ${h}`;
-});
 </script>
 
 <template>
@@ -97,10 +78,10 @@ const placementClasses = computed(() => {
     @click="handleTriggerClick"
     @touchend.prevent="handleTriggerClick"
   >
-    <!-- Slot Mặc Định Cho Phần Post Meta Badge với Active State khi Tap/Hover -->
+    <!-- Slot Mặc Định Cho Phần Post Meta Badge -->
     <slot :author="authorData" :isVisible="isVisible">
       <div class="flex items-center gap-2 cursor-pointer active:opacity-80">
-        <img
+        <NuxtImg
           :src="authorData.avatar"
           :alt="authorData.name"
           :class="[
@@ -110,6 +91,8 @@ const placementClasses = computed(() => {
               : 'ring-primary/20 group-hover/badge:ring-primary group-hover/badge:scale-105 group-active/badge:ring-primary group-active/badge:scale-105',
             size === 'sm' ? 'h-5 w-5' : 'h-7 w-7'
           ]"
+          format="webp"
+          loading="lazy"
         />
         <span
           :class="[
@@ -124,71 +107,64 @@ const placementClasses = computed(() => {
       </div>
     </slot>
 
-    <!-- Card Tooltip Popover -->
-    <Transition name="fade-slide">
-      <div
-        v-if="isVisible"
-        :class="[
-          'absolute z-50 w-64 rounded-xl border border-border-main bg-bg-alt p-3.5 shadow-xl text-left pointer-events-auto',
-          placementClasses
-        ]"
-        @mouseenter="showTooltip"
-        @mouseleave="hideTooltip"
-        @click.stop
-        @touchend.stop
+    <!-- Floating Tooltip Card với Auto-Flip/Shift Floating UI -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
       >
-        <!-- Header Info Inside Tooltip Popover -->
-        <div class="flex items-center gap-2.5">
-          <img
-            :src="authorData.avatar"
-            :alt="authorData.name"
-            class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 hover:ring-primary hover:scale-105 active:scale-105 cursor-pointer"
-          />
-          <div class="min-w-0 flex-1">
-            <h4 class="font-bold text-sm text-text-main truncate leading-tight">
-              {{ authorData.name }}
-            </h4>
-            <p class="text-xs text-primary font-semibold mt-0.5">
-              {{ authorData.handle }}
-            </p>
+        <div
+          v-if="isVisible"
+          ref="floatingRef"
+          :style="{
+            position: 'fixed',
+            left: `${x}px`,
+            top: `${y}px`,
+          }"
+          class="z-100 w-64 rounded-2xl border border-border-main bg-bg-base p-4 shadow-xl text-text-main select-none pointer-events-auto"
+          @mouseenter="showTooltip"
+          @mouseleave="hideTooltip"
+          @click.stop
+        >
+          <div class="flex items-center gap-3">
+            <NuxtImg
+              :src="authorData.avatar"
+              :alt="authorData.name"
+              class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-primary/40 shadow-xs"
+              format="webp"
+              loading="lazy"
+            />
+            <div class="min-w-0 flex-1">
+              <h4 class="text-xs font-bold text-text-main truncate">
+                {{ authorData.name }}
+              </h4>
+              <p class="text-[11px] font-semibold text-primary">
+                {{ authorData.handle }}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <!-- Clean Bio Line -->
-        <p v-if="authorData.bio" class="mt-2.5 text-xs leading-relaxed text-text-alt">
-          {{ authorData.bio }}
-        </p>
+          <p class="mt-2.5 text-xs text-text-alt leading-relaxed line-clamp-2">
+            {{ authorData.bio }}
+          </p>
 
-        <!-- Social Icons Row -->
-        <div v-if="authorData.socials?.length" class="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between">
-          <span class="text-[11px] font-medium text-text-muted">Liên hệ:</span>
-          <div class="flex items-center gap-1.5">
+          <div class="mt-3 flex items-center justify-between border-t border-border-subtle pt-2.5">
             <a
-              v-for="social in authorData.socials"
-              :key="social.href || social.name"
-              :href="social.href"
+              :href="authorData.website"
               target="_blank"
               rel="noreferrer"
-              :title="social.name"
-              class="flex h-7 w-7 items-center justify-center rounded-lg border border-border-main bg-bg-sec text-text-alt transition-colors hover:border-primary hover:text-primary hover:bg-bg-base active:scale-95"
+              class="text-[11px] font-bold text-primary hover:underline"
             >
-              <AppIcon :name="social.icon || 'globe'" :size="14" />
+              Trang cá nhân →
             </a>
+            <span class="text-[10px] font-mono text-text-muted">Software Engineer</span>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
-
-<style scoped>
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(4px);
-}
-</style>

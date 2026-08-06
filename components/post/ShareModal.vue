@@ -92,34 +92,23 @@ const sharePlatforms = [
 
 <template>
   <Teleport to="body">
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-95"
-    >
+    <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100" leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
       <!-- Fixed Modal Backdrop: z-[100] đè hoàn toàn trên MobileNav bar với lớp làm mờ đen mờ 75% -->
-      <div
-        v-if="props.isOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
-        @click.self="emit('close')"
-      >
+      <div v-if="props.isOpen"
+        class="fixed inset-0 z-100 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+        @click.self="emit('close')">
         <div
-          class="w-full max-w-md overflow-hidden rounded-2xl border border-border-main bg-bg-base p-5 shadow-2xl sm:p-6"
-        >
+          class="w-full max-w-md overflow-hidden rounded-2xl border border-border-main bg-bg-base p-5 shadow-2xl sm:p-6">
           <!-- Modal Header -->
           <div class="flex items-center justify-between border-b border-border-subtle pb-3.5">
             <h3 class="text-sm font-bold text-text-main">
               Chia sẻ bài viết
             </h3>
-            <button
-              type="button"
+            <button type="button"
               class="flex h-7 w-7 items-center justify-center rounded-full text-text-alt transition-colors hover:bg-bg-sec hover:text-text-main cursor-pointer"
-              aria-label="Close modal"
-              @click="emit('close')"
-            >
+              aria-label="Close modal" @click="emit('close')">
               <AppIcon name="x" :size="16" />
             </button>
           </div>
@@ -127,21 +116,14 @@ const sharePlatforms = [
           <!-- Modal Body Grid Share Apps -->
           <div class="py-5">
             <div class="grid grid-cols-4 gap-y-4 gap-x-2">
-              <button
-                v-for="item in sharePlatforms"
-                :key="item.id"
-                type="button"
+              <button v-for="item in sharePlatforms" :key="item.id" type="button"
                 class="group flex flex-col items-center justify-center text-center cursor-pointer"
-                @click="openShare(item.id)"
-              >
+                @click="openShare(item.id)">
                 <div
-                  class="flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-bg-sec text-text-main transition-all duration-200 group-hover:scale-105 group-hover:border-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-md"
-                >
+                  class="flex h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-bg-sec text-text-main transition-all duration-200 group-hover:scale-105 group-hover:border-primary group-hover:bg-primary group-hover:text-white group-hover:shadow-md">
                   <AppIcon :name="item.icon" :size="18" />
                 </div>
-                <span
-                  class="mt-1.5 text-[11px] font-medium text-text-alt transition-colors group-hover:text-text-main"
-                >
+                <span class="mt-1.5 text-[11px] font-medium text-text-alt transition-colors group-hover:text-text-main">
                   {{ item.name }}
                 </span>
               </button>
@@ -153,22 +135,14 @@ const sharePlatforms = [
             <p class="mb-2 text-[11px] font-medium text-text-muted uppercase tracking-wider">
               Sao chép đường dẫn
             </p>
-            <div
-              class="flex items-center gap-2 rounded-xl border border-border-main bg-bg-sec p-2"
-            >
+            <div class="flex items-center gap-2 rounded-xl border border-border-main bg-bg-sec p-2">
               <AppIcon name="link" :size="15" class="shrink-0 text-text-alt ml-1" />
-              <input
-                type="text"
-                readonly
-                :value="getShareUrl()"
+              <input type="text" readonly :value="getShareUrl()"
                 class="min-w-0 flex-1 bg-transparent text-xs font-mono text-text-main outline-none select-all"
-                @click="handleCopy"
-              />
-              <button
-                type="button"
+                @click="handleCopy" />
+              <button type="button"
                 class="shrink-0 rounded-lg border border-primary bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-primary-hover shadow-2xs cursor-pointer"
-                @click="handleCopy"
-              >
+                @click="handleCopy">
                 {{ isCopied ? "Đã chép! ✓" : "Sao chép" }}
               </button>
             </div>

@@ -12,9 +12,9 @@ const tocLinks = computed(() => {
   return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
 });
 
-useSeoMeta({
-  title: () => page.value?.title ? `${page.value.title} - Median UI` : "Tuyên bố miễn trừ trách nhiệm - Median UI",
-  description: () => page.value?.description || "Tuyên bố miễn trừ trách nhiệm về thông tin và bài viết trên Median UI.",
+usePageSeo({
+  title: page.value?.title || "Tuyên bố miễn trừ trách nhiệm",
+  description: page.value?.description || "Tuyên bố miễn trừ trách nhiệm về thông tin và bài viết trên Median UI.",
 });
 </script>
 

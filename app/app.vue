@@ -12,6 +12,7 @@ useHead({
 </script>
 
 <template>
+  <GlobalLoading />
   <NuxtRouteAnnouncer />
   <NuxtLayout>
     <NuxtPage />

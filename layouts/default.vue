@@ -10,7 +10,7 @@ import MobileNav from "~/components/layout/MobileNav.vue";
 import SearchModal from "~/components/ui/SearchModal.vue";
 import LanguageModal from "~/components/ui/LanguageModal.vue";
 import AppFooter from "~/components/layout/AppFooter.vue";
-import AdBanner from "~/components/ui/AdBanner.vue";
+import AdBanner from "~/components/ui/AdBanner.server.vue";
 import FloatingTopButton from "~/components/ui/FloatingTopButton.vue";
 
 const appStore = useAppStore();
@@ -37,7 +37,7 @@ const hideRightSidebar = computed(() => {
 onMounted(() => {
   appStore.initTheme();
   langStore.initLang();
-  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+  if (import.meta.client && !import.meta.dev && "serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }
 });
@@ -79,8 +79,11 @@ onMounted(() => {
     </div>
 
     <MobileNav />
-    <SearchModal />
-    <LanguageModal />
-    <FloatingTopButton />
+    <ClientOnly>
+      <LazySearchModal />
+      <LazyLanguageModal />
+      <LazyFloatingTopButton />
+      <AppToast />
+    </ClientOnly>
   </div>
 </template>

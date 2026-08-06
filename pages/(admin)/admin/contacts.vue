@@ -5,10 +5,12 @@ import AppIcon from "~/components/ui/AppIcon.vue";
 
 const route = useRoute();
 
-useSeoMeta({
-  title: "Hòm thư Liên hệ - Admin Median UI",
-  description: "Quản lý hòm thư liên hệ từ độc giả Median UI v1.7",
-});
+if (import.meta.server) {
+  useSeoMeta({
+    title: "Hòm thư Liên hệ - Admin Median UI",
+    description: "Quản lý hòm thư liên hệ từ độc giả Median UI v1.7",
+  });
+}
 
 const contacts = ref([
   {
@@ -78,10 +80,8 @@ onMounted(() => {
       </div>
 
       <div class="flex items-center gap-2">
-        <NuxtLink
-          to="/admin"
-          class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs"
-        >
+        <NuxtLink to="/admin"
+          class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs">
           <AppIcon name="arrow-left" :size="14" />
           <span>Về Dashboard</span>
         </NuxtLink>
@@ -98,21 +98,18 @@ onMounted(() => {
           </h2>
         </div>
 
-        <div class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
-          <div
-            v-for="item in contacts"
-            :key="item.id"
-            :class="[
-              'p-4 cursor-pointer transition-all hover:bg-bg-sec/80',
-              selectedContact?.id === item.id ? 'bg-primary-subtle/30 border-l-4 border-l-primary' : '',
-            ]"
-            @click="openMessage(item)"
-          >
+        <div
+          class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
+          <div v-for="item in contacts" :key="item.id" :class="[
+            'p-4 cursor-pointer transition-all hover:bg-bg-sec/80',
+            selectedContact?.id === item.id ? 'bg-primary-subtle/30 border-l-4 border-l-primary' : '',
+          ]" @click="openMessage(item)">
             <div class="flex items-start justify-between gap-2 mb-1">
               <span class="text-xs font-bold text-text-main truncate">
                 {{ item.name }}
               </span>
-              <span v-if="!item.read" class="inline-flex items-center rounded bg-primary px-1.5 py-0.2 text-[10px] font-bold text-white shrink-0">
+              <span v-if="!item.read"
+                class="inline-flex items-center rounded bg-primary px-1.5 py-0.2 text-[10px] font-bold text-white shrink-0">
                 Mới
               </span>
             </div>
@@ -136,14 +133,16 @@ onMounted(() => {
           </h2>
         </div>
 
-        <div v-if="selectedContact" class="rounded-xl border border-border-main bg-bg-alt/80 p-6 space-y-4 shadow-sm backdrop-blur-md">
+        <div v-if="selectedContact"
+          class="rounded-xl border border-border-main bg-bg-alt/80 p-6 space-y-4 shadow-sm backdrop-blur-md">
           <div class="flex items-center justify-between border-b border-border-subtle pb-3">
             <div>
               <h3 class="text-base font-bold text-text-main">
                 {{ selectedContact.subject }}
               </h3>
               <p class="text-xs text-text-alt mt-0.5">
-                Từ: <strong class="text-text-main">{{ selectedContact.name }}</strong> (&lt;{{ selectedContact.email }}&gt;)
+                Từ: <strong class="text-text-main">{{ selectedContact.name }}</strong> (&lt;{{ selectedContact.email
+                }}&gt;)
               </p>
             </div>
             <span class="text-xs text-text-muted font-medium">{{ selectedContact.date }}</span>
@@ -154,25 +153,21 @@ onMounted(() => {
           </div>
 
           <div class="pt-4 border-t border-border-subtle flex items-center justify-between">
-            <a
-              :href="`mailto:${selectedContact.email}?subject=Re: ${encodeURIComponent(selectedContact.subject)}`"
-              class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-primary-hover transition-colors"
-            >
+            <a :href="`mailto:${selectedContact.email}?subject=Re: ${encodeURIComponent(selectedContact.subject)}`"
+              class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-primary-hover transition-colors">
               <AppIcon name="mail" :size="14" />
               <span>Trả lời qua Email</span>
             </a>
 
-            <button
-              type="button"
-              class="text-xs font-semibold text-red-500 hover:underline cursor-pointer"
-              @click="contacts = contacts.filter(c => c.id !== selectedContact.id); selectedContact = null;"
-            >
+            <button type="button" class="text-xs font-semibold text-red-500 hover:underline cursor-pointer"
+              @click="contacts = contacts.filter(c => c.id !== selectedContact.id); selectedContact = null;">
               Xóa tin nhắn
             </button>
           </div>
         </div>
 
-        <div v-else class="rounded-xl border border-dashed border-border-main bg-bg-alt/40 p-12 text-center text-text-muted space-y-2">
+        <div v-else
+          class="rounded-xl border border-dashed border-border-main bg-bg-alt/40 p-12 text-center text-text-muted space-y-2">
           <AppIcon name="mail" :size="28" class="mx-auto text-text-muted" />
           <p class="text-xs font-medium">Chọn một tin nhắn ở danh sách bên trái để đọc chi tiết</p>
         </div>

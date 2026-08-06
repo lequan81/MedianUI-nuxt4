@@ -3,10 +3,12 @@ import { ref } from "vue";
 import { useSeoMeta } from "#imports";
 import AppIcon from "~/components/ui/AppIcon.vue";
 
-useSeoMeta({
-  title: "Dashboard Quản trị - Median UI",
-  description: "Tổng quan hệ thống quản trị Median UI v1.7",
-});
+if (import.meta.server) {
+  useSeoMeta({
+    title: "Dashboard Quản trị - Median UI",
+    description: "Tổng quan hệ thống quản trị Median UI v1.7",
+  });
+}
 
 const stats = [
   { label: "Tổng lượt xem", value: "48,290", change: "+12.4%", icon: "eye", color: "text-blue-500", bg: "bg-blue-500/10", link: "#" },
@@ -65,26 +67,20 @@ function deleteComment(id: number) {
       </div>
 
       <div class="flex items-center gap-2">
-        <NuxtLink
-          to="/admin/comments"
-          class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs"
-        >
+        <NuxtLink to="/admin/comments"
+          class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs">
           <AppIcon name="message-square" :size="14" />
           <span>Duyệt bình luận (2)</span>
         </NuxtLink>
 
-        <NuxtLink
-          to="/admin/contacts"
-          class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs"
-        >
+        <NuxtLink to="/admin/contacts"
+          class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs">
           <AppIcon name="mail" :size="14" />
           <span>Hòm thư (2)</span>
         </NuxtLink>
 
-        <NuxtLink
-          to="/"
-          class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover shadow-2xs"
-        >
+        <NuxtLink to="/"
+          class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover shadow-2xs">
           <AppIcon name="external-link" :size="14" />
           <span>Xem Website</span>
         </NuxtLink>
@@ -93,21 +89,19 @@ function deleteComment(id: number) {
 
     <!-- Analytics Stats Grid Căn Chỉnh Chiều Cao Đều Đặn (items-stretch) -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
-      <NuxtLink
-        v-for="stat in stats"
-        :key="stat.label"
-        :to="stat.link"
-        class="group flex flex-col justify-between h-full rounded-xl border border-dashed border-border-main bg-bg-alt/60 p-4.5 space-y-3 shadow-2xs transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt"
-      >
+      <NuxtLink v-for="stat in stats" :key="stat.label" :to="stat.link"
+        class="group flex flex-col justify-between h-full rounded-xl border border-dashed border-border-main bg-bg-alt/60 p-4.5 space-y-3 shadow-2xs transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-text-alt group-hover:text-primary transition-colors">{{ stat.label }}</span>
+          <span class="text-xs font-medium text-text-alt group-hover:text-primary transition-colors">{{ stat.label
+            }}</span>
           <div :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', stat.bg, stat.color]">
             <AppIcon :name="stat.icon" :size="16" />
           </div>
         </div>
 
         <div>
-          <span class="text-2xl font-bold text-text-main tracking-tight group-hover:text-primary transition-colors">{{ stat.value }}</span>
+          <span class="text-2xl font-bold text-text-main tracking-tight group-hover:text-primary transition-colors">{{
+            stat.value }}</span>
           <p class="text-[11px] font-semibold text-primary mt-0.5">
             {{ stat.change }}
           </p>
@@ -130,12 +124,10 @@ function deleteComment(id: number) {
           </NuxtLink>
         </div>
 
-        <div v-if="pendingComments.length" class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
-          <div
-            v-for="item in pendingComments"
-            :key="item.id"
-            class="p-4 space-y-2 transition-colors hover:bg-bg-sec/40"
-          >
+        <div v-if="pendingComments.length"
+          class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
+          <div v-for="item in pendingComments" :key="item.id"
+            class="p-4 space-y-2 transition-colors hover:bg-bg-sec/40">
             <div class="flex items-center justify-between gap-2">
               <span class="text-xs font-bold text-text-main">{{ item.author }}</span>
               <span class="text-[10px] text-text-muted">{{ item.date }}</span>
@@ -143,23 +135,20 @@ function deleteComment(id: number) {
             <p class="text-[11.5px] font-semibold text-primary truncate">
               Bài viết: {{ item.postTitle }}
             </p>
-            <p class="text-xs text-text-alt line-clamp-2 leading-relaxed bg-bg-base/60 p-2.5 rounded-lg border border-border-subtle">
+            <p
+              class="text-xs text-text-alt line-clamp-2 leading-relaxed bg-bg-base/60 p-2.5 rounded-lg border border-border-subtle">
               "{{ item.content }}"
             </p>
             <div class="flex items-center justify-end gap-2 pt-1">
-              <button
-                type="button"
+              <button type="button"
                 class="inline-flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-colors cursor-pointer"
-                @click="approveComment(item.id)"
-              >
+                @click="approveComment(item.id)">
                 <AppIcon name="check" :size="12" />
                 <span>Duyệt</span>
               </button>
-              <button
-                type="button"
+              <button type="button"
                 class="inline-flex items-center gap-1 rounded border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11px] font-bold text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-                @click="deleteComment(item.id)"
-              >
+                @click="deleteComment(item.id)">
                 <AppIcon name="x" :size="12" />
                 <span>Xóa</span>
               </button>
@@ -167,7 +156,8 @@ function deleteComment(id: number) {
           </div>
         </div>
 
-        <div v-else class="rounded-xl border border-dashed border-border-main bg-bg-alt/40 p-8 text-center text-text-muted text-xs font-medium">
+        <div v-else
+          class="rounded-xl border border-dashed border-border-main bg-bg-alt/40 p-8 text-center text-text-muted text-xs font-medium">
           Không có bình luận nào đang chờ duyệt
         </div>
       </div>
@@ -185,14 +175,12 @@ function deleteComment(id: number) {
           </NuxtLink>
         </div>
 
-        <div class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
-          <NuxtLink
-            v-for="item in recentContacts"
-            :key="item.id"
-            :to="`/admin/contacts?id=${item.id}`"
-            class="group p-4 flex items-start gap-3 transition-colors hover:bg-bg-sec/60 cursor-pointer"
-          >
-            <div :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white', item.read ? 'bg-zinc-600' : 'bg-primary']">
+        <div
+          class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
+          <NuxtLink v-for="item in recentContacts" :key="item.id" :to="`/admin/contacts?id=${item.id}`"
+            class="group p-4 flex items-start gap-3 transition-colors hover:bg-bg-sec/60 cursor-pointer">
+            <div
+              :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white', item.read ? 'bg-zinc-600' : 'bg-primary']">
               {{ item.name.charAt(0) }}
             </div>
 

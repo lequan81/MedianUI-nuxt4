@@ -3,12 +3,16 @@ import { computed, ref } from "vue";
 import { useSeoMeta } from "#imports";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import TableOfContents from "~/components/post/TableOfContents.vue";
-const appConfig = useAppConfig();
-const authorConfig = appConfig.author;
+import { authorConfig } from "~/app/config/site";
 
-const { data: page } = await useAsyncData("page-about", async () => {
-  return (await queryCollection("pages").path("/pages/about").first()) || null;
-});
+const nuxtApp = useNuxtApp();
+const { data: page } = await useAsyncData(
+  "page-about",
+  async () => (await queryCollection("pages").path("/pages/about").first()) || null,
+  {
+    getCachedData: (key) => nuxtApp.payload.data[key] || nuxtApp.static.data[key],
+  }
+);
 
 const tocLinks = computed(() => {
   if (!page.value) return [];

@@ -13,7 +13,7 @@ import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 
 const route = useRoute();
 
-const { data: posts } = await useAsyncData(() =>
+const { data: posts, status } = useLazyAsyncData("right-sidebar-posts", () =>
   queryCollection("posts").all(),
 );
 
@@ -91,7 +91,7 @@ function isCategoryActive(name: string) {
         <article v-if="popularPosts[0]" class="group flex flex-col gap-4">
           <div class="relative overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
             <NuxtLink :to="getPostPath(popularPosts[0])" class="block aspect-video">
-              <img :src="getPostImage(popularPosts[0])" :alt="popularPosts[0].title"
+              <NuxtImg :src="getPostImage(popularPosts[0])" :alt="popularPosts[0].title"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
                 loading="lazy" />
             </NuxtLink>

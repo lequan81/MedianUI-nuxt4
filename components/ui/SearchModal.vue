@@ -8,9 +8,12 @@ const appStore = useAppStore();
 const searchQuery = ref("");
 const inputRef = ref<HTMLInputElement | null>(null);
 
-const { data: posts } = await useAsyncData("search-posts", () =>
-  queryCollection("posts").all(),
-);
+const posts = ref<any[]>([]);
+
+onMounted(async () => {
+  const data = await queryCollection("posts").all();
+  posts.value = data || [];
+});
 
 const popularTags = computed(() => {
   const categories = new Set(

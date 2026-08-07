@@ -13,8 +13,16 @@ export default defineConfig({
       "@": rootDir,
     },
   },
+  ssr: {
+    external: ["bun:sqlite"],
+  },
   test: {
     environment: "happy-dom",
     globals: true,
+    server: {
+      deps: {
+        external: ["bun:sqlite"],
+      },
+    },
   },
 });

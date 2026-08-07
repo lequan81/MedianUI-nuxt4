@@ -6,6 +6,7 @@ const props = defineProps<{
   src?: string;
   alt?: string;
   width?: string | number;
+  height?: string | number;
 }>();
 
 const isLoaded = ref(false);
@@ -26,22 +27,28 @@ const refinedSrc = computed(() => {
 
 <template>
   <figure class="my-10 flex flex-col items-center justify-center w-full">
-    <div class="mx-auto w-full max-w-[80%] sm:max-w-[78%] overflow-hidden rounded-xl border border-border-main bg-bg-subtle shadow-xs">
-      <img
+    <div
+      class="mx-auto w-full max-w-[80%] sm:max-w-[78%] overflow-hidden rounded-xl border border-border-main bg-bg-sec/40 shadow-xs"
+    >
+      <div
+        v-if="!isLoaded"
+        class="h-48 w-full animate-pulse bg-bg-sec"
+      ></div>
+      <NuxtImg
         :src="refinedSrc"
-        :alt="alt || ''"
-        :width="width"
-        class="h-auto w-full object-cover transition-opacity duration-300"
+        :alt="props.alt || ''"
+        class="h-auto w-full max-w-full rounded-xl object-contain transition-opacity duration-300 block mx-auto"
         :class="isLoaded ? 'opacity-100' : 'opacity-0'"
         loading="lazy"
+        decoding="async"
         @load="isLoaded = true"
       />
     </div>
     <figcaption
-      v-if="alt"
-      class="mt-2.5 text-center text-xs text-text-muted font-medium tracking-wide"
+      v-if="props.alt"
+      class="mt-2.5 max-w-[78%] text-center text-xs sm:text-[13px] text-text-alt/85 font-medium leading-normal"
     >
-      {{ alt }}
+      {{ props.alt }}
     </figcaption>
   </figure>
 </template>

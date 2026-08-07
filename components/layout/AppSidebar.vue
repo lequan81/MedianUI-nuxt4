@@ -221,7 +221,7 @@ watch(
             </a>
 
             <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
-              class="absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-md">
+              class="pointer-events-none select-none absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-md">
               {{ item.label }}
             </div>
           </template>

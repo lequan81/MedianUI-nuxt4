@@ -12,7 +12,7 @@ const langStore = useLangStore()
 <template>
   <!-- Mobile Bottom Navigation Bar: Grid 5 cột chuẩn 20% mỗi cột, 100% vừa vặn không bao giờ bị tràn -->
   <nav
-    class="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 h-15 w-full items-center px-1 border-t border-border-main bg-bg-base/95 text-text-alt shadow-lg backdrop-blur-md lg:hidden overflow-hidden">
+    class="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 h-15 w-full items-center px-1 border-t border-border-main bg-bg-base text-text-alt shadow-lg backdrop-blur-md lg:hidden overflow-hidden">
     <!-- 1. Home -->
     <NuxtLink to="/"
       class="flex w-full flex-col items-center justify-center gap-1 py-1 text-[9.5px] font-medium transition-colors hover:text-primary overflow-hidden"

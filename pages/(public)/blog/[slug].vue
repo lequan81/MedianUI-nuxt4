@@ -138,10 +138,66 @@ const hiddenPostTags = computed(() => {
   return [];
 });
 
+const extractedTocLinks = ref<any[]>([]);
+
+function extractHeadingsFromDOM() {
+  if (typeof window === "undefined") return;
+  const articleEl = document.querySelector(".prose-content");
+  if (!articleEl) return;
+
+  const headings = articleEl.querySelectorAll("h2, h3");
+  const items: any[] = [];
+  let lastH2: any = null;
+
+  headings.forEach((heading, idx) => {
+    let id = heading.id;
+    if (!id) {
+      id = `heading-${idx}`;
+      heading.id = id;
+    }
+
+    const text = heading.textContent?.trim() || "";
+    if (!text) return;
+
+    const item = {
+      id,
+      text,
+      depth: heading.tagName.toLowerCase() === "h2" ? 2 : 3,
+      children: [],
+    };
+
+    if (item.depth === 2) {
+      items.push(item);
+      lastH2 = item;
+    } else if (item.depth === 3) {
+      if (lastH2) {
+        lastH2.children.push(item);
+      } else {
+        items.push(item);
+      }
+    }
+  });
+
+  extractedTocLinks.value = items;
+}
+
 const tocLinks = computed(() => {
   if (!post.value) return [];
-  return post.value.body?.toc?.links || (post.value as any).toc?.links || [];
+  const contentToc = post.value.body?.toc?.links || (post.value as any).toc?.links || [];
+  if (contentToc && contentToc.length > 0) return contentToc;
+  return extractedTocLinks.value;
 });
+
+onMounted(() => {
+  setTimeout(extractHeadingsFromDOM, 250);
+});
+
+watch(
+  () => post.value,
+  () => {
+    setTimeout(extractHeadingsFromDOM, 250);
+  }
+);
 
 useArticleSeo(post);
 </script>
@@ -184,7 +240,16 @@ useArticleSeo(post);
 
       <div class="space-y-6">
         <div class="prose-content">
-          <ContentRenderer :value="post" />
+          <ClientOnly>
+            <ContentRenderer :value="post" />
+            <template #fallback>
+              <div class="animate-pulse space-y-4 py-4">
+                <div class="h-4 bg-bg-sec rounded w-3/4"></div>
+                <div class="h-4 bg-bg-sec rounded w-full"></div>
+                <div class="h-4 bg-bg-sec rounded w-5/6"></div>
+              </div>
+            </template>
+          </ClientOnly>
         </div>
 
         <div
@@ -235,7 +300,7 @@ useArticleSeo(post);
             class="group flex flex-col overflow-hidden rounded-xl border border-border-main bg-bg-alt/70 p-2.5 transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt shadow-2xs cursor-pointer">
             <NuxtLink :to="getPostPath(item)"
               class="relative mb-2 aspect-video w-full overflow-hidden rounded-lg bg-bg-sec border border-border-subtle shrink-0">
-              <img v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
+              <NuxtImg v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy" />
               <div v-else class="flex h-full w-full items-center justify-center text-[10px] text-text-muted">
@@ -298,7 +363,7 @@ useArticleSeo(post);
 
             <NuxtLink :to="getPostPath(item)"
               class="relative h-20 w-20 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
-              <img v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
+              <NuxtImg v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy" />
               <div v-else class="flex h-full w-full items-center justify-center text-[10px] text-text-muted">

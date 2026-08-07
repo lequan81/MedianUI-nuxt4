@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import * as v from "valibot";
-import { usePageSeo } from "#imports";
+import { usePageSeo } from "~/composables/usePageSeo";
 import { useToast } from "~/composables/useToast";
 import AppIcon from "~/components/ui/AppIcon.vue";
 import { siteConfig, authorConfig } from "~/app/config/site";
@@ -157,8 +157,7 @@ async function handleSubmit() {
                   {{ authorConfig.handle }}
                 </span>
                 <span class="text-xs text-text-muted">•</span>
-                <span
-                  class="inline-flex items-center rounded bg-primary-subtle/80 px-1.5 py-0.2 text-[11px] font-semibold text-primary">
+                <span class="inline-flex items-center rounded px-1.5 py-0.2 text-[11px] font-semibold text-primary">
                   23 tuổi
                 </span>
               </div>
@@ -285,11 +284,10 @@ async function handleSubmit() {
                   <label class="block text-xs font-medium text-text-main/90 pb-1">
                     Họ và tên <span class="text-red-500 font-bold ml-0.5">*</span>
                   </label>
-                  <input v-model="form.name" type="text" placeholder="Nhập tên của bạn"
-                    :class="[
-                      'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
-                      fieldErrors.name ? 'border-rose-500 focus:ring-1 focus:ring-rose-500' : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                    ]" />
+                  <input v-model="form.name" type="text" placeholder="Nhập tên của bạn" :class="[
+                    'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
+                    fieldErrors.name ? 'border-rose-500 focus:ring-1 focus:ring-rose-500' : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
+                  ]" />
                   <p v-if="fieldErrors.name" class="mt-1 text-[11px] font-medium text-rose-500">
                     {{ fieldErrors.name }}
                   </p>
@@ -299,11 +297,10 @@ async function handleSubmit() {
                   <label class="block text-xs font-medium text-text-main/90 pb-1">
                     Email <span class="text-red-500 font-bold ml-0.5">*</span>
                   </label>
-                  <input v-model="form.email" type="email" placeholder="your.email@example.com"
-                    :class="[
-                      'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
-                      fieldErrors.email ? 'border-rose-500 focus:ring-1 focus:ring-rose-500' : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                    ]" />
+                  <input v-model="form.email" type="email" placeholder="your.email@example.com" :class="[
+                    'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
+                    fieldErrors.email ? 'border-rose-500 focus:ring-1 focus:ring-rose-500' : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
+                  ]" />
                   <p v-if="fieldErrors.email" class="mt-1 text-[11px] font-medium text-rose-500">
                     {{ fieldErrors.email }}
                   </p>
@@ -322,8 +319,7 @@ async function handleSubmit() {
                 <label class="block text-xs font-medium text-text-main/90 pb-1">
                   Nội dung tin nhắn <span class="text-red-500 font-bold ml-0.5">*</span>
                 </label>
-                <textarea v-model="form.message" rows="3"
-                  placeholder="Nội dung bạn muốn trao đổi với Lê Quân..."
+                <textarea v-model="form.message" rows="3" placeholder="Nội dung bạn muốn trao đổi với Lê Quân..."
                   :class="[
                     'w-full rounded-lg border bg-bg-sec p-3 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs resize-y',
                     fieldErrors.message ? 'border-rose-500 focus:ring-1 focus:ring-rose-500' : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'

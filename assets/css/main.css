@@ -164,3 +164,77 @@ html.dark *,
   transform: translateY(3px);
 }
 
+/* 3x3 Grid Matrix Loader (Windows 11 Mica Backdrop Blur) */
+body.page-nav-loading #global-overlay-loading {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.loading-overlay {
+  display: flex;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.grid-loader {
+  display: grid;
+  position: relative;
+  width: 6rem;
+  height: 6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.125rem;
+}
+
+.grid-subloader {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-loader > div {
+  transform: scale(0);
+  transform-origin: center center;
+  animation: grid-loader-anim 2s infinite linear;
+}
+
+.grid-loader > div:nth-of-type(1),
+.grid-loader > div:nth-of-type(5),
+.grid-loader > div:nth-of-type(9) {
+  animation-delay: 0.4s;
+}
+
+.grid-loader > div:nth-of-type(4),
+.grid-loader > div:nth-of-type(8) {
+  animation-delay: 0.2s;
+}
+
+.grid-loader > div:nth-of-type(2),
+.grid-loader > div:nth-of-type(6) {
+  animation-delay: 0.6s;
+}
+
+.grid-loader > div:nth-of-type(3) {
+  animation-delay: 0.8s;
+}
+
+@keyframes grid-loader-anim {
+  0%,
+  100% {
+    transform: scale(0);
+  }
+
+  40%,
+  80% {
+    transform: scale(1);
+  }
+}
+

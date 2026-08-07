@@ -48,7 +48,7 @@ const formattedBioParts = computed(() => {
       <!-- Avatar Viền Ring CSS Tròn Tuyệt Đối -->
       <div
         class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-base ring-2 ring-primary/20 shadow-xs transition-all duration-300 group-hover/bio:ring-primary group-hover/bio:scale-105">
-        <NuxtImg v-if="author.avatar" :src="author.avatar" :alt="author.name" class="h-full w-full object-cover" loading="lazy" format="webp" />
+        <NuxtImg v-if="author.avatar" :src="author.avatar" :alt="author.name" class="h-full w-full object-cover" loading="lazy" />
         <AppIcon v-else name="user" :size="18" class="text-text-alt" />
       </div>
 

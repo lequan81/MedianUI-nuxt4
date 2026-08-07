@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, watch } from "vue";
 
 export interface TocItem {
   id: string;
@@ -12,8 +12,14 @@ const props = defineProps<{
   links: TocItem[];
 }>();
 
-const isOpen = ref(false);
-const activeId = ref("");
+// Thống nhất toàn bộ các state rời rạc vào 1 đối tượng reactive duy nhất
+const state = reactive({
+  isOpen: false,
+  activeId: "",
+  isHiddenOnMobile: false,
+});
+
+let lastScrollY = 0;
 
 const flatLinks = computed(() => {
   const items: TocItem[] = [];
@@ -51,7 +57,7 @@ function updateActiveHeading() {
   if (scrollPosition >= pageHeight - 120) {
     const lastHeading = headings[headings.length - 1];
     if (lastHeading) {
-      activeId.value = lastHeading.id;
+      state.activeId = lastHeading.id;
       return;
     }
   }
@@ -68,11 +74,25 @@ function updateActiveHeading() {
     }
   }
 
-  activeId.value = currentActiveId;
+  state.activeId = currentActiveId;
 }
 
 let isScrolling = false;
 function onScroll() {
+  if (typeof window === "undefined") return;
+  const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+  if (window.innerWidth < 1024) {
+    if (currentScrollY > lastScrollY && currentScrollY > 80 && !state.isOpen) {
+      state.isHiddenOnMobile = true;
+    } else {
+      state.isHiddenOnMobile = false;
+    }
+  } else {
+    state.isHiddenOnMobile = false;
+  }
+  lastScrollY = currentScrollY;
+
   if (!isScrolling) {
     isScrolling = true;
     requestAnimationFrame(() => {
@@ -94,6 +114,7 @@ watch(
 
 onMounted(() => {
   if (typeof window !== "undefined") {
+    lastScrollY = window.scrollY || 0;
     window.addEventListener("scroll", onScroll, { passive: true });
     setTimeout(updateActiveHeading, 100);
   }
@@ -106,11 +127,11 @@ onBeforeUnmount(() => {
 });
 
 function toggleToc() {
-  isOpen.value = !isOpen.value;
+  state.isOpen = !state.isOpen;
 }
 
 function closeToc() {
-  isOpen.value = false;
+  state.isOpen = false;
 }
 
 function cleanText(text: string) {
@@ -119,18 +140,18 @@ function cleanText(text: string) {
 }
 
 function isExactActive(id: string) {
-  return activeId.value === id;
+  return state.activeId === id;
 }
 
 function isParentActive(link: TocItem) {
   if (isExactActive(link.id)) return true;
-  return Boolean(link.children?.some((child) => child.id === activeId.value));
+  return Boolean(link.children?.some((child) => child.id === state.activeId));
 }
 
 function scrollToHeading(id: string) {
   const target = document.getElementById(id);
   if (!target) return;
-  activeId.value = id;
+  state.activeId = id;
   target.scrollIntoView({ behavior: "smooth", block: "start" });
   closeToc();
 }
@@ -138,7 +159,10 @@ function scrollToHeading(id: string) {
 
 <template>
   <div v-if="props.links && props.links.length">
-    <div class="fixed right-0 top-[calc(var(--header-height)+36px)] z-40">
+    <div
+      class="fixed right-0 top-[calc(var(--header-height)+36px)] z-40 transition-all duration-300 ease-out"
+      :class="state.isHiddenOnMobile ? 'translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'"
+    >
       <div class="relative flex items-center rounded-l-full bg-bg-sec p-1 shadow-xs">
         <!-- Top organic concave curve -->
         <div class="absolute -top-3.5 right-0 h-3.5 w-3.5 bg-bg-sec pointer-events-none">
@@ -160,12 +184,12 @@ function scrollToHeading(id: string) {
       </div>
     </div>
 
-    <div v-if="isOpen" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity" @click="closeToc">
+    <div v-if="state.isOpen" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity" @click="closeToc">
     </div>
 
     <aside
       class="fixed right-0 top-0 z-50 flex h-full w-80 max-w-[calc(100vw-32px)] flex-col bg-bg-base p-5 transition-all duration-300 ease-out"
-      :class="isOpen
+      :class="state.isOpen
         ? 'translate-x-0 shadow-2xl border-l border-border-main'
         : 'pointer-events-none translate-x-full shadow-none'
         ">

@@ -3,21 +3,44 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import AppIcon from '~/components/ui/AppIcon.vue'
 
 const isVisible = ref(false)
+let lastScrollY = 0
 
 function checkScroll() {
   if (typeof window === 'undefined') return
-  const y = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
-  isVisible.value = y > 150
+  const y = Math.max(
+    window.scrollY || 0,
+    document.documentElement.scrollTop || 0,
+    document.body.scrollTop || 0
+  )
+
+  if (y <= 200) {
+    isVisible.value = false
+  } else {
+    // Trên Mobile (< 1024px): Tự động ẩn nút khi vuốt cuộn ngược lên (scroll up) và chỉ hiện khi cuộn xuống (scroll down)
+    if (window.innerWidth < 1024) {
+      if (y < lastScrollY - 4) {
+        isVisible.value = false // Vuốt cuộn lên -> Ẩn nút ngay lập tức
+      } else if (y > lastScrollY + 4) {
+        isVisible.value = true  // Cuộn xuống -> Hiện nút để người dùng bấm lên đầu trang
+      }
+    } else {
+      isVisible.value = true
+    }
+  }
+
+  lastScrollY = y
 }
 
 function scrollToTop() {
   if (typeof window !== 'undefined') {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    isVisible.value = false
   }
 }
 
 onMounted(() => {
   if (typeof window !== 'undefined') {
+    lastScrollY = window.scrollY || 0
     checkScroll()
     window.addEventListener('scroll', checkScroll, { passive: true })
     document.addEventListener('scroll', checkScroll, { passive: true })
@@ -35,7 +58,7 @@ onBeforeUnmount(() => {
 <template>
   <button
     type="button"
-    class="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 z-50 flex lg:hidden h-9.5 w-9.5 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 border border-white/20 transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95"
+    class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 border border-white/20 transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95"
     :class="isVisible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'"
     aria-label="Về đầu trang"
     title="Về đầu trang"

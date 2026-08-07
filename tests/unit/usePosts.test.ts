@@ -6,7 +6,7 @@ import {
   sortPopularPosts,
   sortPinnedFirst,
   formatTimeAgo,
-} from "~/composables/usePosts";
+} from "../../composables/usePosts";
 
 describe("usePosts Helpers", () => {
   it("should generate correct post path from slug or stem", () => {

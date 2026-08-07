@@ -61,8 +61,8 @@ const faqs = [
       <h1 class="text-xl sm:text-2xl md:text-3xl font-bold leading-snug tracking-tight text-text-main">
         Câu hỏi thường gặp (FAQ)
       </h1>
-      <p v-if="page?.updatedAt || page?.date" class="text-xs text-text-muted pt-0.5">
-        Cập nhật lần cuối: {{ page?.updatedAt || page?.date }}
+      <p v-if="(page as any)?.updatedAt || (page as any)?.date" class="text-xs text-text-muted pt-0.5">
+        Cập nhật lần cuối: {{ (page as any)?.updatedAt || (page as any)?.date }}
       </p>
     </div>
 

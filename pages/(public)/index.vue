@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import AppIcon from "~/components/ui/AppIcon.vue";
+import WidgetTitle from "~/components/ui/WidgetTitle.vue";
+import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
+import { usePageSeo } from "~/composables/usePageSeo";
 import { useRoute, navigateTo } from "#imports";
 import {
   getPostImage,
@@ -23,7 +26,7 @@ const currentPage = ref(1);
 const isAddCategoryOpen = ref(false);
 const dropdownContainer = ref<HTMLElement | null>(null);
 
-const { data: posts } = await useAsyncData("home-posts", () =>
+const { data: posts, status } = useLazyAsyncData("home-posts", () =>
   queryCollection("posts").all(),
 );
 
@@ -199,7 +202,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div>
+  <div v-if="status === 'pending' || !posts" class="space-y-8">
+    <HeroSliderSkeleton />
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <PostCardSkeleton v-for="i in 6" :key="i" />
+    </div>
+  </div>
+  <div v-else>
     <!-- BREADCRUMB KHI ĐANG LỌC DANH MỤC -->
     <div v-if="selectedCategories.length" class="mb-6 flex items-center gap-2 text-xs text-text-alt font-medium">
       <NuxtLink to="/" class="hover:text-primary transition-colors">Trang chủ</NuxtLink>
@@ -208,59 +217,7 @@ onUnmounted(() => {
     </div>
 
     <!-- SLIDER CAROUSEL (Chỉ hiện ở Trang Chủ khi không lọc danh mục) -->
-    <section v-if="!selectedCategories.length && sliderPosts.length" class="mb-8">
-      <div class="relative overflow-hidden rounded-xl bg-bg-sec shadow-md">
-        <div class="relative aspect-16/7 min-h-65 overflow-hidden md:aspect-16/6">
-          <TransitionGroup name="fade" tag="div" class="h-full w-full">
-            <article v-for="(post, index) in sliderPosts" v-show="currentSlide === index" :key="post.path"
-              class="absolute inset-0">
-              <NuxtLink :to="getPostPath(post)" class="group relative block h-full w-full">
-                <img :src="getPostImage(post)" :alt="post.title"
-                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  loading="eager" />
-                <div
-                  class="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/85 via-black/35 to-transparent p-5 sm:p-7">
-                  <span class="mb-2 w-fit rounded-[3px] bg-primary px-2.5 py-1 text-xs font-medium text-white">
-                    {{ post.category }}
-                  </span>
-                  <h2
-                    class="line-clamp-2 max-w-3xl text-lg font-semibold leading-snug text-white sm:text-xl lg:text-2xl">
-                    {{ post.title }}
-                  </h2>
-                  <div class="mt-2 flex items-center gap-2 text-xs text-slate-200">
-                    <span>{{ post.date }}</span>
-                    <span>/</span>
-                    <span>{{ post.readTime }}</span>
-                  </div>
-                </div>
-              </NuxtLink>
-            </article>
-          </TransitionGroup>
-
-          <button type="button"
-            class="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-primary"
-            title="Previous slide" @click="prevSlide">
-            <AppIcon name="chevron-left" :size="20" />
-          </button>
-          <button type="button"
-            class="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-primary"
-            title="Next slide" @click="nextSlide">
-            <AppIcon name="chevron-right" :size="20" />
-          </button>
-        </div>
-      </div>
-
-      <div class="my-3 flex h-3 items-center justify-center">
-        <div class="flex items-center gap-1.5">
-          <button v-for="(_, index) in sliderPosts" :key="index" type="button" :class="[
-            'h-1.5 rounded-full border-0 p-0 transition-all duration-200',
-            currentSlide === index
-              ? 'w-5 bg-primary'
-              : 'w-1.5 bg-border-main',
-          ]" :aria-label="`Go to slide ${index + 1}`" @click="currentSlide = index"></button>
-        </div>
-      </div>
-    </section>
+    <SliderWidget :posts="sliderPosts" v-if="!selectedCategories.length" />
 
     <!-- PINNED POSTS SECTION (Chỉ hiện ở Trang Chủ khi không lọc danh mục) -->
     <section v-if="!selectedCategories.length && pinnedPosts.length" class="mb-8">
@@ -270,7 +227,7 @@ onUnmounted(() => {
         <article v-for="post in pinnedPosts" :key="post.path"
           class="group grid gap-5 sm:grid-cols-[minmax(220px,288px)_1fr]">
           <NuxtLink :to="getPostPath(post)" class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
-            <img :src="getPostImage(post)" :alt="post.title"
+            <NuxtImg :src="getPostImage(post)" :alt="post.title"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy" />
             <span
@@ -365,7 +322,7 @@ onUnmounted(() => {
         <article v-for="post in visibleStoryPosts" :key="post.path" class="group flex min-w-0 flex-col">
           <NuxtLink :to="getPostPath(post)"
             class="relative mb-3 block aspect-video overflow-hidden rounded-xl bg-bg-sec">
-            <img :src="getPostImage(post)" :alt="post.title"
+            <NuxtImg :src="getPostImage(post)" :alt="post.title"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy" />
             <div class="absolute right-2 top-2 flex items-center gap-1.5 text-xs">
@@ -403,13 +360,13 @@ onUnmounted(() => {
             <div
               class="mt-3 flex items-center justify-between text-xs text-text-alt pt-2 border-t border-border-subtle">
               <AuthorTooltip :author="getAuthorInfo(post)" size="sm">
-                <template #default="{ author }">
+                <template #default="slotProps">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <img :src="author.avatar" :alt="author.name"
-                      class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-border-main" />
+                    <NuxtImg :src="slotProps?.author?.avatar" :alt="slotProps?.author?.name"
+                      class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-border-main" format="webp" loading="lazy" />
                     <span
                       class="font-medium text-text-main truncate max-w-24 text-[11px] hover:text-primary transition-colors">
-                      {{ author.name }}
+                      {{ slotProps?.author?.name }}
                     </span>
                   </div>
                 </template>

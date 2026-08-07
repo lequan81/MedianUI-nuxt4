@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAppStore } from '~/stores/useAppStore'
-import AuthorTooltip from '~/components/post/AuthorTooltip.vue'
+import AppIcon from "~/components/ui/AppIcon.vue";
+import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 
 export interface Post {
   id: number
@@ -68,12 +69,12 @@ const appStore = useAppStore()
       <!-- Author Meta Footer với Tooltip Popover -->
       <div class="pt-2.5 border-t border-border-main flex items-center justify-between text-[11px] text-text-muted">
         <AuthorTooltip :author="post.author" size="sm">
-          <template #default="{ author }">
+          <template #default="slotProps">
             <div class="flex items-center gap-1.5 min-w-0">
-              <img :src="author.avatar" :alt="author.name"
+              <img :src="slotProps?.author?.avatar" :alt="slotProps?.author?.name"
                 class="w-5.5 h-5.5 shrink-0 rounded-full object-cover ring-1 ring-border-main" />
               <span class="font-medium text-text-main truncate max-w-28 hover:text-primary transition-colors">
-                {{ author.name }}
+                {{ slotProps?.author?.name }}
               </span>
             </div>
           </template>

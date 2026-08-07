@@ -18,7 +18,7 @@ author:
   bio: "Leader at J2TEAM. Website: https://j2team.dev/"
 readTime: "7 min read"
 comments: 12
-image: "https://blogger.googleusercontent.com/img/a/AVvXsEioLO-oj5vqy2zFqRRXTelxPMPwQCVA01zE8IDxOBvGi0yuZ2TdUe3TAHw8IpSXV76vpnWuVlLE_nL__FzJbquhh5UHxV-eXamTqi5kMAd-3Xp7OQfPvkoPsqvmU3e4S41ksuYyakbeNm9yQqDNC3bNNyTUBSPhQreyhMB6zEJFaMojXwjYTyE5Jm8Xe1XA=w640-h213"
+image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80"
 pinned: true
 ---
 

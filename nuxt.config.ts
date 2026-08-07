@@ -6,6 +6,14 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
   srcDir: ".",
+  css: ["~/assets/css/main.css"],
+
+  components: [
+    { path: "~/components/ui", pathPrefix: false },
+    { path: "~/components/post", pathPrefix: false },
+    { path: "~/components/layout", pathPrefix: false },
+    { path: "~/components", pathPrefix: false },
+  ],
 
   modules: [
     "@pinia/nuxt",
@@ -19,59 +27,16 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: [],
-      exclude: [
-        "@nuxtjs/mdc",
-        "remark-gfm",
-        "remark-emoji",
-        "remark-mdc",
-        "remark-rehype",
-        "rehype-raw",
-        "parse5",
-        "unist-util-visit",
-        "unified",
-        "debug",
-        "extend",
-      ],
+      include: ["@iconify/vue", "@floating-ui/dom", "valibot", "pinia"],
     },
   },
 
-  routeRules: {
-    // Prevent search engine indexing for admin and API routes (noindex)
-    "/admin/**": { headers: { "X-Robots-Tag": "noindex, nofollow" } },
-    "/api/**": { headers: { "X-Robots-Tag": "noindex, nofollow" } },
-
-    // Prerender các trang thông tin tĩnh (Zero server latency, HTML tĩnh 0ms)
-    "/about": { prerender: true },
-    "/tos": { prerender: true },
-    "/privacy": { prerender: true },
-    "/disclaimer": { prerender: true },
-    "/faq": { prerender: true },
-    "/contact": { prerender: true },
-
-    // Cache trang chủ và bài viết dạng SWR (Stale-While-Revalidate)
-    "/": { swr: 600 },
-    "/blog/**": { swr: 3600 },
-  },
-
-  image: {
-    domains: ["images.unsplash.com", "blogger.googleusercontent.com", "github.com", "avatars.githubusercontent.com"],
-    format: ["webp"],
-  },
-
-  nitro: {
-    prerender: {
-      failOnError: false,
-    },
-  },
-
-  // SEO & Site Metadata
   site: {
     url: "https://lequan81.dev",
     name: "Lê Quân (@lequan81) - Blog Cá Nhân",
     description: "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân.",
     defaultLocale: "vi",
-  },
+  } as any,
 
   robots: {
     allow: "/",
@@ -80,6 +45,25 @@ export default defineNuxtConfig({
 
   sitemap: {
     zeroRuntime: true,
+  },
+
+  image: {
+    ipx: {
+      maxAge: 31536000,
+    },
+    domains: [
+      "images.unsplash.com",
+      "blogger.googleusercontent.com",
+      "lh3.googleusercontent.com",
+      "1.bp.blogspot.com",
+      "2.bp.blogspot.com",
+      "3.bp.blogspot.com",
+      "4.bp.blogspot.com",
+      "github.com",
+      "avatars.githubusercontent.com",
+      "raw.githubusercontent.com",
+    ],
+    format: ["webp"],
   },
 
   app: {
@@ -110,6 +94,7 @@ export default defineNuxtConfig({
       ],
     },
   },
+
   content: {
     experimental: { sqliteConnector: "bun" },
   },

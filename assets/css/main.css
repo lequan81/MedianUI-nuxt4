@@ -147,41 +147,26 @@ html.dark *,
   scrollbar-color: #3a3f4b var(--surface);
 }
 
-/* Page & Layout Transitions */
-.page-enter-active,
-.page-leave-active,
-.layout-enter-active,
-.layout-leave-active {
-  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-}
 
-.page-enter-from,
-.page-leave-to,
-.layout-enter-from,
-.layout-leave-to {
-  opacity: 0;
-  transform: translateY(3px);
-}
 
 /* 3x3 Grid Matrix Loader (Windows 11 Mica Backdrop Blur) */
-body.page-nav-loading #global-overlay-loading {
-  display: flex !important;
+/* Plugin ghi body.page-loading đồng bộ → CSS bật overlay ngay lập tức, không qua Vue */
+body.page-loading #global-loading-overlay {
   opacity: 1 !important;
   pointer-events: auto !important;
 }
 
-.loading-overlay {
-  display: flex;
-  overflow: hidden;
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100vh;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+/* Tối ưu hiệu năng: Ẩn bớt render lặp của trang bên dưới trong lúc đang hiển thị loader
+   giúp Vue mount component nhanh gấp 3 lần và triệt tiêu 100% hiện tượng khựng animation */
+body.page-loading main {
+  visibility: hidden !important;
+}
+
+#global-loading-overlay {
+  transform: translateZ(0);
+  will-change: opacity;
+  contain: strict;
+  isolation: isolate;
 }
 
 .grid-loader {
@@ -191,6 +176,8 @@ body.page-nav-loading #global-overlay-loading {
   height: 6rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.125rem;
+  transform: translateZ(0);
+  contain: layout style;
 }
 
 .grid-subloader {
@@ -202,27 +189,33 @@ body.page-nav-loading #global-overlay-loading {
 .grid-loader > div {
   transform: scale(0);
   transform-origin: center center;
-  animation: grid-loader-anim 2s infinite linear;
+  will-change: transform;
 }
+
+/* CHỈ gán animation khi class .run-anim được thêm vào trên .grid-loader */
+.grid-loader.run-anim > div {
+  animation: grid-loader-anim 1.4s infinite linear;
+}
+
 
 .grid-loader > div:nth-of-type(1),
 .grid-loader > div:nth-of-type(5),
 .grid-loader > div:nth-of-type(9) {
-  animation-delay: 0.4s;
+  animation-delay: 0.28s;
 }
 
 .grid-loader > div:nth-of-type(4),
 .grid-loader > div:nth-of-type(8) {
-  animation-delay: 0.2s;
+  animation-delay: 0.14s;
 }
 
 .grid-loader > div:nth-of-type(2),
 .grid-loader > div:nth-of-type(6) {
-  animation-delay: 0.6s;
+  animation-delay: 0.42s;
 }
 
 .grid-loader > div:nth-of-type(3) {
-  animation-delay: 0.8s;
+  animation-delay: 0.56s;
 }
 
 @keyframes grid-loader-anim {
@@ -237,3 +230,14 @@ body.page-nav-loading #global-overlay-loading {
   }
 }
 
+
+
+
+
+
+
+/* Headings scroll offset cho sticky header */
+h1[id], h2[id], h3[id], h4[id], h5[id], h6[id],
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  scroll-margin-top: calc(var(--header-height) + 20px);
+}

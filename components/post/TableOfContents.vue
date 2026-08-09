@@ -62,7 +62,7 @@ function updateActiveHeading() {
     }
   }
 
-  const threshold = 120;
+  const threshold = 95;
   let currentActiveId = firstHeading.id;
 
   for (const heading of headings) {
@@ -152,9 +152,20 @@ function scrollToHeading(id: string) {
   const target = document.getElementById(id);
   if (!target) return;
   state.activeId = id;
-  target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // Tính toán khoảng offset cách Header (65px Header + 20px lề khoảng trống = 85px)
+  const headerOffset = 85;
+  const elementPosition = target.getBoundingClientRect().top;
+  const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+  window.scrollTo({
+    top: offsetPosition,
+    behavior: "smooth",
+  });
+
   closeToc();
 }
+
 </script>
 
 <template>

@@ -16,6 +16,8 @@ const { data: posts, status } = await useAsyncData("right-sidebar-posts", () =>
   queryCollection("posts").all(),
 );
 
+
+
 const isAllLabelsVisible = ref(false);
 
 const hasActiveCategoryFilter = computed(() => {
@@ -81,8 +83,10 @@ function isCategoryActive(name: string) {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <RightSidebarSkeleton v-if="status === 'pending' || !posts" />
+  <div v-else class="space-y-8">
     <!-- POPULAR POSTS (Tự động ẨN khi người dùng đang chọn Lọc Danh Mục) -->
+
     <section v-if="!hasActiveCategoryFilter" class="pt-1">
       <WidgetTitle title="Popular Posts" />
 
@@ -90,7 +94,8 @@ function isCategoryActive(name: string) {
         <article v-if="popularPosts[0]" class="group flex flex-col gap-4">
           <div class="relative overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
             <NuxtLink :to="getPostPath(popularPosts[0])" class="block aspect-video">
-              <NuxtImg :src="getPostImage(popularPosts[0])" :alt="popularPosts[0].title"
+              <NuxtImg :src="getPostImage(popularPosts[0])" :alt="popularPosts[0].title" :width="280" :height="158"
+                sizes="280px"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
                 loading="lazy" />
             </NuxtLink>

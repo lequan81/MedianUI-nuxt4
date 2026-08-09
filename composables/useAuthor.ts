@@ -1,6 +1,8 @@
-import { authorConfig, type AuthorConfig } from "~/app/config/site";
+import { authorConfig } from "~/app/config/author";
+import type { AuthorConfig } from "~/types/author";
 
-export function useAuthor(postAuthor?: any): AuthorConfig {
+export function useAuthor(postAuthor?: string | Partial<AuthorConfig> | any): AuthorConfig {
+
   if (!postAuthor) return authorConfig;
 
   if (typeof postAuthor === "object") {

@@ -46,13 +46,7 @@ if (import.meta.server) {
 
 <template>
   <article v-if="page" class="mx-auto max-w-3xl space-y-8">
-    <nav class="flex min-w-0 items-center gap-1 overflow-hidden text-[13px]">
-      <NuxtLink to="/" class="shrink-0 text-text-alt transition-colors hover:text-primary">Trang chủ</NuxtLink>
-      <span class="text-text-muted">/</span>
-      <span class="truncate font-semibold text-text-main">{{
-        page.title
-      }}</span>
-    </nav>
+    <AppBreadcrumb :items="[{ label: page.title }]" />
 
     <header class="space-y-3 border-b border-border-main pb-6">
       <h1 class="text-2xl font-bold tracking-tight text-text-main sm:text-3xl">
@@ -68,17 +62,11 @@ if (import.meta.server) {
     </div>
   </article>
 
-  <div v-else class="mx-auto max-w-md py-16 text-center space-y-4">
-    <div class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-      <AppIcon name="alert-circle" :size="32" />
-    </div>
-    <h1 class="text-xl font-bold text-text-main">Trang không tồn tại</h1>
-    <p class="text-sm text-text-alt">Rất tiếc, trang bạn đang tìm kiếm không tồn tại hoặc đã bị thay đổi đường dẫn.</p>
-    <div>
-      <NuxtLink to="/" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 shadow-md">
-        <AppIcon name="home" :size="16" />
-        Về trang chủ
-      </NuxtLink>
-    </div>
-  </div>
+  <NotFoundBlock
+    v-else
+    status-code="404"
+    title="Trang không tồn tại"
+    message="Rất tiếc, trang bạn đang tìm kiếm không tồn tại hoặc đã bị thay đổi đường dẫn."
+  />
 </template>
+

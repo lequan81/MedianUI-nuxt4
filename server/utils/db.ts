@@ -1,8 +1,10 @@
 import DatabaseModule from "bun:sqlite";
 import path from "node:path";
 import fs from "node:fs";
+import type { CommentItem } from "~/types/comment";
 
 const dbDir = path.resolve(process.cwd(), "server/db");
+
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
@@ -33,17 +35,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments(created_at DESC);
 `);
 
-export interface CommentItem {
-  id: string;
-  post_slug: string;
-  parent_id: string | null;
-  author_name: string;
-  author_email: string;
-  author_avatar?: string;
-  content: string;
-  created_at: string;
-  replies?: CommentItem[];
-}
+
 
 /**
  * Phân trang tối ưu theo thuật toán SQLite Deferred Join

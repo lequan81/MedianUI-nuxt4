@@ -8,19 +8,12 @@ const appStore = useAppStore();
 const langStore = useLangStore();
 const route = useRoute();
 
-const isPageLoading = useState("global_is_page_loading", () => false);
 const activePath = useState("global_active_path", () => route.path);
-
-watch(isPageLoading, (val) => {
-  console.log("[DOM OVERLAY DEBUG] 💡 isPageLoading changed in layout to:", val);
-});
 
 watch(
   () => route.path,
   (newPath) => {
-    if (!isPageLoading.value) {
-      activePath.value = newPath;
-    }
+    activePath.value = newPath;
   },
   { immediate: true },
 );
@@ -51,34 +44,14 @@ onMounted(() => {
 
 <template>
   <div id="top" class="flex min-h-screen flex-col bg-bg-base text-text-main antialiased relative">
-    <!-- Global Overlay 3x3 Matrix Square Loader (Windows 11 Mica Backdrop Blur) -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="isPageLoading" id="global-overlay-loading" data-nosnippet
-          class="loading-overlay bg-bg-base/75 dark:bg-bg-base/85 backdrop-blur-xl transition-all duration-200">
-          <div class="grid-loader">
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-            <div class="grid-subloader bg-primary"></div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
     <NotificationBar />
     <AppHeader />
 
     <div class="flex flex-1 min-h-[calc(100vh-var(--header-height))]">
       <AppSidebar />
 
-      <div class="flex flex-1 flex-col min-w-0 transition-[margin] duration-200 ease-out"
-        :class="appStore.isSidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'">
+      <div class="flex flex-1 flex-col min-w-0 transition-[margin] duration-200 ease-out">
+
         <main class="flex-1 pb-(--content-space)">
           <div class="mx-auto mt-(--content-padding) max-w-310 px-4 sm:px-6 xl:pl-6 xl:pr-14">
             <!-- AdBanner Nằm Ngay Phía Trên Của Cả Hero Slider Lẫn Right Sidebar -->
@@ -110,15 +83,3 @@ onMounted(() => {
     </ClientOnly>
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

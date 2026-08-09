@@ -1,31 +1,6 @@
-import type { LucideName } from "./site";
+import type { NavChild, NavItem, NavSocialIcons } from "~/types/navigation";
+export type { NavChild, NavItem, NavSocialIcons };
 
-export interface NavChild {
-  label: string;
-  to?: string;
-  href?: string;
-  external?: boolean;
-}
-
-export interface NavItem {
-  id: string;
-  label: string;
-  to?: string;
-  href?: string;
-  icon: LucideName;
-  badge?: string;
-  external?: boolean;
-  dividerAfter?: boolean;
-  children?: NavChild[];
-}
-
-export interface NavSocialIcons {
-  label: string;
-  to?: string;
-  href?: string;
-  icon: LucideName;
-  external?: boolean;
-}
 
 export const sidebarItems: NavItem[] = [
   {

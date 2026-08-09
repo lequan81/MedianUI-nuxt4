@@ -1,24 +1,11 @@
 <script setup lang="ts">
 import AppIcon from "~/components/ui/AppIcon.vue";
+import type { CommentItem } from "~/types/comment";
 
 defineOptions({
   name: "CommentNode",
 });
 
-interface CommentItem {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-    isAuthor?: boolean;
-  };
-  date: string;
-  content: string;
-  likes: number;
-  isAuthorLiked?: boolean;
-  replyToAuthor?: string;
-  replies?: CommentItem[];
-}
 
 const props = withDefaults(
   defineProps<{
@@ -71,8 +58,8 @@ function isReported(id: string) {
 
     <div class="relative flex items-start gap-3.5">
       <img
-        :src="node.author.avatar"
-        :alt="node.author.name"
+        :src="node.author?.avatar || node.author_avatar"
+        :alt="node.author?.name || node.author_name || 'Avatar'"
         class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border-main shadow-2xs relative z-10 bg-bg-base"
       />
 
@@ -80,16 +67,16 @@ function isReported(id: string) {
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2 min-w-0">
             <span class="text-sm font-semibold text-text-main truncate">{{
-              node.author.name
+              node.author?.name || node.author_name
             }}</span>
             <span
-              v-if="node.author.isAuthor"
+              v-if="node.author?.isAuthor"
               class="shrink-0 rounded bg-primary-subtle text-primary border border-primary-subtle px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wide"
             >
               Author
             </span>
             <span class="shrink-0 text-xs text-text-muted">{{
-              node.date
+              node.date || node.created_at
             }}</span>
           </div>
 
@@ -100,7 +87,7 @@ function isReported(id: string) {
               class="absolute left-1 top-0 text-red-500"
             />
             <img
-              :src="node.author.avatar"
+              :src="node.author?.avatar || node.author_avatar"
               alt="Tác giả"
               class="absolute bottom-0 right-0 h-5 w-5 rounded-full object-cover ring-1 ring-border-main ring-offset-2 ring-offset-bg-base"
             />
@@ -138,7 +125,7 @@ function isReported(id: string) {
           <button
             type="button"
             class="inline-flex items-center gap-1.5 font-medium transition-colors hover:text-primary cursor-pointer"
-            @click="emit('open-reply', node.id, node.author.name)"
+            @click="emit('open-reply', node.id, node.author?.name || node.author_name)"
           >
             <AppIcon name="message-circle" :size="17" />
             <span v-if="node.replies?.length">{{ node.replies.length }}</span>

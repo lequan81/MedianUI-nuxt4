@@ -1,7 +1,10 @@
+import type { Ref } from "vue";
 import { useSeoMeta, useHead, useRoute } from "#imports";
 import { siteConfig, authorConfig } from "~/app/config/site";
+import type { PostItem } from "~/types/post";
 
-export function useArticleSeo(post: any) {
+export function useArticleSeo(post: Ref<PostItem | null | any> | any) {
+
   if (!import.meta.server) return;
 
   const route = useRoute();

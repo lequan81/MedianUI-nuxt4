@@ -12,9 +12,9 @@ useHead({
 </script>
 
 <template>
-  <GlobalLoading />
   <!-- <NuxtRouteAnnouncer /> -->
   <NuxtLayout>
     <NuxtPage :page-key="(route: any) => route.fullPath" />
   </NuxtLayout>
 </template>
+

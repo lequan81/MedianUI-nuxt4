@@ -1,25 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, provide, inject, type Ref } from "vue";
 import AppIcon from "~/components/ui/AppIcon.vue";
+import type { CommentItem } from "~/types/comment";
 
 defineOptions({
   name: "CommentSection",
 });
 
-interface CommentItem {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-    isAuthor?: boolean;
-  };
-  date: string;
-  content: string;
-  likes: number;
-  isAuthorLiked?: boolean;
-  replyToAuthor?: string;
-  replies?: CommentItem[];
-}
 
 interface CommentContext {
   activeReplyId: Ref<string | null>;
@@ -213,12 +200,13 @@ function toggleLike(item: CommentItem) {
   const next = new Set(likedCommentIds.value);
   if (next.has(item.id)) {
     next.delete(item.id);
-    item.likes = Math.max(0, item.likes - 1);
+    item.likes = Math.max(0, (item.likes ?? 0) - 1);
   } else {
     next.add(item.id);
-    item.likes++;
+    item.likes = (item.likes ?? 0) + 1;
   }
   likedCommentIds.value = next;
+
 }
 
 function toggleHideComment(id: string) {
@@ -390,14 +378,15 @@ const ctx = inject<CommentContext>("commentContext", {
             </div>
 
             <!-- Content snippet being reported -->
-            <div class="rounded-xl border border-border-subtle bg-bg-subtle p-3 space-y-1 text-xs">
+            <div v-if="reportingComment" class="rounded-xl border border-border-subtle bg-bg-subtle p-3 space-y-1 text-xs">
               <div class="font-semibold text-text-main">
-                {{ reportingComment.author.name }}
+                {{ reportingComment.author?.name || reportingComment.author_name }}
               </div>
               <p class="line-clamp-2 text-text-muted italic">
                 "{{ reportingComment.content }}"
               </p>
             </div>
+
 
             <!-- Success message -->
             <div v-if="isReportSubmitted" class="py-4 text-center space-y-2">
@@ -500,7 +489,7 @@ const ctx = inject<CommentContext>("commentContext", {
         class="absolute left-3.5 top-7 bottom-0 border-l-2 border-border-subtle pointer-events-none"></span>
 
       <!-- Avatar nhỏ nhắn: h-7 w-7 (28px x 28px, tâm Y = 14px) -->
-      <img :src="props.comment.author.avatar" :alt="props.comment.author.name"
+      <img :src="props.comment.author?.avatar || props.comment.author_avatar" :alt="props.comment.author?.name || props.comment.author_name || 'Avatar'"
         class="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-border-main shadow-2xs bg-bg-base relative z-10" />
 
       <div class="min-w-0 flex-1 space-y-1">
@@ -508,13 +497,13 @@ const ctx = inject<CommentContext>("commentContext", {
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2 min-w-0">
             <span class="text-sm font-semibold text-text-main truncate">
-              {{ props.comment.author.name }}
+              {{ props.comment.author?.name || props.comment.author_name }}
             </span>
-            <span v-if="props.comment.author.isAuthor"
+            <span v-if="props.comment.author?.isAuthor"
               class="shrink-0 rounded bg-primary-subtle text-primary border border-primary-subtle px-1.5 py-0.5 text-[10.5px] font-semibold">
               Author
             </span>
-            <span class="shrink-0 text-xs text-text-muted">• {{ props.comment.date }}</span>
+            <span class="shrink-0 text-xs text-text-muted">• {{ props.comment.date || props.comment.created_at }}</span>
           </div>
 
           <!-- Author Liked Badge -->
@@ -542,15 +531,16 @@ const ctx = inject<CommentContext>("commentContext", {
           ]" @click="ctx.toggleLike(props.comment)">
             <AppIcon :name="ctx.likedCommentIds.value.has(props.comment.id) ? 'ph:heart-fill' : 'heart'" :size="15"
               :class="ctx.likedCommentIds.value.has(props.comment.id) ? 'text-red-500' : ''" />
-            <span>{{ props.comment.likes }}</span>
+            <span>{{ props.comment.likes ?? 0 }}</span>
           </button>
 
           <button type="button"
             class="inline-flex items-center gap-1.5 font-medium transition-colors hover:text-primary cursor-pointer"
-            @click="ctx.openReplyForm(props.comment.id, props.comment.author.name)">
+            @click="ctx.openReplyForm(props.comment.id, props.comment.author?.name || props.comment.author_name || '')">
             <AppIcon name="message-circle" :size="15" />
             <span v-if="props.comment.replies?.length">{{ props.comment.replies.length }}</span>
           </button>
+
 
           <!-- Nút Report Comment ➔ Mở Modal chọn lý do -->
           <button type="button" :class="[

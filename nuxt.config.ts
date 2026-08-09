@@ -7,9 +7,9 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   experimental: {
     componentIslands: true,
-    viewTransition: true,
     asyncContext: true,
   },
+
   nitro: {
     preset: "bun",
     compressPublicAssets: { gzip: true, brotli: true },
@@ -78,9 +78,10 @@ export default defineNuxtConfig({
   },
 
   app: {
-    pageTransition: { name: "page", mode: "out-in" },
-    layoutTransition: { name: "layout", mode: "out-in" },
+    pageTransition: false,
+    layoutTransition: false,
     head: {
+
       title: "Lê Quân (@lequan81) - Blog Cá Nhân",
       htmlAttrs: {
         lang: "vi",

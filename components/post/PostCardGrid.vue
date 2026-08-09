@@ -2,27 +2,12 @@
 import { useAppStore } from '~/stores/useAppStore'
 import AppIcon from "~/components/ui/AppIcon.vue";
 import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
-
-export interface Post {
-  id: number
-  title: string
-  snippet: string
-  category: string
-  author: {
-    name: string
-    avatar: string
-    bio?: string
-  }
-  date: string
-  readTime: string
-  thumbnail: string
-  views: number
-  featured?: boolean
-}
+import type { PostItem } from "~/types/post";
 
 const props = defineProps<{
-  post: Post
+  post: PostItem | any
 }>()
+
 
 const appStore = useAppStore()
 </script>

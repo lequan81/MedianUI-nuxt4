@@ -9,6 +9,7 @@ import {
   getLabelCounts,
   sortPinnedFirst,
 } from "~/composables/usePosts";
+import type { PostItem } from "~/types/post";
 const appConfig = useAppConfig();
 const postText = appConfig.postText;
 
@@ -25,14 +26,19 @@ const currentPage = ref(1);
 const isAddCategoryOpen = ref(false);
 const dropdownContainer = ref<HTMLElement | null>(null);
 
-const { data: posts, status } = await useAsyncData("home-posts", () =>
-  queryCollection("posts").all(),
-);
+const { data: posts, status } = await useAsyncData("home-posts", async () => {
+  const result = await queryCollection("posts").all();
+  return (result || []) as PostItem[];
+});
+
+
+
 
 // Hỗ trợ thông tin Tác Giả tập trung
-function getAuthorInfo(post: any) {
+function getAuthorInfo(post: PostItem | any) {
   return useAuthor(post?.author);
 }
+
 
 // Hỗ trợ chọn nhiều danh mục dạng phẩy: ?category=Decor,Fitness
 const selectedCategories = computed(() => {
@@ -209,11 +215,7 @@ onUnmounted(() => {
   </div>
   <div v-else>
     <!-- BREADCRUMB KHI ĐANG LỌC DANH MỤC -->
-    <div v-if="selectedCategories.length" class="mb-6 flex items-center gap-2 text-xs text-text-alt font-medium">
-      <NuxtLink to="/" class="hover:text-primary transition-colors">Trang chủ</NuxtLink>
-      <span>/</span>
-      <span class="text-primary font-bold">{{ selectedCategories.join(', ') }}</span>
-    </div>
+    <AppBreadcrumb v-if="selectedCategories.length" :items="[{ label: selectedCategories.join(', ') }]" />
 
     <!-- SLIDER CAROUSEL (Chỉ hiện ở Trang Chủ khi không lọc danh mục) -->
     <SliderWidget :posts="sliderPosts" v-if="!selectedCategories.length" />
@@ -226,15 +228,17 @@ onUnmounted(() => {
         <article v-for="post in pinnedPosts" :key="post.path"
           class="group grid gap-5 sm:grid-cols-[minmax(220px,288px)_1fr]">
           <NuxtLink :to="getPostPath(post)" class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
-            <NuxtImg :src="getPostImage(post)" :alt="post.title"
+            <NuxtImg :src="getPostImage(post)" :alt="post.title" :width="600" :height="338"
+              sizes="sm:100vw md:50vw lg:33vw"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-              loading="eager" />
+              loading="eager" fetchpriority="high" />
             <span
               class="absolute right-2 top-2 inline-flex h-7 items-center gap-1 rounded-full bg-white px-2 text-xs font-medium text-slate-800 shadow-md">
               {{ post.comments || 0 }}
               <AppIcon name="book-open-text" :size="13" />
             </span>
           </NuxtLink>
+
 
           <div class="flex min-w-0 flex-col justify-center">
             <div class="mb-1 text-xs text-text-alt">
@@ -321,7 +325,8 @@ onUnmounted(() => {
         <article v-for="(post, index) in visibleStoryPosts" :key="post.path" class="group flex min-w-0 flex-col">
           <NuxtLink :to="getPostPath(post)"
             class="relative mb-3 block aspect-video overflow-hidden rounded-xl bg-bg-sec">
-            <NuxtImg :src="getPostImage(post)" :alt="post.title"
+            <NuxtImg :src="getPostImage(post)" :alt="post.title" :width="600" :height="338"
+              sizes="sm:100vw md:50vw lg:33vw"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               :loading="index < 3 ? 'eager' : 'lazy'" />
             <div class="absolute right-2 top-2 flex items-center gap-1.5 text-xs">
@@ -361,7 +366,7 @@ onUnmounted(() => {
               <AuthorTooltip :author="getAuthorInfo(post)" size="sm">
                 <template #default="slotProps">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <NuxtImg :src="slotProps?.author?.avatar" :alt="slotProps?.author?.name"
+                    <NuxtImg :src="slotProps?.author?.avatar" :alt="slotProps?.author?.name" :width="20" :height="20"
                       class="w-5 h-5 shrink-0 rounded-full object-cover ring-1 ring-border-main" format="webp" loading="lazy" />
                     <span
                       class="font-medium text-text-main truncate max-w-24 text-[11px] hover:text-primary transition-colors">
@@ -387,9 +392,13 @@ onUnmounted(() => {
         </article>
       </div>
 
-      <div v-else class="border border-border-main bg-bg-sec p-8 text-center text-sm text-text-alt rounded-xl">
-        Không có bài viết thuộc các danh mục đã chọn.
-      </div>
+      <AppEmptyState
+        v-else
+        icon="search-x"
+        message="Không có bài viết thuộc các danh mục đã chọn."
+        action-label="Xóa tất cả danh mục"
+        @action="clearAllCategories"
+      />
 
       <!-- 1. NÚT TẢI THÊM BÀI ĐĂNG Ở TRANG CHỦ (LUÔN HIỆN KHI CÒN BÀI VIẾT NỐI TIẾP) -->
       <div v-if="hasMoreHomeStories" class="text-center pt-8">

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { useAppStore } from '~/stores/useAppStore'
-import type { Post } from './PostCardGrid.vue'
+import type { PostItem } from '~/types/post'
 
 const props = defineProps<{
-  post: Post
+  post: PostItem | any
 }>()
 
 const appStore = useAppStore()
 </script>
+
 
 <template>
   <article

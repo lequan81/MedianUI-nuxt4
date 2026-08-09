@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const props = defineProps<{
   isOpen: boolean;
@@ -16,7 +16,7 @@ const isCopied = ref(false);
 
 function getShareUrl() {
   if (props.url) return props.url;
-  if (typeof window !== "undefined") return window.location.href;
+  if (import.meta.client) return window.location.href;
   return "";
 }
 
@@ -140,11 +140,28 @@ const sharePlatforms = [
               <input type="text" readonly :value="getShareUrl()"
                 class="min-w-0 flex-1 bg-transparent text-xs font-mono text-text-main outline-none select-all"
                 @click="handleCopy" />
-              <button type="button"
-                class="shrink-0 rounded-lg border border-primary bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-primary-hover shadow-2xs cursor-pointer"
-                @click="handleCopy">
-                {{ isCopied ? "Đã chép! ✓" : "Sao chép" }}
+              <button
+                type="button"
+                :class="[
+                  'inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 select-none group',
+                  isCopied
+                    ? 'border-emerald-500 bg-emerald-600 text-white font-bold ring-1 ring-emerald-500/30'
+                    : 'border-primary bg-primary text-white hover:bg-primary-hover'
+                ]"
+                :title="isCopied ? 'Đã sao chép vào bộ nhớ tạm' : 'Sao chép đường dẫn'"
+                @click="handleCopy"
+              >
+                <AppIcon
+                  :name="isCopied ? 'check' : 'copy'"
+                  :size="13"
+                  :class="[
+                    'transition-transform duration-200',
+                    isCopied ? 'text-white scale-110' : 'text-white/90 group-hover:scale-105'
+                  ]"
+                />
+                <span>{{ isCopied ? "Đã sao chép" : "Sao chép" }}</span>
               </button>
+
             </div>
           </div>
         </div>

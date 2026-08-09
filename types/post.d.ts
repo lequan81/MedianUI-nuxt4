@@ -1,10 +1,5 @@
 import type { AuthorConfig } from "~/app/config/author";
 
-export interface PostPrice {
-  original: string;
-  sale: string;
-}
-
 export interface PostItem {
   path: string;
   stem?: string;
@@ -22,8 +17,5 @@ export interface PostItem {
   comments?: number;
   image?: string;
   pinned?: boolean;
-  price?: PostPrice;
-  discount?: string;
-  isProduct?: boolean;
   body?: any;
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const props = defineProps<{
   code?: string;
@@ -49,15 +49,28 @@ onBeforeUnmount(() => {
         <span v-if="filenameLabel" class="normal-case text-text-alt">{{ filenameLabel }}</span>
       </div>
 
-      <button type="button" :class="[
-        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all cursor-pointer',
-        copied
-          ? 'bg-emerald-500/10 text-emerald-500 font-bold'
-          : 'text-text-alt hover:bg-bg-sec hover:text-primary'
-      ]" :title="copied ? 'Đã sao chép!' : 'Sao chép đoạn mã'" @click="copyCode">
-        <AppIcon :name="copied ? 'check' : 'copy'" :size="13" />
-        <span>{{ copied ? "Copied!" : "Copy" }}</span>
+      <button
+        type="button"
+        :class="[
+          'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 select-none group',
+          copied
+            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-500 font-bold ring-1 ring-emerald-500/30'
+            : 'border-border-main bg-bg-sec text-text-main hover:border-primary/50 hover:bg-bg-subtle hover:text-primary'
+        ]"
+        :title="copied ? 'Đã sao chép vào bộ nhớ tạm' : 'Sao chép đoạn mã'"
+        @click="copyCode"
+      >
+        <AppIcon
+          :name="copied ? 'check' : 'copy'"
+          :size="13"
+          :class="[
+            'transition-transform duration-200',
+            copied ? 'text-emerald-500 scale-110' : 'text-text-alt group-hover:text-primary'
+          ]"
+        />
+        <span>{{ copied ? "Đã sao chép" : "Sao chép" }}</span>
       </button>
+
     </figcaption>
 
     <pre :class="[

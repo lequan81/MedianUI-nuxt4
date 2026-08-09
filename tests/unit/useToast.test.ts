@@ -1,42 +1,51 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+// Mock vue-sonner since it's a third-party library
+vi.mock("vue-sonner", () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+  },
+  Toaster: { name: "Toaster", template: "<div />" },
+}));
+
 import { useToast } from "~/composables/useToast";
+import { toast } from "vue-sonner";
 
-describe("useToast Composable", () => {
-  const { toasts, success, error, warning, removeToast } = useToast();
-
-  beforeEach(() => {
-    toasts.value = [];
-  });
-
-  it("should add success toast item correctly", () => {
+describe("useToast Composable (vue-sonner wrapper)", () => {
+  it("should call toast.success with correct title and description", () => {
+    const { success } = useToast();
     success("Gửi tin nhắn thành công!");
-    expect(toasts.value.length).toBe(1);
-    expect(toasts.value[0]?.type).toBe("success");
-    expect(toasts.value[0]?.message).toBe("Gửi tin nhắn thành công!");
+    expect(toast.success).toHaveBeenCalledWith("Thành công", {
+      description: "Gửi tin nhắn thành công!",
+    });
   });
 
-  it("should add error toast item with longer default duration", () => {
+  it("should call toast.error with longer duration", () => {
+    const { error } = useToast();
     error("Có lỗi máy chủ xảy ra.");
-    expect(toasts.value.length).toBe(1);
-    expect(toasts.value[0]?.type).toBe("error");
-    expect(toasts.value[0]?.duration).toBe(6000);
+    expect(toast.error).toHaveBeenCalledWith("Thao tác thất bại", {
+      description: "Có lỗi máy chủ xảy ra.",
+      duration: 6000,
+    });
   });
 
-  it("should add warning toast item", () => {
+  it("should call toast.warning", () => {
+    const { warning } = useToast();
     warning("Bạn đang gửi quá nhanh.");
-    expect(toasts.value.length).toBe(1);
-    expect(toasts.value[0]?.type).toBe("warning");
+    expect(toast.warning).toHaveBeenCalledWith("Chú ý", {
+      description: "Bạn đang gửi quá nhanh.",
+      duration: 5000,
+    });
   });
 
-  it("should remove toast item by id", () => {
-    success("Message 1");
-    error("Message 2");
-    expect(toasts.value.length).toBe(2);
-
-    const firstId = toasts.value[0]?.id || "";
-    removeToast(firstId);
-
-    expect(toasts.value.length).toBe(1);
-    expect(toasts.value[0]?.message).toBe("Message 2");
+  it("should use custom title when provided", () => {
+    const { success } = useToast();
+    success("Message body", "Custom Title");
+    expect(toast.success).toHaveBeenCalledWith("Custom Title", {
+      description: "Message body",
+    });
   });
 });

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useSeoMeta } from "#imports";
-import AppIcon from "~/components/ui/AppIcon.vue";
 
 if (import.meta.server) {
   useSeoMeta({

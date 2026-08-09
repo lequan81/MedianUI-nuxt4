@@ -33,7 +33,7 @@ export const useLangStore = defineStore('lang', () => {
 
   // Actions
   function initLang() {
-    if (typeof window !== 'undefined') {
+    if (import.meta.client) {
       const savedLang = localStorage.getItem('median_lang')
       if (savedLang && supportedLanguages.some(l => l.code === savedLang)) {
         currentLang.value = savedLang
@@ -56,12 +56,13 @@ export const useLangStore = defineStore('lang', () => {
   function setLanguage(code: string) {
     if (supportedLanguages.some(l => l.code === code)) {
       currentLang.value = code
-      if (typeof window !== 'undefined') {
+      if (import.meta.client) {
         localStorage.setItem('median_lang', code)
       }
     }
     closeLangModal()
   }
+
 
   return {
     currentLang,

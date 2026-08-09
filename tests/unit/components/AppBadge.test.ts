@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import AppBadge from "~/components/ui/AppBadge.vue";
+import AppBadge from "~/components/ui/badge/AppBadge.vue";
+
 
 describe("AppBadge Primitive UI Component", () => {
   it("should render default primary badge variant and slot content", () => {

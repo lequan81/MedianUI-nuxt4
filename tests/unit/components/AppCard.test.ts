@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import AppCard from "~/components/ui/AppCard.vue";
+import AppCard from "~/components/ui/card/AppCard.vue";
+
 
 describe("AppCard Primitive UI Component", () => {
   it("should render card container with default border and hoverable styles", () => {

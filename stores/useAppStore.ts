@@ -32,7 +32,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function initTheme() {
-    if (typeof window !== 'undefined') {
+    if (import.meta.client) {
       const savedTheme = localStorage.getItem('median_theme')
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       const isDocDark = document.documentElement.classList.contains('dark')
@@ -48,7 +48,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function toggleDarkMode() {
-    if (typeof window !== 'undefined') {
+    if (import.meta.client) {
       // Sync current reality before toggling in case initTheme wasn't called
       const isCurrentlyDark = document.documentElement.classList.contains('dark')
       const targetState = !isCurrentlyDark
@@ -65,6 +65,7 @@ export const useAppStore = defineStore('app', () => {
       isDarkMode.value = !isDarkMode.value
     }
   }
+
 
   function setViewMode(mode: 'grid' | 'list') {
     viewMode.value = mode

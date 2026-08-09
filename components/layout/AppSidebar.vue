@@ -10,7 +10,7 @@ import {
   type NavItem,
 } from "~/app/config/site";
 import { useAppStore } from "~/stores/useAppStore";
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const appStore = useAppStore();
 const route = useRoute();
@@ -181,7 +181,7 @@ watch(
           </template>
 
           <template v-else>
-            <NuxtLink v-if="item.to" :to="item.to" :class="[
+            <NuxtLink v-if="item.to" :to="item.to" :aria-label="item.label" :class="[
               'relative flex h-10 w-full items-center text-xs sm:text-sm font-medium transition-colors',
               isActive(item.to)
                 ? 'text-primary font-bold'
@@ -200,7 +200,7 @@ watch(
               </span>
             </NuxtLink>
 
-            <a v-else :href="item.href"
+            <a v-else :href="item.href" :aria-label="item.label"
               class="relative flex h-10 w-full items-center text-xs sm:text-sm font-medium text-text-main transition-colors hover:text-primary"
               :target="item.external ? '_blank' : undefined" :rel="item.external ? 'noreferrer' : undefined">
               <span class="flex h-9 w-20 shrink-0 items-center justify-center">
@@ -212,6 +212,7 @@ watch(
                 <span v-if="item.badge" class="text-[11px] font-semibold text-primary">{{ item.badge }}</span>
               </span>
             </a>
+
 
             <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
 

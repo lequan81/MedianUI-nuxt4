@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAppStore } from '~/stores/useAppStore'
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 import type { PostItem } from "~/types/post";
 

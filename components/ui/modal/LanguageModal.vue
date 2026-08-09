@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useLangStore, supportedLanguages } from '~/stores/useLangStore'
-import AppIcon from '~/components/ui/AppIcon.vue'
+import AppIcon from '~/components/ui/icon/AppIcon.vue'
 
 const langStore = useLangStore()
 </script>

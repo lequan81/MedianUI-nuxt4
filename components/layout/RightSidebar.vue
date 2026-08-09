@@ -8,7 +8,7 @@ import {
   formatTimeAgo,
   sortPopularPosts,
 } from "~/composables/usePosts";
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const route = useRoute();
 

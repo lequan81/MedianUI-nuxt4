@@ -6,7 +6,7 @@ definePageMeta({
   hideSidebar: true,
 });
 
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 import TableOfContents from "~/components/post/TableOfContents.vue";
 import { authorConfig } from "~/app/config/site";
 
@@ -24,7 +24,7 @@ const tocLinks = computed(() => {
   return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
 });
 
-usePageSeo({
+useSeo({
   title: page.value?.title || "Giới thiệu",
   description: page.value?.description || "Giới thiệu bản thân, hành trình học vấn và blog cá nhân Lê Quân.",
 });

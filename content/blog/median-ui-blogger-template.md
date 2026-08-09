@@ -11,12 +11,8 @@ readTime: "3 phút đọc"
 comments: 25
 image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80"
 pinned: false
-price:
-  original: "Rp 150.000"
-  sale: "Rp 130.000"
-discount: "-10%"
-isProduct: true
 ---
+
 
 # Median UI - High Performance Blogger Template
 

@@ -29,16 +29,9 @@ export default defineContentConfig({
         comments: z.number().optional(),
         image: z.string(),
         pinned: z.boolean().optional(),
-        price: z
-          .object({
-            original: z.string(),
-            sale: z.string(),
-          })
-          .optional(),
-        discount: z.string().optional(),
-        isProduct: z.boolean().optional(),
       }),
     }),
+
     pages: defineCollection({
       type: "page",
       source: "pages/*.md",

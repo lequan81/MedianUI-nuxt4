@@ -36,10 +36,12 @@ export default defineNuxtConfig({
 
   components: [
     { path: "~/components/ui", pathPrefix: false },
+    { path: "~/components/server", pathPrefix: false },
     { path: "~/components/post", pathPrefix: false },
     { path: "~/components/layout", pathPrefix: false },
     { path: "~/components", pathPrefix: false },
   ],
+
 
   modules: [
     "@pinia/nuxt",
@@ -53,7 +55,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ["@iconify/vue", "@floating-ui/dom", "valibot", "pinia"],
+      include: ["@iconify/vue", "@floating-ui/dom", "valibot", "pinia", "vue-sonner"],
     },
   },
 

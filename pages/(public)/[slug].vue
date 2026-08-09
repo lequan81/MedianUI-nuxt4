@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRoute, useSeoMeta, definePageMeta } from "#imports";
+import { useRoute } from "#imports";
+import { isReservedSlug } from "~/app/config/site";
+import { useSeo } from "~/composables/useSeo";
 
 definePageMeta({
   hideSidebar: true,
 });
 
-import AppIcon from "~/components/ui/AppIcon.vue";
-
 const route = useRoute();
 const slug = computed(() => String(route.params.slug || ""));
 
-const reservedSlugs = new Set(["contact", "about", "faq", "disclaimer", "privacy", "tos"]);
-
 const { data: page } = await useAsyncData(`page-${slug.value}`, async () => {
   const normalized = slug.value.trim().toLowerCase();
-  if (reservedSlugs.has(normalized)) return null;
+  if (isReservedSlug(normalized)) return null;
+
 
   const bySlug = await queryCollection("pages")
     .where("slug", "=", normalized)
@@ -67,11 +66,6 @@ if (import.meta.server) {
     </div>
   </article>
 
-  <NotFoundBlock
-    v-else
-    status-code="404"
-    title="Trang không tồn tại"
-    message="Rất tiếc, trang bạn đang tìm kiếm không tồn tại hoặc đã bị thay đổi đường dẫn."
-  />
+  <NotFoundBlock v-else status-code="404" title="Trang không tồn tại"
+    message="Rất tiếc, trang bạn đang tìm kiếm không tồn tại hoặc đã bị thay đổi đường dẫn." />
 </template>
-

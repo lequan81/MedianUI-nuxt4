@@ -1,210 +1,42 @@
 <script setup lang="ts">
-import AppIcon from "~/components/ui/AppIcon.vue";
-import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
-import { usePageSeo } from "~/composables/usePageSeo";
-import { useRoute, navigateTo } from "#imports";
-import {
-  getPostImage,
-  getPostPath,
-  getLabelCounts,
-  sortPinnedFirst,
-} from "~/composables/usePosts";
-import type { PostItem } from "~/types/post";
+import { useAppConfig } from "#imports";
+import { useHomePosts } from "~/composables/useHomePosts";
+import { useSeo } from "~/composables/useSeo";
+import { getPostImage, getPostPath } from "~/composables/usePosts";
+
 const appConfig = useAppConfig();
 const postText = appConfig.postText;
 
-usePageSeo({
+useSeo({
   title: "Trang chủ",
   description: appConfig.site.description,
 });
 
-const route = useRoute();
-const currentSlide = ref(0);
-const pageSize = 8; // 8 bài viết 1 trang khi lọc
-const displayCount = ref(6); // 6 bài ban đầu ở Trang Chủ, nhấn "Tải thêm bài đăng" để xem tiếp
-const currentPage = ref(1);
-const isAddCategoryOpen = ref(false);
-const dropdownContainer = ref<HTMLElement | null>(null);
-
-const { data: posts, status } = await useAsyncData("home-posts", async () => {
-  const result = await queryCollection("posts").all();
-  return (result || []) as PostItem[];
-});
-
-
-
-
-// Hỗ trợ thông tin Tác Giả tập trung
-function getAuthorInfo(post: PostItem | any) {
-  return useAuthor(post?.author);
-}
-
-
-// Hỗ trợ chọn nhiều danh mục dạng phẩy: ?category=Decor,Fitness
-const selectedCategories = computed(() => {
-  const param = String(route.query.category || route.query.categories || "");
-  if (!param) return [];
-  return param
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-});
-
-// Danh sách danh mục chưa được chọn để hiển thị trong Dropdown Thêm Danh Mục
-const allCategoriesList = computed(() => {
-  const labelMap = getLabelCounts(posts.value || []);
-  return labelMap.map((l) => l.name);
-});
-
-const unselectedCategories = computed(() => {
-  const activeSet = new Set(selectedCategories.value.map((c) => c.toLowerCase()));
-  return allCategoriesList.value.filter((cat) => !activeSet.has(cat.toLowerCase()));
-});
-
-const orderedPosts = computed(() => sortPinnedFirst(posts.value || []));
-
-// Lọc bài viết nếu khớp BẤT KỲ danh mục/thẻ nào trong danh sách được chọn
-const filteredPosts = computed(() => {
-  if (!selectedCategories.value.length) return orderedPosts.value;
-  const targets = selectedCategories.value.map((c) => c.toLowerCase());
-
-  return orderedPosts.value.filter((post: any) => {
-    const category = String(post.category || "").toLowerCase();
-    const tags = Array.isArray(post.tags)
-      ? post.tags.map((t: string) => String(t).toLowerCase())
-      : [];
-
-    return (
-      targets.includes(category) || targets.some((t) => tags.includes(t))
-    );
-  });
-});
-
-const sliderPosts = computed(() => orderedPosts.value.slice(0, 4));
-
-// Khi không chọn danh mục filter: Pinned posts riêng
-const pinnedPosts = computed(() => {
-  if (selectedCategories.value.length) return [];
-  return filteredPosts.value.filter((post: any) => post.pinned);
-});
-
-const storyPosts = computed(() => {
-  if (selectedCategories.value.length) return filteredPosts.value;
-  return filteredPosts.value.filter((post: any) => !post.pinned);
-});
-
-// Phân trang khi lọc hoặc cuộn danh sách
-const totalPages = computed(() => {
-  return Math.ceil(storyPosts.value.length / pageSize) || 1;
-});
-
-const visibleStoryPosts = computed(() => {
-  if (!selectedCategories.value.length) {
-    return storyPosts.value.slice(0, displayCount.value);
-  }
-  const start = (currentPage.value - 1) * pageSize;
-  const end = start + pageSize;
-  return storyPosts.value.slice(start, end);
-});
-
-const hasMoreHomeStories = computed(() => {
-  return !selectedCategories.value.length && displayCount.value < storyPosts.value.length;
-});
-
-const hasPrevPage = computed(() => currentPage.value > 1);
-const hasNextPage = computed(() => currentPage.value < totalPages.value);
-
-function loadMoreStories() {
-  displayCount.value += 6;
-}
-
-function nextPage() {
-  if (hasNextPage.value) {
-    currentPage.value++;
-    scrollToSection();
-  }
-}
-
-function prevPage() {
-  if (hasPrevPage.value) {
-    currentPage.value--;
-    scrollToSection();
-  }
-}
-
-function scrollToSection() {
-  if (typeof window !== "undefined") {
-    window.scrollTo({ top: 300, behavior: "smooth" });
-  }
-}
-
-function addCategory(catName: string) {
-  const nextList = [...selectedCategories.value, catName];
-  isAddCategoryOpen.value = false;
-  currentPage.value = 1;
-  navigateTo({
-    path: "/",
-    query: { category: nextList.join(",") },
-  });
-}
-
-function removeCategory(categoryName: string) {
-  const remaining = selectedCategories.value.filter(
-    (cat) => cat.toLowerCase() !== categoryName.toLowerCase(),
-  );
-
-  currentPage.value = 1;
-
-  if (remaining.length === 0) {
-    clearAllCategories();
-  } else {
-    navigateTo({
-      path: "/",
-      query: { category: remaining.join(",") },
-    });
-  }
-}
-
-function clearAllCategories() {
-  currentPage.value = 1;
-  isAddCategoryOpen.value = false;
-  navigateTo("/");
-}
-
-function handleClickOutside(event: MouseEvent) {
-  if (
-    dropdownContainer.value &&
-    !dropdownContainer.value.contains(event.target as Node)
-  ) {
-    isAddCategoryOpen.value = false;
-  }
-}
-
-let autoplayTimer: ReturnType<typeof setInterval> | null = null;
-
-function nextSlide() {
-  if (!sliderPosts.value.length) return;
-  currentSlide.value = (currentSlide.value + 1) % sliderPosts.value.length;
-}
-
-function prevSlide() {
-  if (!sliderPosts.value.length) return;
-  currentSlide.value =
-    currentSlide.value === 0
-      ? sliderPosts.value.length - 1
-      : currentSlide.value - 1;
-}
-
-onMounted(() => {
-  autoplayTimer = setInterval(nextSlide, 5200);
-  window.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  if (autoplayTimer) clearInterval(autoplayTimer);
-  window.removeEventListener("click", handleClickOutside);
-});
+const {
+  posts,
+  status,
+  state,
+  dropdownContainer,
+  selectedCategories,
+  unselectedCategories,
+  sliderPosts,
+  pinnedPosts,
+  storyPosts,
+  visibleStoryPosts,
+  totalPages,
+  hasMoreHomeStories,
+  hasPrevPage,
+  hasNextPage,
+  getAuthorInfo,
+  loadMoreStories,
+  nextPage,
+  prevPage,
+  addCategory,
+  removeCategory,
+  clearAllCategories,
+} = useHomePosts();
 </script>
+
 
 <template>
   <div v-if="status === 'pending' || !posts" class="space-y-8">
@@ -288,15 +120,16 @@ onUnmounted(() => {
           <div v-if="unselectedCategories.length" ref="dropdownContainer" class="relative">
             <button type="button"
               class="inline-flex items-center gap-1.5 rounded-lg border border-border-main bg-bg-sec px-2.5 py-1 text-xs font-semibold text-text-main hover:border-primary hover:text-primary transition-colors cursor-pointer shadow-2xs"
-              @click.stop="isAddCategoryOpen = !isAddCategoryOpen">
+              @click.stop="state.isAddCategoryOpen = !state.isAddCategoryOpen">
               <AppIcon name="folder" :size="13" class="text-primary" />
               <span>Thêm danh mục</span>
               <AppIcon name="chevron-down" :size="12" />
             </button>
 
-            <div v-if="isAddCategoryOpen"
+            <div v-if="state.isAddCategoryOpen"
               class="absolute left-0 top-full mt-1.5 z-40 min-w-48 rounded-xl border border-border-main bg-bg-base p-1.5 shadow-md space-y-0.5"
               @click.stop>
+
               <button v-for="cat in unselectedCategories" :key="cat" type="button"
                 class="w-full text-left rounded-lg px-3 py-1.5 text-xs font-medium text-text-main hover:bg-primary-subtle hover:text-primary transition-colors cursor-pointer flex items-center justify-between group"
                 @click="addCategory(cat)">
@@ -329,17 +162,8 @@ onUnmounted(() => {
               sizes="sm:100vw md:50vw lg:33vw"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               :loading="index < 3 ? 'eager' : 'lazy'" />
-            <div class="absolute right-2 top-2 flex items-center gap-1.5 text-xs">
-              <span v-if="post.discount"
-                class="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-md">
-                {{ post.discount }}
-              </span>
-              <span v-if="post.isProduct"
-                class="flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-800 shadow-md">
-                <AppIcon name="tag" :size="14" />
-              </span>
-            </div>
           </NuxtLink>
+
 
           <div class="flex min-w-0 flex-1 flex-col justify-between">
             <div>
@@ -378,15 +202,8 @@ onUnmounted(() => {
 
               <div class="flex items-center gap-1.5 text-[11px]">
                 <span>{{ post.date }}</span>
-                <div v-if="post.price" class="flex items-center gap-1 ml-1">
-                  <span class="text-[10px] text-text-alt line-through">{{
-                    post.price.original
-                    }}</span>
-                  <span class="font-semibold text-primary">{{
-                    post.price.sale
-                    }}</span>
-                </div>
               </div>
+
             </div>
           </div>
         </article>

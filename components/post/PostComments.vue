@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, provide, inject, type Ref } from "vue";
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 import type { CommentItem } from "~/types/comment";
 
 defineOptions({

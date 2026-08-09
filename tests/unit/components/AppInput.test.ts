@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import AppInput from "~/components/ui/AppInput.vue";
+import AppInput from "~/components/ui/input/AppInput.vue";
+
 
 describe("AppInput Primitive UI Component", () => {
   it("should render label and placeholder correctly", () => {

@@ -6,8 +6,6 @@ definePageMeta({
   hideSidebar: true,
 });
 
-import TableOfContents from "~/components/post/TableOfContents.vue";
-
 
 const { data: page } = await useAsyncData("page-tos", async () => {
   return (await queryCollection("pages").path("/pages/tos").first()) || null;
@@ -18,7 +16,7 @@ const tocLinks = computed(() => {
   return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
 });
 
-usePageSeo({
+useSeo({
   title: page.value?.title || "Điều khoản sử dụng",
   description: page.value?.description || "Quy định và điều khoản sử dụng khi truy cập website Median UI.",
 });

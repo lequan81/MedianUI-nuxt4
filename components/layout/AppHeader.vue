@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
+import { siteConfig } from "~/app/config/site";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 import { useAppStore } from "~/stores/useAppStore";
 import { useLangStore } from "~/stores/useLangStore";
-import { siteConfig } from "~/app/config/site";
-import AppIcon from "~/components/ui/AppIcon.vue";
+
 
 const appStore = useAppStore();
 const langStore = useLangStore();

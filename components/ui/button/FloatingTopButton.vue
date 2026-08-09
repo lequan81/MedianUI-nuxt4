@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import AppIcon from '~/components/ui/AppIcon.vue'
+import AppIcon from '~/components/ui/icon/AppIcon.vue'
 
 const isVisible = ref(false)
 let lastScrollY = 0
 
 function checkScroll() {
-  if (typeof window === 'undefined') return
+  if (!import.meta.client) return
   if (window.innerWidth >= 640) {
     isVisible.value = false
     return
@@ -32,14 +32,14 @@ function checkScroll() {
 }
 
 function scrollToTop() {
-  if (typeof window !== 'undefined') {
+  if (import.meta.client) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     isVisible.value = false
   }
 }
 
 onMounted(() => {
-  if (typeof window !== 'undefined') {
+  if (import.meta.client) {
     lastScrollY = window.scrollY || 0
     checkScroll()
     window.addEventListener('scroll', checkScroll, { passive: true })
@@ -48,7 +48,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
+  if (import.meta.client) {
     window.removeEventListener('scroll', checkScroll)
     document.removeEventListener('scroll', checkScroll)
   }

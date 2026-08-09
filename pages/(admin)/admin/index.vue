@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useSeoMeta } from "#imports";
-import AppIcon from "~/components/ui/AppIcon.vue";
 
 if (import.meta.server) {
   useSeoMeta({
@@ -93,7 +92,7 @@ function deleteComment(id: number) {
         class="group flex flex-col justify-between h-full rounded-xl border border-dashed border-border-main bg-bg-alt/60 p-4.5 space-y-3 shadow-2xs transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt">
         <div class="flex items-center justify-between">
           <span class="text-xs font-medium text-text-alt group-hover:text-primary transition-colors">{{ stat.label
-            }}</span>
+          }}</span>
           <div :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', stat.bg, stat.color]">
             <AppIcon :name="stat.icon" :size="16" />
           </div>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { footerLinks, siteConfig } from "~/app/config/site";
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 function scrollToTop() {
-  if (typeof window !== 'undefined') {
+  if (import.meta.client) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
 </script>
 
 <template>

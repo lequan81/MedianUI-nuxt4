@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { getPostPath } from "~/composables/usePosts";
 import { useAppStore } from "~/stores/useAppStore";
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const appStore = useAppStore();
 const searchQuery = ref("");

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import AppButton from "~/components/ui/AppButton.vue";
+import AppButton from "~/components/ui/button/AppButton.vue";
+
 
 describe("AppButton Primitive UI Component", () => {
   it("should render primary variant classes by default", () => {

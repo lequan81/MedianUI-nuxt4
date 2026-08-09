@@ -1,202 +1,20 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { useRoute, useSeoMeta } from "#imports";
+import { useBlogPost } from "~/composables/useBlogPost";
 import { getPostImage, getPostPath } from "~/composables/usePosts";
-import { useArticleSeo } from "~/composables/useArticleSeo";
-import { useAuthor } from "~/composables/useAuthor";
-import type { PostItem } from "~/types/post";
-import AppIcon from "~/components/ui/AppIcon.vue";
 
-import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
-import PostShareBar from "~/components/post/PostShareBar.vue";
-import ShareModal from "~/components/post/ShareModal.vue";
-import TableOfContents from "~/components/post/TableOfContents.vue";
-
-const route = useRoute();
-const slug = computed(() => String(route.params.slug || ""));
-const isShareModalOpen = ref(false);
-
-const { data: post } = await useAsyncData(`post-${slug.value}`, async () => {
-  const byPath = await queryCollection("posts")
-    .path(`/blog/${slug.value}`)
-    .first();
-  if (byPath) return byPath;
-
-  const all = await queryCollection("posts").all();
-  return (
-    all.find((item: any) => getPostPath(item) === `/blog/${slug.value}`) || null
-  );
-});
-
-const authorInfo = computed(() => {
-  return useAuthor(post.value?.author);
-});
-
-const { data: relatedPosts } = useLazyAsyncData(
-  `related-${slug.value}`,
-  async () => {
-
-    const all = await queryCollection("posts").all();
-    const currentTags = new Set(
-      [post.value?.category, ...(post.value?.tags || [])]
-        .filter(Boolean)
-        .map((tag) => String(tag).toLowerCase()),
-    );
-
-    function scorePost(item: PostItem | any) {
-      const tags = new Set(
-        [item.category, ...(item.tags || [])]
-          .filter(Boolean)
-          .map((tag) => String(tag).toLowerCase()),
-      );
-
-      let score = 0;
-      for (const tag of tags) {
-        if (currentTags.has(tag))
-          score +=
-            tag === String(post.value?.category || "").toLowerCase() ? 3 : 1;
-      }
-
-      return score;
-    }
-
-    function dateValue(value: unknown) {
-      const timestamp = Date.parse(String(value || ""));
-      return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY;
-    }
-
-    return all
-      .filter((item: any) => item.path !== post.value?.path)
-      .sort((a: any, b: any) => {
-        const scoreDelta = scorePost(b) - scorePost(a);
-        if (scoreDelta !== 0) return scoreDelta;
-
-        const dateDelta = dateValue(b.date) - dateValue(a.date);
-        if (dateDelta !== 0) return dateDelta;
-
-        return (b.comments || 0) - (a.comments || 0);
-      })
-      .slice(0, 6);
-  },
-);
-
-const allPostTags = computed(() => {
-  const list: string[] = [];
-  if (post.value?.category) {
-    list.push(post.value.category);
-  }
-  if (post.value?.tags && Array.isArray(post.value.tags)) {
-    post.value.tags.forEach((tag: string) => {
-      if (!list.includes(tag)) {
-        list.push(tag);
-      }
-    });
-  }
-  return list;
-});
-
-const windowWidth = ref(typeof window !== "undefined" ? window.innerWidth : 1200);
-
-function onWindowResize() {
-  windowWidth.value = window.innerWidth;
-}
-
-onMounted(() => {
-  if (typeof window !== "undefined") {
-    window.addEventListener("resize", onWindowResize, { passive: true });
-    onWindowResize();
-  }
-});
-
-onBeforeUnmount(() => {
-  if (typeof window !== "undefined") {
-    window.removeEventListener("resize", onWindowResize);
-  }
-});
-
-const maxTagsLimit = computed(() => {
-  if (typeof (post.value as any)?.maxTags === "number") {
-    return (post.value as any).maxTags;
-  }
-  return 5;
-});
-
-const isOverflowingTags = computed(() => {
-  return allPostTags.value.length > maxTagsLimit.value;
-});
-
-const visiblePostTags = computed(() => {
-  if (isOverflowingTags.value) {
-    return allPostTags.value.slice(0, maxTagsLimit.value - 1);
-  }
-  return allPostTags.value;
-});
-
-const hiddenPostTags = computed(() => {
-  if (isOverflowingTags.value) {
-    return allPostTags.value.slice(maxTagsLimit.value - 1);
-  }
-  return [];
-});
-
-const extractedTocLinks = ref<any[]>([]);
-
-function extractHeadingsFromDOM() {
-  if (typeof window === "undefined") return;
-  const articleEl = document.querySelector(".prose-content");
-  if (!articleEl) return;
-
-  const headings = articleEl.querySelectorAll("h2, h3");
-  const items: any[] = [];
-  let lastH2: any = null;
-
-  headings.forEach((heading, idx) => {
-    let id = heading.id;
-    if (!id) {
-      id = `heading-${idx}`;
-      heading.id = id;
-    }
-
-    const text = heading.textContent?.trim() || "";
-    if (!text) return;
-
-    const item = {
-      id,
-      text,
-      depth: heading.tagName.toLowerCase() === "h2" ? 2 : 3,
-      children: [],
-    };
-
-    if (item.depth === 2) {
-      items.push(item);
-      lastH2 = item;
-    } else if (item.depth === 3) {
-      if (lastH2) {
-        lastH2.children.push(item);
-      } else {
-        items.push(item);
-      }
-    }
-  });
-
-  extractedTocLinks.value = items;
-}
-
-const tocLinks = computed(() => {
-  if (!post.value) return [];
-  const contentToc = post.value.body?.toc?.links || (post.value as any).toc?.links || [];
-  if (contentToc && contentToc.length > 0) return contentToc;
-  return extractedTocLinks.value;
-});
-
-onMounted(() => {
-  if (!post.value?.body?.toc?.links?.length) {
-    setTimeout(extractHeadingsFromDOM, 300);
-  }
-});
-
-
-useArticleSeo(post);
+const {
+  post,
+  authorInfo,
+  relatedPosts,
+  allPostTags,
+  visiblePostTags,
+  hiddenPostTags,
+  isOverflowingTags,
+  tocLinks,
+  isShareModalOpen,
+  slug,
+  status
+} = useBlogPost();
 </script>
 
 <template>
@@ -246,28 +64,26 @@ useArticleSeo(post);
               <span class="truncate">{{ tag }}</span>
             </NuxtLink>
 
-            <div v-if="isOverflowingTags" class="tag-tooltip-trigger inline-block">
-              <span
-                class="inline-flex items-center gap-1 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:border-primary shadow-2xs cursor-pointer">
-                +#{{ hiddenPostTags.length }}
-              </span>
+            <AppTooltip v-if="isOverflowingTags" content-class="w-60 p-3 flex flex-wrap gap-1.5">
+              <template #trigger>
+                <span
+                  class="inline-flex items-center gap-1 rounded-lg border border-border-main bg-bg-sec px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:border-primary shadow-2xs cursor-pointer"
+                >
+                  +#{{ hiddenPostTags.length }}
+                </span>
+              </template>
 
-              <div
-                class="tag-tooltip-card absolute left-0 bottom-full mb-2 z-50 flex-col w-60 rounded-xl border border-border-main bg-bg-alt p-3 shadow-md backdrop-blur-md">
-                <div
-                  class="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-text-muted pb-1.5 border-b border-border-subtle mb-2">
-                  <span>Thẻ khác</span>
-                  <span class="text-primary font-bold">+{{ hiddenPostTags.length }}</span>
-                </div>
-                <div class="flex flex-wrap gap-1.5">
-                  <NuxtLink v-for="tag in hiddenPostTags" :key="tag" :to="`/?category=${encodeURIComponent(tag)}`"
-                    class="inline-flex items-center gap-1 rounded-md border border-border-main bg-bg-sec px-2 py-1 text-[11.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary-subtle">
-                    <span class="text-primary font-bold">#</span>
-                    <span>{{ tag }}</span>
-                  </NuxtLink>
-                </div>
-              </div>
-            </div>
+              <NuxtLink
+                v-for="tag in hiddenPostTags"
+                :key="tag"
+                :to="`/?category=${encodeURIComponent(tag)}`"
+                class="inline-flex items-center gap-1 rounded-md border border-border-main bg-bg-sec px-2 py-1 text-[11.5px] font-medium text-text-main transition-colors hover:border-primary hover:text-primary hover:bg-primary-subtle"
+              >
+                <span class="text-primary font-bold">#</span>
+                <span>{{ tag }}</span>
+              </NuxtLink>
+            </AppTooltip>
+
           </div>
 
           <AuthorBio :author="authorInfo" class="shrink-0" />
@@ -367,16 +183,23 @@ useArticleSeo(post);
   </article>
 
   <!-- 404 Page: Tối ưu UI/UX Mobile & Desktop Chuẩn Đẹp Tự Động -->
-  <NotFoundBlock
-    v-else
-    status-code="404"
-    title="Post Not Found"
-    :message="`Bài viết /blog/${slug} không tồn tại hoặc đã bị gỡ bỏ.`"
-  />
+  <NotFoundBlock v-else status-code="404" title="Post Not Found"
+    :message="`Bài viết /blog/${slug} không tồn tại hoặc đã bị gỡ bỏ.`" />
 </template>
 
 <style scoped>
 :deep(.prose-content > h1:first-child) {
   display: none;
 }
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
 </style>
+

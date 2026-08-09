@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useSeoMeta, navigateTo } from "#imports";
-import AppIcon from "~/components/ui/AppIcon.vue";
 
 definePageMeta({
   layout: false, // Standalone Login Page Layout
@@ -14,19 +13,22 @@ if (import.meta.server) {
   });
 }
 
-const username = ref("admin");
-const password = ref("admin123");
-const isLoading = ref(false);
+const form = reactive({
+  username: "admin",
+  password: "admin123",
+  isLoading: false,
+});
 
 function handleLogin() {
-  isLoading.value = true;
+  form.isLoading = true;
 
   // Demo Mode: Bấm Enter hoặc Click là vào thẳng Dashboard Admin
   setTimeout(() => {
-    isLoading.value = false;
+    form.isLoading = false;
     navigateTo("/admin");
   }, 400);
 }
+
 </script>
 
 <template>
@@ -68,7 +70,7 @@ function handleLogin() {
               Tên tài khoản hoặc Email
             </label>
             <div class="relative">
-              <input v-model="username" type="text" required placeholder="admin"
+              <input v-model="form.username" type="text" required placeholder="admin"
                 class="w-full rounded-lg border border-border-main bg-bg-sec pl-9 pr-3.5 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs"
                 @keyup.enter="handleLogin" />
               <div class="absolute left-3 top-2.5 text-text-muted">
@@ -85,7 +87,7 @@ function handleLogin() {
               <span class="text-[11px] font-semibold text-primary">Demo sẵn</span>
             </div>
             <div class="relative">
-              <input v-model="password" type="password" required placeholder="••••••••"
+              <input v-model="form.password" type="password" required placeholder="••••••••"
                 class="w-full rounded-lg border border-border-main bg-bg-sec pl-9 pr-3.5 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs"
                 @keyup.enter="handleLogin" />
               <div class="absolute left-3 top-2.5 text-text-muted">
@@ -95,13 +97,14 @@ function handleLogin() {
           </div>
 
           <div class="pt-2">
-            <button type="submit" :disabled="isLoading"
+            <button type="submit" :disabled="form.isLoading"
               class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-primary-hover active:scale-[0.99] disabled:opacity-50 cursor-pointer">
-              <AppIcon v-if="!isLoading" name="log-in" :size="15" />
-              <span>{{ isLoading ? "Đang truy cập..." : "Đăng nhập ngay (Enter)" }}</span>
+              <AppIcon v-if="!form.isLoading" name="log-in" :size="15" />
+              <span>{{ form.isLoading ? "Đang truy cập..." : "Đăng nhập ngay (Enter)" }}</span>
             </button>
           </div>
         </form>
+
 
         <div class="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-text-muted">
           <NuxtLink to="/" class="hover:text-primary transition-colors flex items-center gap-1">

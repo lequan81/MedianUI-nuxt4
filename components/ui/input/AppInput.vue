@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import AppIcon from "~/components/ui/AppIcon.vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 interface Props {
   modelValue?: string | number;
   label?: string;
   required?: boolean;
   error?: string;
+  valid?: boolean;
   placeholder?: string;
   type?: string;
   icon?: string;
@@ -17,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
   required: false,
   type: "text",
   disabled: false,
+  valid: false,
 });
 
 const emit = defineEmits<{
@@ -53,12 +55,22 @@ function handleInput(event: Event) {
         :disabled="props.disabled"
         :class="[
           'w-full rounded-lg border bg-bg-sec py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed',
-          props.icon ? 'pl-9 pr-3' : 'px-3',
+          props.icon ? 'pl-9 pr-8' : props.valid && !props.error ? 'pr-8 px-3' : 'px-3',
           props.error
             ? 'border-rose-500 focus:ring-1 focus:ring-rose-500'
+            : props.valid
+            ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
             : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary',
         ]"
         @input="handleInput"
+      />
+
+      <!-- Valid Checkmark Icon -->
+      <AppIcon
+        v-if="props.valid && !props.error"
+        name="check"
+        :size="14"
+        class="absolute right-3 text-emerald-500 shrink-0 pointer-events-none"
       />
     </div>
 

@@ -1,13 +1,12 @@
 export default defineNuxtPlugin((nuxtApp) => {
   const router = useRouter();
 
-  // ─── High-Performance Global Overlay (Pre-rendered DOM Element) ───
   const overlay = document.createElement("div");
   overlay.id = "global-loading-overlay";
   overlay.setAttribute("aria-hidden", "true");
   overlay.setAttribute("data-nosnippet", "");
   overlay.className =
-    "fixed inset-0 z-[9999] flex items-center justify-center bg-bg-base/95 dark:bg-bg-base/95 select-none pointer-events-none opacity-0 transform-gpu";
+    "fixed inset-0 z-9999 flex items-center justify-center bg-bg-base/95 dark:bg-bg-base/95 select-none pointer-events-none opacity-0 transform-gpu";
 
   overlay.innerHTML = `
     <div class="grid-loader">
@@ -85,7 +84,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   // Native Pointer Capture for instant 0ms response before router processing
-  if (typeof window !== "undefined") {
+  if (import.meta.client) {
     window.addEventListener(
       "click",
       (e) => {
@@ -97,7 +96,7 @@ export default defineNuxtPlugin((nuxtApp) => {
           }
         }
       },
-      { capture: true, passive: true },
+      { capture: true, passive: true }
     );
   }
 

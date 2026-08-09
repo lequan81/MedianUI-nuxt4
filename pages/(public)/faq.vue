@@ -11,7 +11,7 @@ const { data: page } = await useAsyncData("page-faq", async () => {
   return (await queryCollection("pages").path("/pages/faq").first()) || null;
 });
 
-usePageSeo({
+useSeo({
   title: page.value?.title || "Câu hỏi thường gặp (FAQ)",
   description: page.value?.description || "Giải đáp các câu hỏi thường gặp về blog cá nhân và mã nguồn Median UI.",
 });

@@ -45,6 +45,8 @@ export type LucideName =
 
 export * from "./author";
 export * from "./navigation";
+export * from "./routes";
+
 
 export const siteConfig = {
   name: "Lê Quân's Blog",

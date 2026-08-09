@@ -6,8 +6,6 @@ definePageMeta({
   hideSidebar: true,
 });
 
-import TableOfContents from "~/components/post/TableOfContents.vue";
-
 const { data: page } = await useAsyncData("page-privacy", async () => {
   return (await queryCollection("pages").path("/pages/privacy").first()) || null;
 });
@@ -17,7 +15,7 @@ const tocLinks = computed(() => {
   return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
 });
 
-usePageSeo({
+useSeo({
   title: page.value?.title || "Chính sách bảo mật",
   description: page.value?.description || "Chính sách bảo mật thông tin cá nhân và dữ liệu người dùng trên blog Median UI.",
 });

@@ -1,58 +1,38 @@
-import { ref } from "vue";
+import { toast } from "vue-sonner";
 
-export interface ToastItem {
-  id: string;
-  type: "success" | "error" | "warning" | "info";
-  title?: string;
-  message: string;
-  duration?: number;
-}
-
-const toasts = ref<ToastItem[]>([]);
-
+/**
+ * useToast() — thin wrapper around vue-sonner's `toast` API.
+ * Keeps the same method signatures (success, error, warning, info)
+ * so existing callers (useContactForm.ts, etc.) don't need changes.
+ */
 export function useToast() {
-  function addToast(toast: Omit<ToastItem, "id">) {
-    const id = typeof crypto !== "undefined" ? crypto.randomUUID() : String(Date.now() + Math.random());
-    const duration = toast.duration ?? 4000;
-
-    const newItem: ToastItem = {
-      ...toast,
-      id,
-    };
-
-    toasts.value.push(newItem);
-
-    if (duration > 0) {
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
-    }
-  }
-
-  function removeToast(id: string) {
-    toasts.value = toasts.value.filter((t) => t.id !== id);
-  }
-
   function success(message: string, title?: string) {
-    addToast({ type: "success", message, title });
+    toast.success(title || "Thành công", {
+      description: message,
+    });
   }
 
   function error(message: string, title?: string) {
-    addToast({ type: "error", message, title, duration: 6000 });
+    toast.error(title || "Thao tác thất bại", {
+      description: message,
+      duration: 6000,
+    });
   }
 
   function warning(message: string, title?: string) {
-    addToast({ type: "warning", message, title, duration: 5000 });
+    toast.warning(title || "Chú ý", {
+      description: message,
+      duration: 5000,
+    });
   }
 
   function info(message: string, title?: string) {
-    addToast({ type: "info", message, title });
+    toast.info(title || "Thông báo", {
+      description: message,
+    });
   }
 
   return {
-    toasts,
-    addToast,
-    removeToast,
     success,
     error,
     warning,

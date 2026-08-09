@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute, useSeoMeta } from "#imports";
-import AppIcon from "~/components/ui/AppIcon.vue";
 
 const route = useRoute();
 

@@ -1,7 +1,7 @@
 import { defineNuxtPlugin } from "#imports";
 
 export default defineNuxtPlugin((nuxtApp) => {
-  if (typeof window === "undefined" || import.meta.dev) return;
+  if (!import.meta.client || import.meta.dev) return;
 
   // Lắng nghe khi browser rảnh rỗi (requestIdleCallback) để tải trước ảnh nổi bật
   const scheduleIdleTask = (callback: () => void) => {

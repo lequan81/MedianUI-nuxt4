@@ -2,7 +2,7 @@
 import { useRoute } from 'vue-router'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLangStore } from '~/stores/useLangStore'
-import AppIcon from '~/components/ui/AppIcon.vue'
+import AppIcon from '~/components/ui/icon/AppIcon.vue'
 
 const route = useRoute()
 const appStore = useAppStore()
@@ -14,7 +14,7 @@ const langStore = useLangStore()
   <nav
     class="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 h-15 w-full items-center px-1 border-t border-border-main bg-bg-base text-text-alt shadow-lg backdrop-blur-md lg:hidden overflow-hidden">
     <!-- 1. Home -->
-    <NuxtLink to="/"
+    <NuxtLink to="/" aria-label="Trang chủ"
       class="flex w-full flex-col items-center justify-center gap-1 py-1 text-[9.5px] font-medium transition-colors hover:text-primary overflow-hidden"
       :class="route.path === '/' ? 'text-primary font-bold' : ''">
       <AppIcon name="home" :size="19" :class="route.path === '/' ? 'text-primary' : ''" />
@@ -22,7 +22,7 @@ const langStore = useLangStore()
     </NuxtLink>
 
     <!-- 2. Menu -->
-    <button type="button"
+    <button type="button" aria-label="Mở danh mục menu"
       class="flex w-full flex-col items-center justify-center gap-1 py-1 text-[9.5px] font-medium transition-colors hover:text-primary cursor-pointer overflow-hidden"
       :class="appStore.isMobileMenuOpen ? 'text-primary font-bold' : ''" @click="appStore.toggleMobileMenu">
       <AppIcon name="menu" :size="19" :class="appStore.isMobileMenuOpen ? 'text-primary' : ''" />
@@ -32,14 +32,14 @@ const langStore = useLangStore()
     <!-- 3. Search -->
     <button type="button"
       class="flex w-full flex-col items-center justify-center gap-1 py-1 text-[9.5px] font-medium transition-colors hover:text-primary cursor-pointer overflow-hidden"
-      aria-label="Search" @click="appStore.toggleSearchModal">
+      aria-label="Tìm kiếm bài viết" @click="appStore.toggleSearchModal">
       <AppIcon name="search" :size="19" />
       <span class="truncate leading-none">Search</span>
     </button>
 
     <!-- 4. Language Switcher (Opens Language Modal) -->
     <ClientOnly>
-      <button v-if="langStore.currentLangItem" type="button"
+      <button v-if="langStore.currentLangItem" type="button" aria-label="Thay đổi ngôn ngữ"
         class="flex w-full flex-col items-center justify-center gap-0.5 py-1 text-[9.5px] font-medium transition-colors hover:text-primary cursor-pointer overflow-hidden"
         @click="langStore.openLangModal">
         <div class="flex h-5.5 items-center justify-center">
@@ -54,12 +54,13 @@ const langStore = useLangStore()
 
     <!-- 5. Theme Switcher -->
     <ClientOnly>
-      <button type="button"
+      <button type="button" aria-label="Đổi giao diện sáng tối"
         class="flex w-full flex-col items-center justify-center gap-1 py-1 text-[9.5px] font-medium transition-colors hover:text-primary cursor-pointer overflow-hidden"
         @click="appStore.toggleDarkMode">
         <AppIcon :name="appStore.isDarkMode ? 'sun' : 'moon'" :size="19" />
         <span class="truncate leading-none">Theme</span>
       </button>
     </ClientOnly>
+
   </nav>
 </template>

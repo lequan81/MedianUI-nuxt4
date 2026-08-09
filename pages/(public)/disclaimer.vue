@@ -6,8 +6,6 @@ definePageMeta({
   hideSidebar: true,
 });
 
-import TableOfContents from "~/components/post/TableOfContents.vue";
-
 const { data: page } = await useAsyncData("page-disclaimer", async () => {
   return (await queryCollection("pages").path("/pages/disclaimer").first()) || null;
 });
@@ -17,7 +15,7 @@ const tocLinks = computed(() => {
   return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
 });
 
-usePageSeo({
+useSeo({
   title: page.value?.title || "Tuyên bố miễn trừ trách nhiệm",
   description: page.value?.description || "Tuyên bố miễn trừ trách nhiệm về thông tin và bài viết trên Median UI.",
 });

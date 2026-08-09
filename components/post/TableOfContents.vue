@@ -36,7 +36,7 @@ const flatLinks = computed(() => {
 });
 
 function updateActiveHeading() {
-  if (!flatLinks.value.length || typeof window === "undefined") return;
+  if (!flatLinks.value.length || !import.meta.client) return;
 
   const headings = flatLinks.value
     .map((link) => ({
@@ -79,7 +79,7 @@ function updateActiveHeading() {
 
 let isScrolling = false;
 function onScroll() {
-  if (typeof window === "undefined") return;
+  if (!import.meta.client) return;
   const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
 
   if (window.innerWidth < 1024) {
@@ -105,7 +105,7 @@ function onScroll() {
 watch(
   flatLinks,
   () => {
-    if (typeof window !== "undefined") {
+    if (import.meta.client) {
       setTimeout(updateActiveHeading, 100);
     }
   },
@@ -113,7 +113,7 @@ watch(
 );
 
 onMounted(() => {
-  if (typeof window !== "undefined") {
+  if (import.meta.client) {
     lastScrollY = window.scrollY || 0;
     window.addEventListener("scroll", onScroll, { passive: true });
     setTimeout(updateActiveHeading, 100);
@@ -121,7 +121,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  if (typeof window !== "undefined") {
+  if (import.meta.client) {
     window.removeEventListener("scroll", onScroll);
   }
 });

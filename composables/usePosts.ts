@@ -5,7 +5,8 @@ export function getPostPath(post: any) {
 }
 
 export function getPostImage(post: any) {
-  return post?.image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=900&q=80'
+  const raw = post?.image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643'
+  return typeof raw === 'string' ? raw.split('?')[0] : raw
 }
 
 export function getLabelCounts(posts: any[] = []) {

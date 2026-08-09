@@ -54,12 +54,8 @@ onMounted(() => {
     <!-- Global Overlay 3x3 Matrix Square Loader (Windows 11 Mica Backdrop Blur) -->
     <Teleport to="body">
       <Transition name="fade">
-        <div
-          v-if="isPageLoading"
-          id="global-overlay-loading"
-          data-nosnippet
-          class="loading-overlay bg-bg-base/75 dark:bg-bg-base/85 backdrop-blur-xl transition-all duration-200"
-        >
+        <div v-if="isPageLoading" id="global-overlay-loading" data-nosnippet
+          class="loading-overlay bg-bg-base/75 dark:bg-bg-base/85 backdrop-blur-xl transition-all duration-200">
           <div class="grid-loader">
             <div class="grid-subloader bg-primary"></div>
             <div class="grid-subloader bg-primary"></div>
@@ -75,6 +71,7 @@ onMounted(() => {
       </Transition>
     </Teleport>
 
+    <NotificationBar />
     <AppHeader />
 
     <div class="flex flex-1 min-h-[calc(100vh-var(--header-height))]">
@@ -86,7 +83,6 @@ onMounted(() => {
           <div class="mx-auto mt-(--content-padding) max-w-310 px-4 sm:px-6 xl:pl-6 xl:pr-14">
             <!-- AdBanner Nằm Ngay Phía Trên Của Cả Hero Slider Lẫn Right Sidebar -->
             <AdBanner v-if="!isAdminPage && !hideRightSidebar" class="mb-(--content-space)" />
-
             <div class="flex justify-center gap-(--content-space)">
               <div class="min-w-0 flex-1 w-full">
                 <slot />
@@ -120,6 +116,7 @@ onMounted(() => {
 .fade-leave-active {
   transition: opacity 0.25s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="mainAd mb-(--content-space) rounded-lg border border-border-subtle py-2 text-center text-[11px] text-text-muted"
-  >
+  <div class="rounded-lg border border-border-subtle p-4 text-center text-xs font-medium text-text-muted">
     <slot>Ads go here</slot>
   </div>
 </template>

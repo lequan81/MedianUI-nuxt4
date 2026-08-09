@@ -5,12 +5,10 @@ import { getPostImage, getPostPath } from "~/composables/usePosts";
 import { useArticleSeo } from "~/composables/useArticleSeo";
 import { useAuthor } from "~/composables/useAuthor";
 import AppIcon from "~/components/ui/AppIcon.vue";
-import AuthorBio from "~/components/post/AuthorBio.vue";
 import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 import PostShareBar from "~/components/post/PostShareBar.vue";
 import ShareModal from "~/components/post/ShareModal.vue";
 import TableOfContents from "~/components/post/TableOfContents.vue";
-import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 
 const route = useRoute();
 const slug = computed(() => String(route.params.slug || ""));
@@ -240,16 +238,7 @@ useArticleSeo(post);
 
       <div class="space-y-6">
         <div class="prose-content">
-          <ClientOnly>
-            <ContentRenderer :value="post" />
-            <template #fallback>
-              <div class="animate-pulse space-y-4 py-4">
-                <div class="h-4 bg-bg-sec rounded w-3/4"></div>
-                <div class="h-4 bg-bg-sec rounded w-full"></div>
-                <div class="h-4 bg-bg-sec rounded w-5/6"></div>
-              </div>
-            </template>
-          </ClientOnly>
+          <ContentRenderer :value="post" />
         </div>
 
         <div

@@ -44,7 +44,8 @@ const langStore = useLangStore()
         @click="langStore.openLangModal">
         <div class="flex h-5.5 items-center justify-center">
           <NuxtImg :src="langStore.currentLangItem.flagUrl" :alt="langStore.currentLangItem.name"
-            class="h-3.5 w-5 object-cover rounded-xs border border-white/20 shadow-2xs shrink-0" loading="lazy" format="webp" />
+            class="h-3.5 w-5 object-cover rounded-xs border border-white/20 shadow-2xs shrink-0" loading="lazy"
+            format="webp" />
         </div>
         <span class="uppercase font-bold text-[9px] text-text-main leading-none truncate">{{
           langStore.currentLangItem.code }}</span>

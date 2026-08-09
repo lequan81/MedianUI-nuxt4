@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppIcon from "~/components/ui/AppIcon.vue";
-import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 import { usePageSeo } from "~/composables/usePageSeo";
 import { useRoute, navigateTo } from "#imports";
@@ -26,7 +25,7 @@ const currentPage = ref(1);
 const isAddCategoryOpen = ref(false);
 const dropdownContainer = ref<HTMLElement | null>(null);
 
-const { data: posts, status } = useLazyAsyncData("home-posts", () =>
+const { data: posts, status } = await useAsyncData("home-posts", () =>
   queryCollection("posts").all(),
 );
 
@@ -229,7 +228,7 @@ onUnmounted(() => {
           <NuxtLink :to="getPostPath(post)" class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <NuxtImg :src="getPostImage(post)" :alt="post.title"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-              loading="lazy" />
+              loading="eager" />
             <span
               class="absolute right-2 top-2 inline-flex h-7 items-center gap-1 rounded-full bg-white px-2 text-xs font-medium text-slate-800 shadow-md">
               {{ post.comments || 0 }}
@@ -319,12 +318,12 @@ onUnmounted(() => {
           ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
           : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
       ]">
-        <article v-for="post in visibleStoryPosts" :key="post.path" class="group flex min-w-0 flex-col">
+        <article v-for="(post, index) in visibleStoryPosts" :key="post.path" class="group flex min-w-0 flex-col">
           <NuxtLink :to="getPostPath(post)"
             class="relative mb-3 block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <NuxtImg :src="getPostImage(post)" :alt="post.title"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-              loading="lazy" />
+              :loading="index < 3 ? 'eager' : 'lazy'" />
             <div class="absolute right-2 top-2 flex items-center gap-1.5 text-xs">
               <span v-if="post.discount"
                 class="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-md">

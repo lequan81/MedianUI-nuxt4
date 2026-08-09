@@ -1,16 +1,6 @@
 <script setup lang="ts">
 import { footerLinks, siteConfig } from "~/app/config/site";
 import AppIcon from "~/components/ui/AppIcon.vue";
-
-function scrollToTop(e: MouseEvent) {
-  e.preventDefault();
-  if (typeof window !== "undefined") {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-}
 </script>
 
 <template>
@@ -30,10 +20,9 @@ function scrollToTop(e: MouseEvent) {
           <span v-if="index < footerLinks.length - 1" class="px-1 text-border-main">/</span>
         </template>
 
-        <!-- Top Button — desktop only (mobile has FloatingTopButton) -->
+        <!-- Top Button — desktop only -->
         <a href="#top"
-          class="ml-2 hidden lg:inline-flex items-center gap-1 rounded-full border border-border-main px-3 py-1 transition-colors hover:border-primary hover:text-primary cursor-pointer"
-          @click="scrollToTop">
+          class="ml-2 hidden lg:inline-flex items-center gap-1 rounded-full border border-border-main px-3 py-1 transition-colors hover:border-primary hover:text-primary cursor-pointer">
           Top
           <AppIcon name="arrow-up" :size="14" />
         </a>

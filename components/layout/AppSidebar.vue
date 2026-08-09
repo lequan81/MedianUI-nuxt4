@@ -4,6 +4,7 @@ import { useRoute } from "#imports";
 import {
   footerSocials,
   sidebarItems,
+  adminSidebarItems,
   siteConfig,
   type NavChild,
   type NavItem,
@@ -19,14 +20,6 @@ const hoveredTooltipId = ref("");
 const isAdminPage = computed(() => {
   return route.path.startsWith("/admin");
 });
-
-const adminSidebarItems: NavItem[] = [
-  { id: "admin-home", label: "Tổng quan Admin", icon: "home", to: "/admin" },
-  { id: "admin-comments", label: "Duyệt bình luận", icon: "message-square", to: "/admin/comments" },
-  { id: "admin-contacts", label: "Hòm thư liên hệ", icon: "mail", to: "/admin/contacts" },
-  { id: "admin-website", label: "Xem Website", icon: "external-link", to: "/", dividerAfter: true },
-  { id: "admin-logout", label: "Đăng xuất", icon: "log-out", to: "/admin/login" },
-];
 
 const activeItems = computed(() => {
   return isAdminPage.value ? adminSidebarItems : sidebarItems;
@@ -105,9 +98,8 @@ watch(
       <div class="flex items-center gap-2">
         <span class="text-sm font-bold tracking-tight text-text-main">{{ siteConfig.shortName }}</span>
       </div>
-      <button type="button"
-        class="flex h-8 w-8 items-center justify-center rounded-full text-text-alt transition-colors hover:bg-bg-sec hover:text-text-main cursor-pointer"
-        aria-label="Đóng menu" @click="appStore.closeMobileMenu">
+      <button type="button" aria-label="Đóng menu" @click="appStore.closeMobileMenu"
+        class="flex h-8 w-8 items-center justify-center rounded-full text-text-alt transition-colors hover:bg-bg-sec hover:text-text-main cursor-pointer">
         <AppIcon name="x" :size="18" />
       </button>
     </div>
@@ -119,17 +111,16 @@ watch(
       </div>
 
       <ul class="flex w-full list-none flex-col p-0">
-        <li v-for="item in activeItems" :key="item.id" :class="[
-          'group relative w-full py-1',
-          item.dividerAfter ? 'mb-2 border-b border-border-subtle pb-2' : '',
-        ]" @mouseenter="openTooltip(item.id)" @mouseleave="closeTooltip(item.id)">
+        <li v-for="item in activeItems" :key="item.id" @mouseenter="openTooltip(item.id)"
+          @mouseleave="closeTooltip(item.id)" :class="['group relative w-full py-1',
+            item.dividerAfter ? 'mb-2 border-b border-border-subtle pb-2' : '']">
           <template v-if="item.children">
-            <button type="button" :aria-expanded="isOpen(item)" :class="[
+            <button type="button" :aria-expanded="isOpen(item)" @click="toggleDropdown(item.id)" :class="[
               'relative flex h-10 w-full items-center text-left text-[13.5px] font-medium transition-colors cursor-pointer',
               isChildActive(item.children)
                 ? 'text-primary font-bold'
                 : 'text-text-main hover:text-primary',
-            ]" @click="toggleDropdown(item.id)">
+            ]">
               <span v-if="isChildActive(item.children)"
                 class="absolute right-0 top-1/2 h-7.5 w-px -translate-y-1/2 rounded-l-xs bg-primary"></span>
 

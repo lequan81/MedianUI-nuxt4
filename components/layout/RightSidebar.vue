@@ -9,11 +9,10 @@ import {
   sortPopularPosts,
 } from "~/composables/usePosts";
 import AppIcon from "~/components/ui/AppIcon.vue";
-import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 
 const route = useRoute();
 
-const { data: posts, status } = useLazyAsyncData("right-sidebar-posts", () =>
+const { data: posts, status } = await useAsyncData("right-sidebar-posts", () =>
   queryCollection("posts").all(),
 );
 
@@ -110,11 +109,11 @@ function isCategoryActive(name: string) {
               <div class="mb-1 flex items-baseline text-xs text-text-alt">
                 <span>{{
                   formatTimeAgo(popularPosts[0], popularPosts[0].date)
-                  }}</span>
+                }}</span>
                 <span class="mx-1">/</span>
                 <span class="font-medium text-primary">{{
                   popularPosts[0].category
-                  }}</span>
+                }}</span>
               </div>
               <h2
                 class="line-clamp-2 text-sm font-semibold leading-snug text-text-main transition-colors group-hover:text-primary">
@@ -181,8 +180,6 @@ function isCategoryActive(name: string) {
       </div>
     </section>
 
-    <div class="rounded-lg border border-border-subtle p-4 text-center text-xs font-medium text-text-muted">
-      Ads go here
-    </div>
+    <AdBanner />
   </div>
 </template>

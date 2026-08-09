@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, provide, inject, type Ref } from "vue";
 import AppIcon from "~/components/ui/AppIcon.vue";
-import WidgetTitle from "~/components/ui/WidgetTitle.vue";
 
 defineOptions({
   name: "CommentSection",

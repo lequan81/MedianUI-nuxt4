@@ -41,11 +41,9 @@ const formattedBioParts = computed(() => {
 </script>
 
 <template>
-  <!-- Standalone Author Bio Card: Tối ưu nhỏ gọn, tinh tế trên Mobile & Desktop -->
   <section
     class="group/bio w-full sm:w-fit max-w-full rounded-xl border border-border-main bg-bg-alt/60 p-3 sm:p-4 transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt shadow-2xs">
     <div class="flex items-start sm:items-center gap-3">
-      <!-- Avatar Viền Ring CSS Tròn Tuyệt Đối -->
       <div
         class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-base ring-2 ring-primary/20 shadow-xs transition-all duration-300 group-hover/bio:ring-primary group-hover/bio:scale-105">
         <NuxtImg v-if="author.avatar" :src="author.avatar" :alt="author.name" class="h-full w-full object-cover" loading="lazy" />
@@ -53,7 +51,6 @@ const formattedBioParts = computed(() => {
       </div>
 
       <div class="min-w-0 flex-1 space-y-1">
-        <!-- Tên Tác Giả & Handle @id Nằm Kế Bên Nhau Trên Cùng 1 Dòng -->
         <div class="flex flex-wrap items-center gap-1.5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-text-main group-hover/bio:text-primary transition-colors">
             {{ author.name }}

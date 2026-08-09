@@ -5,6 +5,26 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
+  experimental: {
+    componentIslands: true,
+    viewTransition: true,
+    asyncContext: true,
+  },
+  nitro: {
+    preset: "bun",
+    compressPublicAssets: { gzip: true, brotli: true },
+  },
+  routeRules: {
+    "/": { isr: 60 },
+    "/blog/**": { isr: 300 },
+    "/about": { prerender: true },
+    "/contact": { prerender: true },
+    "/faq": { prerender: true },
+    "/privacy": { prerender: true },
+    "/tos": { prerender: true },
+    "/disclaimer": { prerender: true },
+    "/admin/**": { ssr: false },
+  },
   srcDir: ".",
   css: ["~/assets/css/main.css"],
 
@@ -48,22 +68,13 @@ export default defineNuxtConfig({
   },
 
   image: {
-    ipx: {
-      maxAge: 31536000,
+    providers: {
+      direct: {
+        name: "direct",
+        provider: "~/providers/direct.ts",
+      },
     },
-    domains: [
-      "images.unsplash.com",
-      "blogger.googleusercontent.com",
-      "lh3.googleusercontent.com",
-      "1.bp.blogspot.com",
-      "2.bp.blogspot.com",
-      "3.bp.blogspot.com",
-      "4.bp.blogspot.com",
-      "github.com",
-      "avatars.githubusercontent.com",
-      "raw.githubusercontent.com",
-    ],
-    format: ["webp"],
+    provider: "direct",
   },
 
   app: {
@@ -81,6 +92,10 @@ export default defineNuxtConfig({
         },
       ],
       link: [
+        { rel: "dns-prefetch", href: "https://images.unsplash.com" },
+        { rel: "dns-prefetch", href: "https://flagcdn.com" },
+        { rel: "dns-prefetch", href: "https://blogger.googleusercontent.com" },
+        { rel: "dns-prefetch", href: "https://api.dicebear.com" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",
@@ -99,3 +114,4 @@ export default defineNuxtConfig({
     experimental: { sqliteConnector: "bun" },
   },
 });
+

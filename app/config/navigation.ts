@@ -39,10 +39,18 @@ export const sidebarItems: NavItem[] = [
     label: "Products",
     icon: "folder",
     children: [
-      { label: "Fshare Code", href: "https://j2team.dev/fshare-code", external: true },
+      {
+        label: "Fshare Code",
+        href: "https://j2team.dev/fshare-code",
+        external: true,
+      },
       { label: "URL Shortener", href: "https://j2team.dev", external: true },
       { label: "Shopee Analytics", href: "https://j2team.org", external: true },
-      { label: "ShopeeFood Analytics", href: "https://j2team.org", external: true },
+      {
+        label: "ShopeeFood Analytics",
+        href: "https://j2team.org",
+        external: true,
+      },
     ],
   },
   {
@@ -51,9 +59,21 @@ export const sidebarItems: NavItem[] = [
     icon: "folder",
     dividerAfter: true,
     children: [
-      { label: "J2TEAM Community", href: "https://www.facebook.com/groups/j2team.community", external: true },
-      { label: "J2TEAM Relax", href: "https://www.facebook.com/groups/j2team.relax", external: true },
-      { label: "J2TEAM Girls", href: "https://www.facebook.com/groups/j2team.girls", external: true },
+      {
+        label: "J2TEAM Community",
+        href: "https://www.facebook.com/groups/j2team.community",
+        external: true,
+      },
+      {
+        label: "J2TEAM Relax",
+        href: "https://www.facebook.com/groups/j2team.relax",
+        external: true,
+      },
+      {
+        label: "J2TEAM Girls",
+        href: "https://www.facebook.com/groups/j2team.girls",
+        external: true,
+      },
     ],
   },
   {
@@ -70,6 +90,35 @@ export const sidebarItems: NavItem[] = [
   },
 ];
 
+export const adminSidebarItems: NavItem[] = [
+  { id: "admin-home", label: "Tổng quan Admin", icon: "home", to: "/admin" },
+  {
+    id: "admin-comments",
+    label: "Duyệt bình luận",
+    icon: "message-square",
+    to: "/admin/comments",
+  },
+  {
+    id: "admin-contacts",
+    label: "Hòm thư liên hệ",
+    icon: "mail",
+    to: "/admin/contacts",
+  },
+  {
+    id: "admin-website",
+    label: "Xem Website",
+    icon: "external-link",
+    to: "/",
+    dividerAfter: true,
+  },
+  {
+    id: "admin-logout",
+    label: "Đăng xuất",
+    icon: "log-out",
+    to: "/admin/login",
+  },
+];
+
 export const footerLinks: NavChild[] = [
   { label: "Sitemap", href: "/sitemap.xml", external: true },
   { label: "Terms of Service", to: "/tos" },
@@ -79,9 +128,24 @@ export const footerLinks: NavChild[] = [
 ];
 
 export const footerSocials: NavSocialIcons[] = [
-  { label: "Facebook", href: "https://www.facebook.com/lequan81", icon: "facebook", external: true },
-  { label: "Twitter", href: "https://twitter.com/lequan81", icon: "twitter", external: true },
-  { label: "GitHub", href: "https://github.com/lequan81", icon: "github", external: true },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/lequan81",
+    icon: "facebook",
+    external: true,
+  },
+  {
+    label: "Twitter",
+    href: "https://twitter.com/lequan81",
+    icon: "twitter",
+    external: true,
+  },
+  {
+    label: "GitHub",
+    href: "https://github.com/lequan81",
+    icon: "github",
+    external: true,
+  },
 ];
 
 export const mobileNavItems: NavItem[] = [

@@ -190,15 +190,11 @@ const tocLinks = computed(() => {
 });
 
 onMounted(() => {
-  setTimeout(extractHeadingsFromDOM, 250);
+  if (!post.value?.body?.toc?.links?.length) {
+    setTimeout(extractHeadingsFromDOM, 300);
+  }
 });
 
-watch(
-  () => post.value,
-  () => {
-    setTimeout(extractHeadingsFromDOM, 250);
-  }
-);
 
 useArticleSeo(post);
 </script>

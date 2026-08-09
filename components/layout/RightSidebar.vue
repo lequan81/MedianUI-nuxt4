@@ -93,12 +93,15 @@ function isCategoryActive(name: string) {
       <div class="flex flex-col gap-4">
         <article v-if="popularPosts[0]" class="group flex flex-col gap-4">
           <div class="relative overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
-            <NuxtLink :to="getPostPath(popularPosts[0])" class="block aspect-video">
+            <NuxtLink :to="getPostPath(popularPosts[0])" :aria-label="popularPosts[0].title" class="block aspect-video">
               <NuxtImg :src="getPostImage(popularPosts[0])" :alt="popularPosts[0].title" :width="280" :height="158"
                 sizes="280px"
+                format="webp"
+                quality="80"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
                 loading="lazy" />
             </NuxtLink>
+
             <div class="absolute right-2 top-2 flex items-center gap-1.5 text-xs">
               <span
                 class="flex h-6 items-center gap-1.5 rounded-md bg-black/60 backdrop-blur-md px-2 text-white text-[11px] font-semibold border border-white/10 shadow-sm">

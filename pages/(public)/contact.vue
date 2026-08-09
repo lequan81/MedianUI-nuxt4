@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { definePageMeta } from "#imports";
+
+definePageMeta({
+  hideSidebar: true,
+});
+
 import * as v from "valibot";
 import { usePageSeo } from "~/composables/usePageSeo";
 import { useToast } from "~/composables/useToast";

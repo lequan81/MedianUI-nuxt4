@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRoute, useSeoMeta } from "#imports";
+import { useRoute, useSeoMeta, definePageMeta } from "#imports";
+
+definePageMeta({
+  hideSidebar: true,
+});
+
 import AppIcon from "~/components/ui/AppIcon.vue";
 
 const route = useRoute();

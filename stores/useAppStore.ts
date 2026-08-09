@@ -35,8 +35,9 @@ export const useAppStore = defineStore('app', () => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('median_theme')
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      
-      if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+      const isDocDark = document.documentElement.classList.contains('dark')
+
+      if (savedTheme === 'dark' || (!savedTheme && systemDark) || isDocDark) {
         isDarkMode.value = true
         document.documentElement.classList.add('dark')
       } else {
@@ -47,15 +48,21 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function toggleDarkMode() {
-    isDarkMode.value = !isDarkMode.value
     if (typeof window !== 'undefined') {
-      if (isDarkMode.value) {
+      // Sync current reality before toggling in case initTheme wasn't called
+      const isCurrentlyDark = document.documentElement.classList.contains('dark')
+      const targetState = !isCurrentlyDark
+
+      isDarkMode.value = targetState
+      if (targetState) {
         document.documentElement.classList.add('dark')
         localStorage.setItem('median_theme', 'dark')
       } else {
         document.documentElement.classList.remove('dark')
         localStorage.setItem('median_theme', 'light')
       }
+    } else {
+      isDarkMode.value = !isDarkMode.value
     }
   }
 

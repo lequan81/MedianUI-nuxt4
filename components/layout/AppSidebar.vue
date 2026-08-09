@@ -27,9 +27,10 @@ const activeItems = computed(() => {
 
 const sidebarWidthClass = computed(() => {
   return appStore.isSidebarCollapsed
-    ? "w-[280px] max-w-[85vw] lg:w-[var(--side-width)]"
-    : "w-[280px] max-w-[85vw] lg:w-[var(--side-width-expand)]";
+    ? "w-[280px] max-w-[85vw] lg:w-20"
+    : "w-[280px] max-w-[85vw] lg:w-60";
 });
+
 
 function toggleDropdown(id: string) {
   if (appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen) return;
@@ -87,7 +88,7 @@ watch(
     sidebarWidthClass,
     appStore.isMobileMenuOpen
       ? 'top-0 bottom-0 h-full z-50 translate-x-0 shadow-2xl overflow-y-auto'
-      : 'top-(--header-height) h-[calc(100vh-var(--header-height))] -translate-x-full lg:translate-x-0 lg:sticky lg:top-(--header-height)',
+      : 'top-16 h-[calc(100vh-4rem)] -translate-x-full lg:translate-x-0 lg:sticky lg:top-16',
     appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen
       ? 'lg:overflow-visible'
       : 'overflow-y-auto overflow-x-hidden',
@@ -115,16 +116,17 @@ watch(
           @mouseleave="closeTooltip(item.id)" :class="['group relative w-full py-1',
             item.dividerAfter ? 'mb-2 border-b border-border-subtle pb-2' : '']">
           <template v-if="item.children">
-            <button type="button" :aria-expanded="isOpen(item)" @click="toggleDropdown(item.id)" :class="[
-              'relative flex h-10 w-full items-center text-left text-[13.5px] font-medium transition-colors cursor-pointer',
+            <button type="button" :aria-expanded="isOpen(item)" :aria-label="item.label" @click="toggleDropdown(item.id)" :class="[
+              'relative flex h-10 w-full items-center text-left text-xs sm:text-sm font-medium transition-colors cursor-pointer',
               isChildActive(item.children)
                 ? 'text-primary font-bold'
                 : 'text-text-main hover:text-primary',
             ]">
+
               <span v-if="isChildActive(item.children)"
                 class="absolute right-0 top-1/2 h-7.5 w-px -translate-y-1/2 rounded-l-xs bg-primary"></span>
 
-              <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
+              <span class="flex h-9 w-20 shrink-0 items-center justify-center">
                 <AppIcon :name="item.icon" :size="20" :class="isChildActive(item.children) ? 'text-primary' : ''" />
               </span>
               <span v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen"
@@ -139,7 +141,7 @@ watch(
 
             <!-- Submenu khi mở dropdown -->
             <ul v-show="isOpen(item)" v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen"
-              class="relative ml-[calc(var(--side-width)-20px)] mr-4 mt-1 space-y-1 pb-2 text-[13px] text-text-alt">
+              class="relative ml-14 mr-4 mt-1 space-y-1 pb-2 text-xs sm:text-sm text-text-alt">
               <li v-for="child in item.children" :key="child.label" class="relative min-h-7 pl-5">
                 <span class="absolute left-0 top-0 h-4 w-3 rounded-bl-md border-b border-l border-border-main"></span>
                 <NuxtLink v-if="child.to" :to="child.to"
@@ -180,7 +182,7 @@ watch(
 
           <template v-else>
             <NuxtLink v-if="item.to" :to="item.to" :class="[
-              'relative flex h-10 w-full items-center text-[13.5px] font-medium transition-colors',
+              'relative flex h-10 w-full items-center text-xs sm:text-sm font-medium transition-colors',
               isActive(item.to)
                 ? 'text-primary font-bold'
                 : 'text-text-main hover:text-primary',
@@ -188,7 +190,7 @@ watch(
               <span v-if="isActive(item.to)"
                 class="absolute right-0 top-1/2 h-7.5 w-px -translate-y-1/2 rounded-l-xs bg-primary"></span>
 
-              <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
+              <span class="flex h-9 w-20 shrink-0 items-center justify-center">
                 <AppIcon :name="item.icon" :size="20" :class="isActive(item.to) ? 'text-primary' : ''" />
               </span>
               <span v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen"
@@ -199,9 +201,9 @@ watch(
             </NuxtLink>
 
             <a v-else :href="item.href"
-              class="relative flex h-10 w-full items-center text-[13.5px] font-medium text-text-main transition-colors hover:text-primary"
+              class="relative flex h-10 w-full items-center text-xs sm:text-sm font-medium text-text-main transition-colors hover:text-primary"
               :target="item.external ? '_blank' : undefined" :rel="item.external ? 'noreferrer' : undefined">
-              <span class="flex h-(--icon-height) w-(--side-width) shrink-0 items-center justify-center">
+              <span class="flex h-9 w-20 shrink-0 items-center justify-center">
                 <AppIcon :name="item.icon" :size="20" />
               </span>
               <span v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen"
@@ -212,6 +214,7 @@ watch(
             </a>
 
             <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
+
               class="pointer-events-none select-none absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-md">
               {{ item.label }}
             </div>

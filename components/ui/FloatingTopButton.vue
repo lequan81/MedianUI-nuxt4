@@ -58,7 +58,8 @@ onBeforeUnmount(() => {
 <template>
   <button
     type="button"
-    class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 border border-white/20 transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 sm:hidden"
+    class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex h-11 w-11 min-h-11 min-w-11 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 border border-white/20 transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 sm:hidden"
+
     :class="isVisible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'"
     aria-label="Về đầu trang"
     title="Về đầu trang"

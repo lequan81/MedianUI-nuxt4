@@ -425,9 +425,10 @@ onUnmounted(() => {
 
         <NuxtLink to="/"
           class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white shadow-md transition-colors hover:bg-primary/90"
-          title="Trang chủ" @click="clearAllCategories">
+          title="Trang chủ" aria-label="Về trang chủ" @click="clearAllCategories">
           <AppIcon name="home" :size="16" />
         </NuxtLink>
+
 
         <button type="button" :disabled="!hasNextPage" :class="[
           'inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-semibold transition-all shadow-2xs',

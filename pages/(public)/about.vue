@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useSeoMeta } from "#imports";
+import { useSeoMeta, definePageMeta } from "#imports";
+
+definePageMeta({
+  hideSidebar: true,
+});
+
 import AppIcon from "~/components/ui/AppIcon.vue";
 import TableOfContents from "~/components/post/TableOfContents.vue";
 import { authorConfig } from "~/app/config/site";

@@ -9,10 +9,15 @@ export function getPostPath(post: PostItem | any): string {
 export function getPostImage(post: PostItem | any): string {
   const raw = post?.image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643';
   if (typeof raw === 'string') {
-    return raw.split('?')[0] || raw;
+    if (raw.includes('images.unsplash.com')) {
+      const baseUrl = raw.split('?')[0];
+      return `${baseUrl}?auto=format&fit=crop&w=1200&q=80`;
+    }
+    return raw;
   }
   return String(raw || '');
 }
+
 
 
 export function getLabelCounts(posts: (PostItem | any)[] = []) {

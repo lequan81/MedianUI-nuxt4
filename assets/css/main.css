@@ -21,83 +21,57 @@
   --color-text-alt: var(--foreground-muted);
   --color-border-main: var(--border);
 
-  /* Solid Semantic Tokens để triệt tiêu vạch mờ & lẫn màu */
+  /* Solid Semantic Tokens cho Tailwind CSS v4 */
   --color-border-subtle: var(--border-subtle);
   --color-border-strong: var(--border-strong);
   --color-bg-subtle: var(--surface-subtle);
   --color-primary-subtle: var(--primary-subtle);
   --color-text-muted: var(--foreground-muted-solid);
-
-  /* XML exact layout dimensions */
-  --header-height: 65px;
-  --side-width: 75px;
-  --side-width-expand: 230px;
-  --sidebar-width: 280px;
-  --content-max-width: 1220px;
-  --content-padding: 22px;
-  --content-padding-box: 15px;
-  --content-space: 36px;
-  --content-bd-radius: 4px;
-  --content-bd-radius-alt: 10px;
-  --icon-width: 35px;
-  --icon-height: 35px;
-  --slider-bd-radius: 4px;
-  --slider-ratio: 43.75%;
-  --thumbnail-ratio: 56.25%;
-
-  /* Widget title */
-  --widget-title-font: 1.072rem;
-  --widget-title-weight: 400;
-  --widget-title-after-width: 10px;
-  --widget-title-space: 20px;
-
-  /* Post title */
-  --post-title-font-items: 1.2em;
-  --post-title-weight: 400;
-
-  /* Header from XML */
-  --header-font: 1.143em;
-  --header-font-weight: 500;
 }
 
-/* Light Mode (default root) */
+
+
+/* Light Mode (default root) - Tailwind CSS v4 OKLCH Color Engine */
 :root {
   color-scheme: light;
-  --color-accent: #3740ff;
+  --color-accent: var(--color-indigo-600); /* oklch(0.487 0.243 264.376) - 6.3:1 contrast against white */
   --surface: #ffffff;
-  --surface-elevated: #f9fafc;
-  --surface-muted: #f4f5f8;
-  --foreground: #2d323c;
-  --foreground-muted: #5f6570;
-  --border: #e8eaee;
+  --surface-elevated: var(--color-slate-50);
+  --surface-muted: var(--color-slate-100);
+  --foreground: var(--color-slate-900);
+  --foreground-muted: var(--color-slate-600);
+  --border: var(--color-slate-200);
 
   /* Solid Tokens cho Light Mode */
-  --border-subtle: #f0f2f5;
-  --border-strong: #d0d4dc;
-  --surface-subtle: #f8f9fa;
-  --primary-subtle: #eef0ff;
-  --foreground-muted-solid: #6b7280;
+  --border-subtle: var(--color-slate-100);
+  --border-strong: var(--color-slate-300);
+  --surface-subtle: var(--color-slate-50);
+  --primary-subtle: var(--color-indigo-50);
+  --foreground-muted-solid: var(--color-slate-600);
 }
 
-/* Dark Mode (when .dark class is active) */
+/* Dark Mode (when .dark class is active) - Tailwind CSS v4 OKLCH Color Engine */
 html.dark,
 .dark {
   color-scheme: dark;
-  --color-accent: #8d7af8;
-  --surface: #1a1d24;
-  --surface-elevated: #212630;
-  --surface-muted: #242a35;
-  --foreground: #dbe4f1;
-  --foreground-muted: rgba(219, 228, 241, 0.72);
-  --border: rgba(219, 228, 241, 0.08);
+  --color-accent: var(--color-indigo-400); /* oklch(0.673 0.182 263.38) - 9.4:1 contrast on dark surface */
+
+  --surface: var(--color-slate-950);
+  --surface-elevated: var(--color-slate-900);
+  --surface-muted: var(--color-slate-800);
+  --foreground: var(--color-slate-50);
+  --foreground-muted: var(--color-slate-400);
+  --border: oklch(0.968 0.007 247.896 / 0.12);
 
   /* Solid Tokens cho Dark Mode */
-  --border-subtle: #252b36;
-  --border-strong: #333b4a;
-  --surface-subtle: #1e222b;
-  --primary-subtle: #24274c;
-  --foreground-muted-solid: #9ca3af;
+  --border-subtle: var(--color-slate-900);
+  --border-strong: var(--color-slate-800);
+  --surface-subtle: var(--color-slate-950);
+  --primary-subtle: var(--color-indigo-950);
+  --foreground-muted-solid: var(--color-slate-400);
 }
+
+
 
 /* ===== Custom 6px Scrollbar ===== */
 ::-webkit-scrollbar {
@@ -239,5 +213,6 @@ body.page-loading main {
 /* Headings scroll offset cho sticky header */
 h1[id], h2[id], h3[id], h4[id], h5[id], h6[id],
 .prose h1, .prose h2, .prose h3, .prose h4 {
-  scroll-margin-top: calc(var(--header-height) + 20px);
+  scroll-margin-top: 5.5rem;
 }
+

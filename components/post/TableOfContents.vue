@@ -170,10 +170,9 @@ function scrollToHeading(id: string) {
 
 <template>
   <div v-if="props.links && props.links.length">
-    <div
-      class="fixed right-0 top-[calc(var(--header-height)+36px)] z-40 transition-all duration-300 ease-out"
-      :class="state.isHiddenOnMobile ? 'translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'"
-    >
+    <div class="fixed right-0 top-32 z-40 transition-all duration-300 ease-out"
+      :class="state.isHiddenOnMobile ? 'translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'">
+
       <div class="relative flex items-center rounded-l-full bg-bg-sec p-1 shadow-xs">
         <!-- Top organic concave curve -->
         <div class="absolute -top-3.5 right-0 h-3.5 w-3.5 bg-bg-sec pointer-events-none">
@@ -195,7 +194,8 @@ function scrollToHeading(id: string) {
       </div>
     </div>
 
-    <div v-if="state.isOpen" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity" @click="closeToc">
+    <div v-if="state.isOpen" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity"
+      @click="closeToc">
     </div>
 
     <aside
@@ -230,7 +230,7 @@ function scrollToHeading(id: string) {
             ]">{{ index + 1 }}.</span>
             <span class="line-clamp-2 leading-snug">{{
               cleanText(link.text)
-            }}</span>
+              }}</span>
           </button>
 
           <div v-if="link.children?.length" class="space-y-0.5 pl-3">
@@ -248,7 +248,7 @@ function scrollToHeading(id: string) {
               ]">{{ index + 1 }}.{{ childIdx + 1 }}</span>
               <span class="line-clamp-2 leading-relaxed">{{
                 cleanText(child.text)
-              }}</span>
+                }}</span>
             </button>
           </div>
         </div>

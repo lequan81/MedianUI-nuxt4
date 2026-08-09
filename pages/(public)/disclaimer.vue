@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useSeoMeta } from "#imports";
+import { useSeoMeta, definePageMeta } from "#imports";
+
+definePageMeta({
+  hideSidebar: true,
+});
+
 import TableOfContents from "~/components/post/TableOfContents.vue";
 
 const { data: page } = await useAsyncData("page-disclaimer", async () => {

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useSeoMeta } from "#imports";
+import { useSeoMeta, definePageMeta } from "#imports";
+
+definePageMeta({
+  hideSidebar: true,
+});
+
 
 const { data: page } = await useAsyncData("page-faq", async () => {
   return (await queryCollection("pages").path("/pages/faq").first()) || null;

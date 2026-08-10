@@ -1,30 +1,88 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from "vue";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
-const isVisible = ref(true)
+const STORAGE_KEY = "median_notification_dismissed_until";
+const HIDE_DURATION_DAYS = 7;
+const HIDE_DURATION_MS = HIDE_DURATION_DAYS * 24 * 60 * 60 * 1000;
+
+const isVisible = ref(false);
+
+onMounted(() => {
+  const isClient = import.meta.client || typeof window !== "undefined";
+  if (isClient) {
+    try {
+      const dismissedUntil = localStorage.getItem(STORAGE_KEY);
+      if (dismissedUntil) {
+        const untilTimestamp = parseInt(dismissedUntil, 10);
+        if (!isNaN(untilTimestamp) && Date.now() < untilTimestamp) {
+          isVisible.value = false;
+          return;
+        }
+      }
+    } catch {
+      // Fallback if localStorage is restricted
+    }
+    isVisible.value = true;
+  }
+});
 
 function dismiss() {
-  isVisible.value = false
+  isVisible.value = false;
+  const isClient = import.meta.client || typeof window !== "undefined";
+  if (isClient) {
+    try {
+      const untilTimestamp = Date.now() + HIDE_DURATION_MS;
+      localStorage.setItem(STORAGE_KEY, String(untilTimestamp));
+    } catch {
+      // Fallback if localStorage is restricted
+    }
+  }
 }
 </script>
 
 <template>
-  <div v-if="isVisible"
-    class="bg-blue-600 dark:bg-blue-950/80 border-b border-blue-700 dark:border-blue-900/50 text-white dark:text-blue-200 px-4 py-2 text-xs sm:text-sm font-medium flex items-center justify-between transition-all duration-300 z-50 relative shadow-xs">
-    <div class="max-w-7xl mx-auto w-full flex items-center justify-center gap-2 text-center px-4">
-      <span class="inline-block w-2 h-2 rounded-full bg-amber-300 animate-pulse"></span>
-      <span>
-        🎉 Welcome to <strong>Median UI v1.7</strong> reconstructed with <strong>Nuxt 4</strong> &amp; <strong>Tailwind
-          CSS v4</strong>!
-      </span>
-      <a href="#" class="underline hover:text-blue-100 dark:hover:text-blue-300 font-semibold ml-1">Learn More
-        &rarr;</a>
+  <Transition name="banner-slide">
+    <div
+      v-if="isVisible"
+      class="bg-indigo-600 dark:bg-slate-900 border-b border-indigo-500/30 dark:border-border-main text-white dark:text-text-main px-4 py-2.5 text-xs sm:text-sm font-medium flex items-center justify-between z-50 relative shadow-sm"
+    >
+      <div class="max-w-7xl mx-auto w-full flex items-center justify-center gap-2 text-center px-2 sm:px-4">
+        <span class="inline-block w-2 h-2 rounded-full bg-amber-300 animate-pulse shrink-0"></span>
+        <span class="leading-normal">
+          🎉 Welcome to <strong>Median UI v1.7</strong> reconstructed with <strong>Nuxt 4</strong> &amp; <strong>Tailwind CSS v4</strong>!
+        </span>
+        <a href="/blog" class="underline hover:text-white/80 dark:hover:text-primary font-semibold ml-1 inline-flex items-center gap-0.5 shrink-0">
+          Learn More &rarr;
+        </a>
+      </div>
+
+      <button
+        type="button"
+        class="p-1 text-white/80 hover:text-white dark:text-text-alt dark:hover:text-text-main hover:bg-white/10 dark:hover:bg-bg-sec rounded-lg transition-colors cursor-pointer shrink-0"
+        aria-label="Đóng thông báo"
+        @click="dismiss"
+      >
+        <AppIcon name="x" :size="16" />
+      </button>
     </div>
-    <button @click="dismiss" class="p-1 text-white hover:bg-blue-700 dark:hover:bg-blue-900/80 rounded-full transition-colors cursor-pointer"
-      aria-label="Dismiss notification">
-      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-  </div>
+  </Transition>
 </template>
+
+<style scoped>
+.banner-slide-enter-active,
+.banner-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 80px;
+  overflow: hidden;
+}
+
+.banner-slide-enter-from,
+.banner-slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  transform: translateY(-100%);
+}
+</style>

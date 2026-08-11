@@ -1,18 +1,4 @@
-export interface ContactConfig {
-  rateLimit: {
-    maxBurstRequests: number; // Tối đa 3 lần
-    burstWindowSeconds: number; // Trong 30s
-    maxWindowRequests: number; // Tối đa 5 lần
-    maxWindowSeconds: number; // Trong 10 phút (600s)
-  };
-  messages: {
-    success: string;
-    burstLimitExceeded: (retryAfter: number) => string;
-    windowLimitExceeded: (retryAfter: number) => string;
-    validationError: string;
-    serverError: string;
-  };
-}
+import type { ContactConfig } from "~/types/contact";
 
 export const contactConfig: ContactConfig = {
   rateLimit: {

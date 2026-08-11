@@ -80,14 +80,14 @@ const {
                 {{ post.category }}
               </NuxtLink>
             </div>
-            <h2 class="line-clamp-2 text-lg font-semibold leading-snug text-text-main lg:text-xl">
-              <NuxtLink :to="getPostPath(post)" class="transition-colors group-hover:text-primary">
+            <NuxtLink :to="getPostPath(post)" class="group/link block">
+              <h2 class="line-clamp-2 text-lg font-semibold leading-snug text-text-main lg:text-xl group-hover/link:text-primary transition-colors">
                 {{ post.title }}
-              </NuxtLink>
-            </h2>
-            <p v-if="post.snippet" class="my-2 line-clamp-2 text-sm leading-relaxed text-text-alt">
-              {{ post.snippet }}
-            </p>
+              </h2>
+              <p v-if="post.snippet" class="my-2 line-clamp-2 text-sm leading-relaxed text-text-alt">
+                {{ post.snippet }}
+              </p>
+            </NuxtLink>
             <div class="text-xs text-text-alt">{{ post.date }}</div>
           </div>
         </article>
@@ -174,14 +174,14 @@ const {
                   {{ post.category }}
                 </NuxtLink>
               </div>
-              <h2 class="line-clamp-2 text-base font-semibold leading-snug text-text-main">
-                <NuxtLink :to="getPostPath(post)" class="transition-colors group-hover:text-primary">
+              <NuxtLink :to="getPostPath(post)" class="group/link block">
+                <h2 class="line-clamp-2 text-base font-semibold leading-snug text-text-main group-hover/link:text-primary transition-colors">
                   {{ post.title }}
-                </NuxtLink>
-              </h2>
-              <p v-if="post.snippet" class="my-1.5 line-clamp-2 text-xs leading-relaxed text-text-alt">
-                {{ post.snippet }}
-              </p>
+                </h2>
+                <p v-if="post.snippet" class="my-1.5 line-clamp-2 text-xs leading-relaxed text-text-alt">
+                  {{ post.snippet }}
+                </p>
+              </NuxtLink>
             </div>
 
             <!-- Footer bài viết -->

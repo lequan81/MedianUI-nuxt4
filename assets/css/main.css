@@ -1,19 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans:
-    "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    sans-serif;
+  --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: "Be Vietnam Pro", sans-serif;
   --font-body-alt: "Be Vietnam Pro", sans-serif;
   --font-code: "Fira Mono", monospace;
 
   --color-primary: var(--color-accent);
-  --color-primary-light: color-mix(
-    in srgb,
-    var(--color-accent) 15%,
-    transparent
-  );
+  --color-primary-light: color-mix(in srgb, var(--color-accent) 15%, transparent);
   --color-bg-base: var(--surface);
   --color-bg-alt: var(--surface-elevated);
   --color-bg-sec: var(--surface-muted);
@@ -29,12 +23,12 @@
   --color-text-muted: var(--foreground-muted-solid);
 }
 
-
-
 /* Light Mode (default root) - Tailwind CSS v4 OKLCH Color Engine */
 :root {
   color-scheme: light;
-  --color-accent: var(--color-indigo-600); /* oklch(0.487 0.243 264.376) - 6.3:1 contrast against white */
+  --color-accent: var(
+    --color-indigo-600
+  ); /* oklch(0.487 0.243 264.376) - 6.3:1 contrast against white */
   --surface: #ffffff;
   --surface-elevated: var(--color-slate-50);
   --surface-muted: var(--color-slate-100);
@@ -54,7 +48,9 @@
 html.dark,
 .dark {
   color-scheme: dark;
-  --color-accent: var(--color-indigo-400); /* oklch(0.673 0.182 263.38) - 9.4:1 contrast on dark surface */
+  --color-accent: var(
+    --color-indigo-400
+  ); /* oklch(0.673 0.182 263.38) - 9.4:1 contrast on dark surface */
 
   --surface: var(--color-slate-950);
   --surface-elevated: var(--color-slate-900);
@@ -70,8 +66,6 @@ html.dark,
   --primary-subtle: var(--color-indigo-950);
   --foreground-muted-solid: var(--color-slate-400);
 }
-
-
 
 /* ===== Custom 6px Scrollbar ===== */
 ::-webkit-scrollbar {
@@ -121,8 +115,6 @@ html.dark *,
   scrollbar-color: #3a3f4b var(--surface);
 }
 
-
-
 /* 3x3 Grid Matrix Loader (Windows 11 Mica Backdrop Blur) */
 /* Plugin ghi body.page-loading đồng bộ → CSS bật overlay ngay lập tức, không qua Vue */
 body.page-loading #global-loading-overlay {
@@ -171,7 +163,6 @@ body.page-loading main {
   animation: grid-loader-anim 1.4s infinite linear;
 }
 
-
 .grid-loader > div:nth-of-type(1),
 .grid-loader > div:nth-of-type(5),
 .grid-loader > div:nth-of-type(9) {
@@ -204,15 +195,16 @@ body.page-loading main {
   }
 }
 
-
-
-
-
-
-
 /* Headings scroll offset cho sticky header */
-h1[id], h2[id], h3[id], h4[id], h5[id], h6[id],
-.prose h1, .prose h2, .prose h3, .prose h4 {
+h1[id],
+h2[id],
+h3[id],
+h4[id],
+h5[id],
+h6[id],
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
   scroll-margin-top: 5.5rem;
 }
-

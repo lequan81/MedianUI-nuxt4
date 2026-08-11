@@ -123,15 +123,14 @@ function isCategoryActive(name: string) {
                   popularPosts[0].category
                 }}</span>
               </div>
-              <h2
-                class="line-clamp-2 text-sm font-semibold leading-snug text-text-main transition-colors group-hover:text-primary">
-                <NuxtLink :to="getPostPath(popularPosts[0])" class="block transition-colors hover:text-primary">
+              <NuxtLink :to="getPostPath(popularPosts[0])" class="group/link block">
+                <h2 class="line-clamp-2 text-sm font-semibold leading-snug text-text-main group-hover/link:text-primary transition-colors">
                   {{ popularPosts[0].title }}
-                </NuxtLink>
-              </h2>
-              <p v-if="popularPosts[0].snippet" class="mt-1 line-clamp-2 text-xs leading-relaxed text-text-alt">
-                {{ popularPosts[0].snippet }}
-              </p>
+                </h2>
+                <p v-if="popularPosts[0].snippet" class="mt-1 line-clamp-2 text-xs leading-relaxed text-text-alt">
+                  {{ popularPosts[0].snippet }}
+                </p>
+              </NuxtLink>
             </div>
           </div>
         </article>

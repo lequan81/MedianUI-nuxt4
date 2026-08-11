@@ -1,36 +1,40 @@
 <script setup lang="ts">
-import { useAppStore } from '~/stores/useAppStore'
+import { useAppStore } from "~/stores/useAppStore";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 import AuthorTooltip from "~/components/post/AuthorTooltip.vue";
 import type { PostItem } from "~/types/post";
 
 const props = defineProps<{
-  post: PostItem | any
-}>()
+  post: PostItem | any;
+}>();
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 </script>
 
 <template>
   <article
-    class="group rounded-xl bg-(--color-bg-card) border border-border-main overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
-    <!-- Thumbnail Header -->
+    class="group relative rounded-xl bg-(--color-bg-card) border border-border-main overflow-hidden shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+  >
+    <!-- Thumbnail Header Link -->
     <div class="relative w-full aspect-16/7 sm:aspect-video overflow-hidden bg-bg-sec">
-      <NuxtImg
-        :src="post.thumbnail"
-        :alt="post.title"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        loading="lazy"
-        format="webp"
-        quality="80"
-        sizes="sm:100vw md:500px lg:400px"
-        width="400"
-        height="225"
-      />
+      <NuxtLink :to="post.path || '#'" class="block w-full h-full">
+        <NuxtImg
+          :src="post.thumbnail"
+          :alt="post.title"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          format="webp"
+          quality="80"
+          sizes="sm:100vw md:500px lg:400px"
+          width="400"
+          height="225"
+        />
+      </NuxtLink>
 
       <!-- Category Label Overlay -->
       <span
-        class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded bg-primary text-white text-[10px] font-bold uppercase tracking-wider shadow-2xs">
+        class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded bg-primary text-white text-[10px] font-bold uppercase tracking-wider shadow-2xs z-10 pointer-events-none"
+      >
         {{ post.category }}
       </span>
 
@@ -38,35 +42,45 @@ const appStore = useAppStore()
       <button
         type="button"
         @click.stop.prevent="appStore.toggleBookmark(post.id)"
-        class="absolute top-2.5 right-2.5 p-1.5 min-h-9 min-w-9 flex items-center justify-center rounded-lg bg-slate-900/60 backdrop-blur-xs text-white hover:bg-slate-900/90 transition-colors cursor-pointer"
+        class="absolute top-2.5 right-2.5 p-1.5 min-h-9 min-w-9 flex items-center justify-center rounded-lg bg-slate-900/60 backdrop-blur-xs text-white hover:bg-slate-900/90 transition-colors cursor-pointer z-10"
         :aria-label="appStore.isBookmarked(post.id) ? 'Bỏ lưu bài viết' : 'Lưu bài viết'"
-        :title="appStore.isBookmarked(post.id) ? 'Bỏ lưu bài viết' : 'Lưu bài viết'">
-
-        <svg class="w-4 h-4" :fill="appStore.isBookmarked(post.id) ? 'currentColor' : 'none'" stroke="currentColor"
-          viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        :title="appStore.isBookmarked(post.id) ? 'Bỏ lưu bài viết' : 'Lưu bài viết'"
+      >
+        <svg
+          class="w-4 h-4"
+          :fill="appStore.isBookmarked(post.id) ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+          />
         </svg>
       </button>
     </div>
 
     <!-- Body Info -->
     <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
-      <div class="space-y-1.5">
+      <!-- Direct NuxtLink wrapping Title + Description Snippet -->
+      <NuxtLink :to="post.path || '#'" class="block space-y-1.5 group/link cursor-pointer">
         <h3
-          class="font-bold text-sm sm:text-base text-text-main group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-          <NuxtLink :to="post.path || '#'" :aria-label="post.title">{{ post.title }}</NuxtLink>
+          class="font-bold text-sm sm:text-base text-text-main group-hover/link:text-primary transition-colors line-clamp-2 leading-snug"
+        >
+          {{ post.title }}
         </h3>
         <p class="text-xs text-text-muted line-clamp-2 leading-relaxed">
           {{ post.snippet }}
         </p>
-      </div>
+      </NuxtLink>
 
       <!-- Author Meta Footer với Tooltip Popover -->
-      <div class="pt-2.5 border-t border-border-main flex items-center justify-between text-[11px] text-text-muted">
+      <div class="pt-2.5 border-t border-border-main flex items-center justify-between text-[11px] text-text-muted relative z-10">
         <AuthorTooltip :author="post.author" size="sm">
           <template #default="slotProps">
-            <div class="flex items-center gap-1.5 min-w-0">
+            <div class="flex items-center gap-1.5 min-w-0 cursor-pointer">
               <NuxtImg
                 :src="slotProps?.author?.avatar"
                 :alt="slotProps?.author?.name || 'Tác giả'"

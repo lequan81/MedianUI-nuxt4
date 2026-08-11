@@ -139,18 +139,14 @@ const {
             </span>
 
             <div class="min-w-0 flex-1 flex flex-col justify-between min-h-20 pr-1">
-              <div>
-                <h3
-                  class="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-text-main transition-colors group-hover:text-primary">
-                  <NuxtLink :to="getPostPath(item)">
-                    {{ item.title }}
-                  </NuxtLink>
+              <NuxtLink :to="getPostPath(item)" class="group/link block">
+                <h3 class="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-text-main group-hover/link:text-primary transition-colors">
+                  {{ item.title }}
                 </h3>
-
                 <p v-if="item.snippet" class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-alt font-normal">
                   {{ item.snippet }}
                 </p>
-              </div>
+              </NuxtLink>
 
               <div class="mt-2.5 flex items-center gap-1.5 text-xs">
                 <NuxtLink :to="`/?category=${encodeURIComponent(item.category)}`"

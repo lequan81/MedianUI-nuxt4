@@ -1,6 +1,9 @@
 import { defineNuxtConfig } from "nuxt/config";
 import tailwindcss from "@tailwindcss/vite";
 
+const env = (import.meta.env || {}) as Record<string, string | undefined>;
+const readEnv = (key: string, fallback = "") => env[key] || fallback;
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -9,6 +12,17 @@ export default defineNuxtConfig({
     asyncContext: true,
   },
 
+  runtimeConfig: {
+    geminiApiKey: readEnv("GEMINI_API_KEY"),
+    geminiModels: readEnv("GEMINI_MODELS", "gemini-3.1-flash-lite,gemini-2.0-flash-lite,gemini-1.5-flash"),
+    geminiBaseUrl: readEnv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/models"),
+    geminiTimeout: Number(readEnv("GEMINI_TIMEOUT", "3000")) || 3000,
+    turnstileSecretKey: readEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA"),
+    turnstileVerifyUrl: readEnv("TURNSTILE_VERIFY_URL", "https://challenges.cloudflare.com/turnstile/v0/siteverify"),
+    public: {
+      turnstileSiteKey: readEnv("NUXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA"),
+    },
+  },
 
   nitro: {
     preset: "bun",
@@ -78,7 +92,8 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    zeroRuntime: true,
+    sources: ["/api/__sitemap__/urls"],
+    autoLastmod: true,
   },
 
   image: {
@@ -136,4 +151,3 @@ export default defineNuxtConfig({
     experimental: { sqliteConnector: "bun" },
   },
 });
-

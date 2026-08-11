@@ -1,3 +1,5 @@
+import type { Ref } from "vue";
+
 export interface CommentAuthor {
   name: string;
   avatar: string;
@@ -27,4 +29,54 @@ export interface PaginatedCommentsResponse {
   page: number;
   pageSize: number;
   hasMore: boolean;
+}
+
+export type CommentReportReason = "spam" | "harassment" | "misinformation" | "other";
+
+export interface CommentDiscussionState {
+  isExpanded: boolean;
+  newCommentText: string;
+  visibleCount: number;
+  isLoadingComments: boolean;
+}
+
+export interface CommentReplyState {
+  activeReplyId: string | null;
+  replyTargetAuthor?: string;
+  replyText: string;
+}
+
+export interface CommentFeedbackState {
+  likedCommentIds: Set<string>;
+  reportedCommentIds: Set<string>;
+  hiddenCommentIds: Set<string>;
+}
+
+export interface CommentCaptchaState {
+  show: boolean;
+  reason: string;
+  token: string;
+}
+
+export interface CommentReportState {
+  comment: CommentItem | null;
+  reason: CommentReportReason;
+  customText: string;
+  shouldHide: boolean;
+  isSubmitted: boolean;
+}
+
+export interface CommentContext {
+  activeReplyId: Ref<string | null>;
+  replyTargetAuthor: Ref<string | undefined>;
+  replyText: Ref<string>;
+  likedCommentIds: Ref<Set<string>>;
+  reportedCommentIds: Ref<Set<string>>;
+  hiddenCommentIds: Ref<Set<string>>;
+  authorAvatar: string;
+  toggleLike: (item: CommentItem) => void;
+  openReportModal: (comment: CommentItem) => void;
+  toggleHideComment: (id: string) => void;
+  openReplyForm: (id: string, name?: string) => void;
+  submitReply: (target: CommentItem) => void;
 }

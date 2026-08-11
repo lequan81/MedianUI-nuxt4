@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, provide, inject, type Ref } from "vue";
-import AppIcon from "~/components/ui/icon/AppIcon.vue";
+import { ref, reactive, computed, provide, inject, onMounted, type Ref } from "vue";
 import type { CommentItem } from "~/types/comment";
+import { useGuestIdentity } from "~/composables/useGuestIdentity";
+
+const { guestId, displayName: guestDisplayName } = useGuestIdentity();
 
 defineOptions({
   name: "CommentSection",
 });
-
 
 interface CommentContext {
   activeReplyId: Ref<string | null>;
@@ -30,110 +31,61 @@ const props = defineProps<{
 const authorAvatar =
   "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png";
 
-// State quản lý chung ở Root
+// ── Consolidated Root State ──────────────────────────────────────────────
 const isExpanded = ref(false);
 const newCommentText = ref("");
+const visibleCount = ref(2);
+
 const activeReplyId = ref<string | null>(null);
 const replyTargetAuthor = ref<string | undefined>(undefined);
 const replyText = ref("");
+
 const likedCommentIds = ref<Set<string>>(new Set());
 const reportedCommentIds = ref<Set<string>>(new Set());
 const hiddenCommentIds = ref<Set<string>>(new Set());
-const visibleCount = ref(2);
 
-// State cho Modal Báo Cáo
-const reportingComment = ref<CommentItem | null>(null);
-const reportReason = ref("spam");
-const reportCustomText = ref("");
-const shouldHideComment = ref(false);
-const isReportSubmitted = ref(false);
+// Captcha State
+const captchaState = reactive({
+  show: false,
+  reason: "",
+  token: "",
+});
 
-const commentsList = ref<CommentItem[]>([
-  {
-    id: "c1",
-    author: {
-      name: "duvik.graytencist",
-      avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
-    },
-    date: "10h",
-    content:
-      "Mọi người lưu ý luôn kiểm tra kỹ các file script tự động trong package.json hoặc Makefile trước khi chạy npm install / npm run dev nhé!",
-    likes: 680,
-    isAuthorLiked: true,
-    replies: [
-      {
-        id: "c1-1",
-        author: {
-          name: "_plm666_",
-          avatar: authorAvatar,
-          isAuthor: true,
-        },
-        date: "10h",
-        replyToAuthor: "duvik.graytencist",
-        content:
-          "Cảm ơn anh Okyo đã chia sẻ bài phân tích rất chi tiết! Thói quen chạy code Sandbox thật sự rất quan trọng.",
-        likes: 98,
-        replies: [
-          {
-            id: "c1-2",
-            author: {
-              name: "nhn__ii",
-              avatar:
-                "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80",
-            },
-            date: "3h",
-            replyToAuthor: "_plm666_",
-            content: "Hơi yếu r, dụ tí nữa là giục hộp cơm luôn.",
-            likes: 13,
-            isAuthorLiked: true,
-          },
-        ],
-      },
-      {
-        id: "c1-3",
-        author: {
-          name: "Hoàng Nguyễn",
-          avatar:
-            "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80",
-        },
-        date: "2h",
-        replyToAuthor: "duvik.graytencist",
-        content:
-          "Chuẩn luôn bác ơi, anh em dev giờ chạy tool private là phải mở Sandbox trước cho lành.",
-        likes: 5,
-      },
-    ],
-  },
-  {
-    id: "c2",
-    author: {
-      name: "Phạm Việt Anh",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80",
-    },
-    date: "17h",
-    content:
-      "Giờ hacker hoành hành ghê thật, làm freelancer nhận project private cũng phải hết sức cẩn thận.",
-    likes: 24,
-    replies: [
-      {
-        id: "c2-1",
-        author: {
-          name: "Juno_okyo",
-          avatar: authorAvatar,
-          isAuthor: true,
-        },
-        date: "15h",
-        replyToAuthor: "Phạm Việt Anh",
-        content:
-          "Đúng rồi bạn, bài viết này mình tổng hợp từ một case study có thật đăng trong J2TEAM Community đấy.",
-        likes: 42,
-        isAuthorLiked: true,
-      },
-    ],
-  },
-]);
+// Report Modal State
+const reportState = reactive({
+  comment: null as CommentItem | null,
+  reason: "spam",
+  customText: "",
+  shouldHide: false,
+  isSubmitted: false,
+});
+
+const route = useRoute();
+const currentSlug = computed(() => String(route.params.slug || "bi-hack-khi-chay-code-github"));
+
+const commentsList = ref<CommentItem[]>([]);
+const isLoadingComments = ref(false);
+
+async function fetchPostComments() {
+  if (props.comment) return; // Only root loads
+  isLoadingComments.value = true;
+  try {
+    const res = await $fetch<any>(`/api/comments?postSlug=${currentSlug.value}`);
+    if (res && Array.isArray(res.comments)) {
+      commentsList.value = res.comments;
+    }
+  } catch {
+    // Keep empty or current list
+  } finally {
+    isLoadingComments.value = false;
+  }
+}
+
+onMounted(() => {
+  if (!props.comment) {
+    fetchPostComments();
+  }
+});
 
 const visibleComments = computed(() => {
   return commentsList.value.slice(0, visibleCount.value);
@@ -147,20 +99,95 @@ function loadMoreComments() {
   visibleCount.value += 3;
 }
 
-function handleAddComment() {
-  if (!newCommentText.value.trim()) return;
-  commentsList.value.unshift({
+// Client-side quick spam check (URLs, telegram/zalo links)
+function checkSuspiciousContent(text: string): boolean {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("http://") ||
+    lower.includes("https://") ||
+    lower.includes("t.me/") ||
+    lower.includes("zalo.me/") ||
+    text.trim().length <= 2
+  );
+}
+
+async function postCommentToServer(content: string, captchaToken?: string, parentId?: string) {
+  try {
+    const res = await $fetch<any>("/api/comments", {
+      method: "POST",
+      body: {
+        post_slug: currentSlug.value,
+        parent_id: parentId,
+        author_name: guestDisplayName,
+        author_email: `${guestId}@guest.local`,
+        content,
+        captcha_token: captchaToken,
+      },
+    });
+
+    if (res.require_captcha) {
+      captchaState.show = true;
+      captchaState.reason = res.reason || "Nội dung chứa yếu tố cần xác thực an toàn.";
+      return false;
+    }
+
+    if (res.success) {
+      // Re-fetch clean comments list from server DB
+      fetchPostComments();
+    }
+
+    return true;
+  } catch (err: any) {
+    // Catch error gracefully
+    const msg = err?.data?.data?.message || err?.data?.message;
+    if (msg && msg.includes("Captcha")) {
+      captchaState.show = true;
+      captchaState.reason = msg;
+    }
+    return false;
+  }
+}
+
+async function handleSubmitComment() {
+  const text = newCommentText.value.trim();
+  if (!text) return;
+
+  // Client-side Pre-check: If content looks suspicious and no captcha token yet -> prompt Captcha IMMEDIATELY before POSTing
+  if (checkSuspiciousContent(text) && !captchaState.token) {
+    captchaState.show = true;
+    captchaState.reason = "Nội dung chứa liên kết hoặc thông tin cần xác minh an toàn.";
+    return;
+  }
+
+  // Add Optimistically to local UI immediately
+  const tempComment: CommentItem = {
     id: `c-${Date.now()}`,
     author: {
-      name: "Bạn (Guest)",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
+      name: guestDisplayName,
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(guestId)}`,
     },
     date: "Vừa xong",
-    content: newCommentText.value.trim(),
+    content: text,
     likes: 0,
-  });
+  };
+
+  commentsList.value.unshift(tempComment);
   newCommentText.value = "";
+
+  // Submit to server
+  await postCommentToServer(text, captchaState.token);
+  captchaState.token = "";
+}
+
+function onCaptchaVerified(token: string) {
+  captchaState.token = token;
+  captchaState.show = false;
+  const last = commentsList.value[0];
+  if (last && last.content) {
+    postCommentToServer(last.content, token);
+  } else if (newCommentText.value.trim()) {
+    handleSubmitComment();
+  }
 }
 
 function openReplyForm(id: string, targetAuthorName?: string) {
@@ -182,9 +209,8 @@ function submitReply(targetComment: CommentItem) {
   targetComment.replies.push({
     id: `r-${Date.now()}`,
     author: {
-      name: "Bạn (Guest)",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
+      name: guestDisplayName,
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(guestId)}`,
     },
     date: "Vừa xong",
     replyToAuthor: replyTargetAuthor.value,
@@ -206,7 +232,6 @@ function toggleLike(item: CommentItem) {
     item.likes = (item.likes ?? 0) + 1;
   }
   likedCommentIds.value = next;
-
 }
 
 function toggleHideComment(id: string) {
@@ -220,28 +245,43 @@ function toggleHideComment(id: string) {
 }
 
 function openReportModal(comment: CommentItem) {
-  reportingComment.value = comment;
-  reportReason.value = "spam";
-  reportCustomText.value = "";
-  shouldHideComment.value = false;
-  isReportSubmitted.value = false;
+  reportState.comment = comment;
+  reportState.reason = "spam";
+  reportState.customText = "";
+  reportState.shouldHide = false;
+  reportState.isSubmitted = false;
 }
 
 function closeReportModal() {
-  reportingComment.value = null;
+  reportState.comment = null;
 }
 
-function submitReportModal() {
-  if (reportingComment.value) {
+async function submitReportModal() {
+  if (reportState.comment) {
     const nextReported = new Set(reportedCommentIds.value);
-    nextReported.add(reportingComment.value.id);
+    nextReported.add(reportState.comment.id);
     reportedCommentIds.value = nextReported;
 
-    if (shouldHideComment.value) {
-      toggleHideComment(reportingComment.value.id);
+    if (reportState.shouldHide) {
+      toggleHideComment(reportState.comment.id);
     }
 
-    isReportSubmitted.value = true;
+    // Send report to server
+    try {
+      await $fetch("/api/comments/report", {
+        method: "POST",
+        body: {
+          comment_id: reportState.comment.id,
+          reporter_session: guestId,
+          reason: reportState.reason,
+          custom_text: reportState.customText || undefined,
+        },
+      });
+    } catch {
+      // Silent fail — UI already reflects the report
+    }
+
+    reportState.isSubmitted = true;
     setTimeout(() => {
       closeReportModal();
     }, 1200);
@@ -310,13 +350,20 @@ const ctx = inject<CommentContext>("commentContext", {
       <div class="flex items-start gap-3">
         <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
           alt="Avatar" class="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-border-main shadow-2xs" />
-        <div class="flex-1 space-y-2.5">
+        <div class="flex-1 space-y-3">
+          <!-- 1. Ô gõ nội dung (Textarea) ở trên -->
           <textarea v-model="newCommentText" rows="3" placeholder="Viết bình luận của bạn..."
             class="w-full rounded-lg border border-border-main bg-bg-base p-3.5 text-sm text-text-main placeholder-text-muted transition-colors focus:border-primary focus:outline-none leading-relaxed"></textarea>
-          <div class="flex justify-end">
+
+          <!-- 2. Hàng dưới cùng: Captcha cố định bên trái (khi nghi vấn) + Nút Gửi bình luận cố định bên phải -->
+          <div class="flex items-center justify-between gap-3 min-h-11">
+            <div class="flex-1 min-w-0">
+              <TurnstileCaptcha v-if="showCaptchaModal" :reason="captchaReason" @verify="onCaptchaVerified" />
+            </div>
+
             <button type="button"
-              class="rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90 cursor-pointer shadow-2xs"
-              @click="handleAddComment">
+              class="rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90 cursor-pointer shadow-2xs shrink-0"
+              @click="handleSubmitComment">
               Gửi bình luận
             </button>
           </div>
@@ -344,22 +391,14 @@ const ctx = inject<CommentContext>("commentContext", {
 
     <!-- MODAL BÁO CÁO BÌNH LUẬN -->
     <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-200 ease-out"
-        enter-from-class="opacity-0 scale-95"
-        enter-to-class="opacity-100 scale-100"
-        leave-active-class="transition duration-150 ease-in"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-95"
-      >
-        <div
-          v-if="reportingComment"
+      <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100" leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
+        <div v-if="reportingComment"
           class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
-          @click.self="closeReportModal"
-        >
+          @click.self="closeReportModal">
           <div
-            class="w-full max-w-md overflow-hidden rounded-2xl border border-border-main bg-bg-base p-6 shadow-2xl space-y-5"
-          >
+            class="w-full max-w-md overflow-hidden rounded-2xl border border-border-main bg-bg-base p-6 shadow-2xl space-y-5">
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-border-subtle pb-3.5">
               <div class="flex items-center gap-2">
@@ -368,17 +407,16 @@ const ctx = inject<CommentContext>("commentContext", {
                 </div>
                 <h3 class="text-sm font-bold text-text-main">Báo cáo bình luận</h3>
               </div>
-              <button
-                type="button"
+              <button type="button"
                 class="rounded-full p-1 text-text-alt transition-colors hover:bg-bg-sec hover:text-text-main cursor-pointer"
-                @click="closeReportModal"
-              >
+                @click="closeReportModal">
                 <AppIcon name="x" :size="18" />
               </button>
             </div>
 
             <!-- Content snippet being reported -->
-            <div v-if="reportingComment" class="rounded-xl border border-border-subtle bg-bg-subtle p-3 space-y-1 text-xs">
+            <div v-if="reportingComment"
+              class="rounded-xl border border-border-subtle bg-bg-subtle p-3 space-y-1 text-xs">
               <div class="font-semibold text-text-main">
                 {{ reportingComment.author?.name || reportingComment.author_name }}
               </div>
@@ -390,7 +428,8 @@ const ctx = inject<CommentContext>("commentContext", {
 
             <!-- Success message -->
             <div v-if="isReportSubmitted" class="py-4 text-center space-y-2">
-              <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+              <div
+                class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10 text-green-500">
                 <AppIcon name="check" :size="24" />
               </div>
               <h4 class="text-sm font-bold text-text-main">Đã gửi báo cáo thành công!</h4>
@@ -404,22 +443,30 @@ const ctx = inject<CommentContext>("commentContext", {
               </label>
 
               <div class="space-y-2 text-xs">
-                <label class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50" :class="reportReason === 'spam' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
+                <label
+                  class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50"
+                  :class="reportReason === 'spam' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
                   <input type="radio" v-model="reportReason" value="spam" class="accent-primary" />
                   <span>🚫 Spam / Quảng cáo rác</span>
                 </label>
 
-                <label class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50" :class="reportReason === 'harassment' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
+                <label
+                  class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50"
+                  :class="reportReason === 'harassment' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
                   <input type="radio" v-model="reportReason" value="harassment" class="accent-primary" />
                   <span>🤬 Ngôn từ xúc phạm / Thù hận</span>
                 </label>
 
-                <label class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50" :class="reportReason === 'misinformation' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
+                <label
+                  class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50"
+                  :class="reportReason === 'misinformation' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
                   <input type="radio" v-model="reportReason" value="misinformation" class="accent-primary" />
                   <span>⚠️ Thông tin sai sự thật / Độc hại</span>
                 </label>
 
-                <label class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50" :class="reportReason === 'other' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
+                <label
+                  class="flex items-center gap-3 rounded-xl border border-border-subtle p-3 transition-colors cursor-pointer hover:border-primary/50"
+                  :class="reportReason === 'other' ? 'bg-primary-subtle border-primary text-primary font-semibold' : 'bg-bg-subtle text-text-main'">
                   <input type="radio" v-model="reportReason" value="other" class="accent-primary" />
                   <span>📝 Lý do khác</span>
                 </label>
@@ -427,12 +474,8 @@ const ctx = inject<CommentContext>("commentContext", {
 
               <!-- Custom text area for detail -->
               <div v-if="reportReason === 'other'" class="space-y-1.5 pt-1">
-                <textarea
-                  v-model="reportCustomText"
-                  rows="2"
-                  placeholder="Nhập chi tiết lý do..."
-                  class="w-full rounded-xl border border-border-main bg-bg-sec p-3 text-xs text-text-main placeholder-text-muted focus:border-primary focus:outline-none"
-                ></textarea>
+                <textarea v-model="reportCustomText" rows="2" placeholder="Nhập chi tiết lý do..."
+                  class="w-full rounded-xl border border-border-main bg-bg-sec p-3 text-xs text-text-main placeholder-text-muted focus:border-primary focus:outline-none"></textarea>
               </div>
 
               <!-- Tùy chọn Ẩn comment -->
@@ -445,18 +488,14 @@ const ctx = inject<CommentContext>("commentContext", {
 
               <!-- Actions -->
               <div class="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
+                <button type="button"
                   class="rounded-xl border border-border-main px-4 py-2 text-xs font-semibold text-text-muted transition-colors hover:text-text-main cursor-pointer"
-                  @click="closeReportModal"
-                >
+                  @click="closeReportModal">
                   Hủy
                 </button>
-                <button
-                  type="button"
+                <button type="button"
                   class="rounded-xl bg-amber-500 px-5 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-amber-600 cursor-pointer"
-                  @click="submitReportModal"
-                >
+                  @click="submitReportModal">
                   Gửi báo cáo
                 </button>
               </div>
@@ -489,7 +528,8 @@ const ctx = inject<CommentContext>("commentContext", {
         class="absolute left-3.5 top-7 bottom-0 border-l-2 border-border-subtle pointer-events-none"></span>
 
       <!-- Avatar nhỏ nhắn: h-7 w-7 (28px x 28px, tâm Y = 14px) -->
-      <img :src="props.comment.author?.avatar || props.comment.author_avatar" :alt="props.comment.author?.name || props.comment.author_name || 'Avatar'"
+      <img :src="props.comment.author?.avatar || props.comment.author_avatar"
+        :alt="props.comment.author?.name || props.comment.author_name || 'Avatar'"
         class="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-border-main shadow-2xs bg-bg-base relative z-10" />
 
       <div class="min-w-0 flex-1 space-y-1">
@@ -546,7 +586,8 @@ const ctx = inject<CommentContext>("commentContext", {
           <button type="button" :class="[
             'inline-flex items-center gap-1 font-medium transition-colors cursor-pointer',
             ctx.reportedCommentIds.value.has(props.comment.id) ? 'text-amber-500 font-semibold' : 'hover:text-amber-500 text-text-muted',
-          ]" :title="ctx.reportedCommentIds.value.has(props.comment.id) ? 'Đã báo cáo bình luận này' : 'Báo cáo bình luận'"
+          ]"
+            :title="ctx.reportedCommentIds.value.has(props.comment.id) ? 'Đã báo cáo bình luận này' : 'Báo cáo bình luận'"
             @click="ctx.openReportModal(props.comment)">
             <AppIcon name="flag" :size="14" />
             <span>{{ ctx.reportedCommentIds.value.has(props.comment.id) ? 'Đã báo cáo' : 'Báo cáo' }}</span>

@@ -13,10 +13,10 @@ const dbPath = path.join(dbDir, "comments.sqlite");
 const Database = (DatabaseModule as any).Database || DatabaseModule;
 export const db = new Database(dbPath);
 
-// Kích hoạt WAL Mode (Write-Ahead Logging) cho hiệu năng đọc ghi đồng thời siêu tốc
+// WAL Mode for concurrent reads/writes
 db.exec("PRAGMA journal_mode = WAL;");
 
-// Khởi tạo bảng Comments với Bun.randomUUIDv7() chuẩn Native UUIDv7
+// ── Comments table (with moderation fields) ──────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS comments (
     id TEXT PRIMARY KEY,
@@ -26,6 +26,9 @@ db.exec(`
     author_email TEXT NOT NULL,
     author_avatar TEXT,
     content TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    mod_flags INTEGER NOT NULL DEFAULT 0,
+    mod_confidence REAL NOT NULL DEFAULT 0.0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
   );
@@ -33,69 +36,117 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_comments_post_slug ON comments(post_slug);
   CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id);
   CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments(created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_comments_status ON comments(status);
 `);
 
+// ── Reported comments table ──────────────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS reported_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id TEXT NOT NULL,
+    reporter_session TEXT NOT NULL,
+    reason TEXT NOT NULL DEFAULT 'spam',
+    custom_text TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
+  );
 
+  CREATE INDEX IF NOT EXISTS idx_reported_comment_id ON reported_comments(comment_id);
+  CREATE INDEX IF NOT EXISTS idx_reported_resolved ON reported_comments(resolved);
+`);
+
+// ── Migration: add new columns if DB already existed without them ────────
+try {
+  db.exec("ALTER TABLE comments ADD COLUMN status TEXT NOT NULL DEFAULT 'approved';");
+} catch { /* column already exists */ }
+try {
+  db.exec("ALTER TABLE comments ADD COLUMN mod_flags INTEGER NOT NULL DEFAULT 0;");
+} catch { /* column already exists */ }
+try {
+  db.exec("ALTER TABLE comments ADD COLUMN mod_confidence REAL NOT NULL DEFAULT 0.0;");
+} catch { /* column already exists */ }
+
+// ─────────────────────────────────────────────────────────────────────────
+// QUERY FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────
 
 /**
- * Phân trang tối ưu theo thuật toán SQLite Deferred Join
- * Nối Index ID trước khi JOIN toàn bộ dữ liệu cột content/text
+ * Get paginated comments — only approved comments visible to guests.
+ * Uses Deferred Join for optimal performance.
  */
+function formatRelativeTime(created_at?: string): string {
+  if (!created_at) return "Vừa xong";
+  const diffMs = Date.now() - new Date(created_at).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "Vừa xong";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+}
+
+export function formatCommentRow(row: any): CommentItem {
+  if (!row) return row;
+  return {
+    ...row,
+    author: {
+      name: row.author_name,
+      avatar: row.author_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(row.author_name)}`,
+      isAuthor: row.author_name === "Lê Quân" || row.author_name === "Juno_okyo",
+    },
+    date: formatRelativeTime(row.created_at),
+    likes: row.likes || 0,
+  };
+}
+
 export function getPaginatedComments(postSlug: string, page: number = 1, pageSize: number = 10) {
   const offset = (page - 1) * pageSize;
 
-  // 1. Đếm tổng số bình luận gốc (top-level)
   const countStmt = db.prepare(
-    "SELECT COUNT(*) as total FROM comments WHERE post_slug = ? AND parent_id IS NULL"
+    "SELECT COUNT(*) as total FROM comments WHERE post_slug = ? AND parent_id IS NULL AND status = 'approved'"
   );
   const { total } = countStmt.get(postSlug) as { total: number };
 
-  // 2. Query Deferred Join lấy danh sách bình luận gốc
   const topCommentsStmt = db.prepare(`
     SELECT c.* FROM comments c
     JOIN (
       SELECT id FROM comments
-      WHERE post_slug = ? AND parent_id IS NULL
+      WHERE post_slug = ? AND parent_id IS NULL AND status = 'approved'
       ORDER BY created_at DESC
       LIMIT ? OFFSET ?
     ) lim ON c.id = lim.id
     ORDER BY c.created_at DESC
   `);
-  const topComments = topCommentsStmt.all(postSlug, pageSize, offset) as CommentItem[];
+  const topCommentsRaw = topCommentsStmt.all(postSlug, pageSize, offset) as any[];
 
-  if (topComments.length === 0) {
-    return {
-      comments: [],
-      total,
-      page,
-      pageSize,
-      hasMore: false,
-    };
+  if (topCommentsRaw.length === 0) {
+    return { comments: [], total, page, pageSize, hasMore: false };
   }
 
-  // 3. Lấy tất cả phản hồi (replies) của các bình luận gốc đang hiển thị
-  const parentIds = topComments.map((c) => c.id);
+  // Replies — also only approved
+  const parentIds = topCommentsRaw.map((c) => c.id);
   const placeholders = parentIds.map(() => "?").join(",");
   const repliesStmt = db.prepare(`
     SELECT * FROM comments
-    WHERE parent_id IN (${placeholders})
+    WHERE parent_id IN (${placeholders}) AND status = 'approved'
     ORDER BY created_at ASC
   `);
-  const replies = repliesStmt.all(...parentIds) as CommentItem[];
+  const repliesRaw = repliesStmt.all(...parentIds) as any[];
 
-  // 4. Group replies vào từng bình luận cha
   const repliesMap = new Map<string, CommentItem[]>();
-  for (const reply of replies) {
+  for (const reply of repliesRaw) {
     if (reply.parent_id) {
       if (!repliesMap.has(reply.parent_id)) {
         repliesMap.set(reply.parent_id, []);
       }
-      repliesMap.get(reply.parent_id)!.push(reply);
+      repliesMap.get(reply.parent_id)!.push(formatCommentRow(reply));
     }
   }
 
-  const commentsWithReplies = topComments.map((c) => ({
-    ...c,
+  const commentsWithReplies = topCommentsRaw.map((c) => ({
+    ...formatCommentRow(c),
     replies: repliesMap.get(c.id) || [],
   }));
 
@@ -104,12 +155,16 @@ export function getPaginatedComments(postSlug: string, page: number = 1, pageSiz
     total,
     page,
     pageSize,
-    hasMore: offset + topComments.length < total,
+    hasMore: offset + topCommentsRaw.length < total,
   };
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// INSERT / UPDATE FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────
+
 /**
- * Thêm bình luận mới sử dụng Bun.randomUUIDv7() native
+ * Insert a new comment with moderation status.
  */
 export function insertComment(data: {
   post_slug: string;
@@ -118,14 +173,17 @@ export function insertComment(data: {
   author_email: string;
   author_avatar?: string;
   content: string;
+  status?: string;
+  mod_flags?: number;
+  mod_confidence?: number;
 }): CommentItem {
   const id = (Bun as any).randomUUIDv7
     ? (Bun as any).randomUUIDv7()
     : `comment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
   const stmt = db.prepare(`
-    INSERT INTO comments (id, post_slug, parent_id, author_name, author_email, author_avatar, content)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO comments (id, post_slug, parent_id, author_name, author_email, author_avatar, content, status, mod_flags, mod_confidence)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   stmt.run(
@@ -135,9 +193,77 @@ export function insertComment(data: {
     data.author_name,
     data.author_email,
     data.author_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(data.author_name)}`,
-    data.content
+    data.content,
+    data.status || "pending",
+    data.mod_flags || 0,
+    data.mod_confidence || 0.0
   );
 
   const getStmt = db.prepare("SELECT * FROM comments WHERE id = ?");
-  return getStmt.get(id) as CommentItem;
+  const rawInserted = getStmt.get(id);
+  return formatCommentRow(rawInserted);
+}
+
+/**
+ * Update comment moderation status (used by async Gemini callback).
+ */
+export function updateCommentStatus(
+  commentId: string,
+  status: string,
+  modFlags: number,
+  modConfidence: number
+) {
+  const stmt = db.prepare(
+    "UPDATE comments SET status = ?, mod_flags = ?, mod_confidence = ? WHERE id = ?"
+  );
+  stmt.run(status, modFlags, modConfidence, commentId);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// REPORT FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Insert a report for a comment.
+ */
+export function insertReport(data: {
+  comment_id: string;
+  reporter_session: string;
+  reason: string;
+  custom_text?: string;
+}) {
+  const stmt = db.prepare(`
+    INSERT INTO reported_comments (comment_id, reporter_session, reason, custom_text)
+    VALUES (?, ?, ?, ?)
+  `);
+  stmt.run(data.comment_id, data.reporter_session, data.reason, data.custom_text || null);
+}
+
+/**
+ * Get all unresolved reports (for admin).
+ */
+export function getUnresolvedReports() {
+  const stmt = db.prepare(`
+    SELECT r.*, c.content as comment_content, c.author_name, c.post_slug, c.status as comment_status
+    FROM reported_comments r
+    JOIN comments c ON r.comment_id = c.id
+    WHERE r.resolved = 0
+    ORDER BY r.created_at DESC
+  `);
+  return stmt.all();
+}
+
+/**
+ * Resolve a report (admin action: delete comment or dismiss report).
+ */
+export function resolveReport(reportId: number, action: "delete" | "dismiss") {
+  if (action === "delete") {
+    // Get comment_id from report, then delete the comment
+    const report = db.prepare("SELECT comment_id FROM reported_comments WHERE id = ?").get(reportId) as any;
+    if (report) {
+      db.prepare("DELETE FROM comments WHERE id = ?").run(report.comment_id);
+    }
+  }
+  // Mark report as resolved
+  db.prepare("UPDATE reported_comments SET resolved = 1 WHERE id = ?").run(reportId);
 }

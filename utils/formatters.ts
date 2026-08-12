@@ -37,3 +37,20 @@ export function truncateText(text: string, maxLength: number): string {
   if (!text || text.length <= maxLength) return text;
   return `${text.slice(0, maxLength).trim()}...`;
 }
+
+/**
+ * Format relative time (e.g. "Vừa xong", "5m", "2h", "3d")
+ */
+export function formatRelativeTime(created_at?: string): string {
+  if (!created_at) return "Vừa xong";
+  const date = new Date(created_at);
+  if (isNaN(date.getTime())) return "Vừa xong";
+  const diffMs = Date.now() - date.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "Vừa xong";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+}

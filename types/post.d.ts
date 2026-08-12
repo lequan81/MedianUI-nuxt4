@@ -19,3 +19,10 @@ export interface PostItem {
   pinned?: boolean;
   body?: any;
 }
+
+export interface TocItem {
+  id: string;
+  text: string;
+  depth: number;
+  children?: TocItem[];
+}

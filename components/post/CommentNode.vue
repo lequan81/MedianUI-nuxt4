@@ -57,10 +57,12 @@ function isReported(id: string) {
     ></div>
 
     <div class="relative flex items-start gap-3.5">
-      <img
+      <NuxtImg
         :src="node.author?.avatar || node.author_avatar"
         :alt="node.author?.name || node.author_name || 'Avatar'"
         class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border-main shadow-2xs relative z-10 bg-bg-base"
+        format="webp"
+        loading="lazy"
       />
 
       <div class="min-w-0 flex-1 space-y-1.5">
@@ -86,10 +88,12 @@ function isReported(id: string) {
               :size="14"
               class="absolute left-1 top-0 text-red-500"
             />
-            <img
+            <NuxtImg
               :src="node.author?.avatar || node.author_avatar"
               alt="Tác giả"
               class="absolute bottom-0 right-0 h-5 w-5 rounded-full object-cover ring-1 ring-border-main ring-offset-2 ring-offset-bg-base"
+              format="webp"
+              loading="lazy"
             />
           </div>
         </div>
@@ -149,10 +153,12 @@ function isReported(id: string) {
           v-if="activeReplyId === node.id"
           class="mt-3.5 flex items-start gap-3 rounded-xl border border-border-main bg-bg-base p-3 shadow-xs"
         >
-          <img
+          <NuxtImg
             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
             alt="Avatar"
             class="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-border-main"
+            format="webp"
+            loading="lazy"
           />
           <div class="flex-1 space-y-2">
             <div

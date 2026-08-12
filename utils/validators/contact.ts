@@ -22,8 +22,8 @@ export const contactSchema = v.object({
   message: v.pipe(
     v.string("Nội dung tin nhắn không được để trống"),
     v.trim(),
-    v.minLength(5, "Nội dung lời nhắn phải từ 5 ký tự trở lên"),
-    v.maxLength(1000, "Nội dung lời nhắn không quá 1000 ký tự")
+    v.minLength(10, "Nội dung tin nhắn phải từ 10 ký tự trở lên"),
+    v.maxLength(2000, "Nội dung tin nhắn không quá 2000 ký tự")
   ),
 });
 

@@ -13,8 +13,13 @@ export interface CommentItem {
   author_name?: string;
   author_email?: string;
   author_avatar?: string;
-  author?: CommentAuthor;
+  author: CommentAuthor;
   content: string;
+  status?: string;
+  mod_flags?: number;
+  mod_confidence?: number;
+  mod_reason?: string;
+  mod_source?: string;
   date?: string;
   created_at?: string;
   likes?: number;

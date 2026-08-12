@@ -1,14 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-
-export interface LanguageItem {
-  code: string;
-  countryCode: string;
-  name: string;
-  localName: string;
-  flag: string;
-  flagUrl: string;
-}
+import type { LanguageItem } from '~/types/lang'
 
 export const supportedLanguages: LanguageItem[] = [
   { code: 'vi', countryCode: 'vn', name: 'Vietnamese', localName: 'Tiếng Việt', flag: '🇻🇳', flagUrl: 'https://flagcdn.com/w40/vn.png' },

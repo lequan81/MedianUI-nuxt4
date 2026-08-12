@@ -1,8 +1,9 @@
 import { defineNuxtConfig } from "nuxt/config";
 import tailwindcss from "@tailwindcss/vite";
+import { getHeadScripts } from "./app/config/scripts";
 
 const env = (import.meta.env || {}) as Record<string, string | undefined>;
-const readEnv = (key: string, fallback = "") => env[key] || fallback;
+const readEnv = (key: string, fallback = "") => process.env[key] || env[key] || fallback;
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -12,15 +13,31 @@ export default defineNuxtConfig({
     asyncContext: true,
   },
 
+
+
   runtimeConfig: {
+    dbFileName: readEnv("DB_FILE_NAME", "lequan81dev_app.sqlite"),
     geminiApiKey: readEnv("GEMINI_API_KEY"),
-    geminiModels: readEnv("GEMINI_MODELS", "gemini-3.1-flash-lite,gemini-2.0-flash-lite,gemini-1.5-flash"),
-    geminiBaseUrl: readEnv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/models"),
+    geminiModels: readEnv(
+      "GEMINI_MODELS",
+      "gemini-3.1-flash-lite,gemini-2.0-flash-lite,gemini-1.5-flash"
+    ),
+    geminiBaseUrl: readEnv(
+      "GEMINI_BASE_URL",
+      "https://generativelanguage.googleapis.com/v1beta/models"
+    ),
     geminiTimeout: Number(readEnv("GEMINI_TIMEOUT", "3000")) || 3000,
     turnstileSecretKey: readEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA"),
-    turnstileVerifyUrl: readEnv("TURNSTILE_VERIFY_URL", "https://challenges.cloudflare.com/turnstile/v0/siteverify"),
+    turnstileVerifyUrl: readEnv(
+      "TURNSTILE_VERIFY_URL",
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+    ),
     public: {
       turnstileSiteKey: readEnv("NUXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA"),
+      turnstileScriptUrl: readEnv(
+        "NUXT_PUBLIC_TURNSTILE_SCRIPT_URL",
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+      ),
     },
   },
 
@@ -31,8 +48,11 @@ export default defineNuxtConfig({
       concurrency: 1,
       failOnError: false,
     },
+    ignore: ["**/.data/**", "**/server/db/**", "**/*.sqlite*"],
+    watchOptions: {
+      ignored: ["**/.data/**", "**/server/db/**", "**/*.sqlite*", "**/*.sqlite-wal*", "**/*.sqlite-shm*"],
+    },
   },
-
 
   routeRules: {
     "/": { isr: 60 },
@@ -56,7 +76,6 @@ export default defineNuxtConfig({
     { path: "~/components", pathPrefix: false },
   ],
 
-
   modules: [
     "@pinia/nuxt",
     "@nuxt/content",
@@ -68,6 +87,11 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      watch: {
+        ignored: ["**/.data/**", "**/server/db/**", "**/*.sqlite*", "**/*.sqlite-wal*", "**/*.sqlite-shm*"],
+      },
+    },
     optimizeDeps: {
       include: ["@iconify/vue", "@floating-ui/dom", "valibot", "pinia", "vue-sonner"],
     },
@@ -116,15 +140,17 @@ export default defineNuxtConfig({
       },
       meta: [
         { name: "robots", content: "index, follow, max-image-preview:large" },
-        { name: "description", content: "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân." },
-      ],
-
-      script: [
         {
-          innerHTML: `(function(){try{var t=localStorage.getItem('median_theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})()`,
-          type: "text/javascript",
+          name: "description",
+          content: "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân.",
         },
       ],
+      script: getHeadScripts(
+        readEnv(
+          "NUXT_PUBLIC_TURNSTILE_SCRIPT_URL",
+          "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        )
+      ),
       link: [
         { rel: "dns-prefetch", href: "https://fonts.googleapis.com" },
         { rel: "dns-prefetch", href: "https://fonts.gstatic.com" },
@@ -142,7 +168,6 @@ export default defineNuxtConfig({
           rel: "stylesheet",
           href: "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap",
         },
-
       ],
     },
   },

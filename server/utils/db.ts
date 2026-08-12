@@ -3,20 +3,27 @@ import path from "node:path";
 import fs from "node:fs";
 import type { CommentItem } from "~/types/comment";
 
-const dbDir = path.resolve(process.cwd(), "server/db");
+const dbDir = path.resolve(process.cwd(), ".data/db");
 
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
-const dbPath = path.join(dbDir, "comments.sqlite");
+const isTestEnv = process.env.NODE_ENV === "test" || Boolean(process.env.VITEST);
+const rawConfig = typeof useRuntimeConfig === "function" ? useRuntimeConfig() : null;
+
+const defaultFileName = isTestEnv ? "lequan81dev_test.sqlite" : "lequan81dev_app.sqlite";
+const dbFileName = String(process.env.DB_FILE_NAME || rawConfig?.dbFileName || defaultFileName).trim();
+
+const dbPath = path.join(dbDir, dbFileName);
+
 const Database = (DatabaseModule as any).Database || DatabaseModule;
 export const db = new Database(dbPath);
 
 // WAL Mode for concurrent reads/writes
 db.exec("PRAGMA journal_mode = WAL;");
 
-// ── Comments table (with moderation fields) ──────────────────────────────
+// ── Comments table (with moderation fields & audit log) ──────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS comments (
     id TEXT PRIMARY KEY,
@@ -29,6 +36,8 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'pending',
     mod_flags INTEGER NOT NULL DEFAULT 0,
     mod_confidence REAL NOT NULL DEFAULT 0.0,
+    mod_reason TEXT,
+    mod_source TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
   );
@@ -38,6 +47,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments(created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_comments_status ON comments(status);
 `);
+
+// Safe migrations for existing SQLite files
+try { db.exec("ALTER TABLE comments ADD COLUMN mod_reason TEXT;"); } catch {}
+try { db.exec("ALTER TABLE comments ADD COLUMN mod_source TEXT;"); } catch {}
 
 // ── Reported comments table ──────────────────────────────────────────────
 db.exec(`
@@ -54,6 +67,23 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_reported_comment_id ON reported_comments(comment_id);
   CREATE INDEX IF NOT EXISTS idx_reported_resolved ON reported_comments(resolved);
+`);
+
+// ── Contacts table ────────────────────────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS contacts (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    subject TEXT,
+    message TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'unread',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ip TEXT
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);
 `);
 
 // ── Migration: add new columns if DB already existed without them ────────
@@ -75,29 +105,34 @@ try {
  * Get paginated comments — only approved comments visible to guests.
  * Uses Deferred Join for optimal performance.
  */
-function formatRelativeTime(created_at?: string): string {
-  if (!created_at) return "Vừa xong";
-  const diffMs = Date.now() - new Date(created_at).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "Vừa xong";
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `${days}d`;
-}
+import { formatRelativeTime } from "~/utils/formatters";
 
 export function formatCommentRow(row: any): CommentItem {
   if (!row) return row;
+  const authorName = String(row.author_name || "Guest");
+  const authorAvatar = String(row.author_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(authorName)}`);
+
   return {
-    ...row,
+    id: String(row.id),
+    post_slug: String(row.post_slug || ""),
+    parent_id: row.parent_id ? String(row.parent_id) : null,
+    author_name: authorName,
+    author_email: String(row.author_email || ""),
+    author_avatar: authorAvatar,
     author: {
-      name: row.author_name,
-      avatar: row.author_avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(row.author_name)}`,
-      isAuthor: row.author_name === "Lê Quân" || row.author_name === "Juno_okyo",
+      name: authorName,
+      avatar: authorAvatar,
+      isAuthor: authorName === "Lê Quân" || authorName === "Juno_okyo",
     },
+    content: String(row.content || ""),
+    status: String(row.status || "pending"),
+    mod_flags: Number(row.mod_flags || 0),
+    mod_confidence: Number(row.mod_confidence || 0),
+    mod_reason: row.mod_reason ? String(row.mod_reason) : undefined,
+    mod_source: row.mod_source ? String(row.mod_source) : undefined,
     date: formatRelativeTime(row.created_at),
-    likes: row.likes || 0,
+    created_at: String(row.created_at || ""),
+    likes: Number(row.likes || 0),
   };
 }
 
@@ -176,14 +211,16 @@ export function insertComment(data: {
   status?: string;
   mod_flags?: number;
   mod_confidence?: number;
+  mod_reason?: string;
+  mod_source?: string;
 }): CommentItem {
   const id = (Bun as any).randomUUIDv7
     ? (Bun as any).randomUUIDv7()
     : `comment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
   const stmt = db.prepare(`
-    INSERT INTO comments (id, post_slug, parent_id, author_name, author_email, author_avatar, content, status, mod_flags, mod_confidence)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO comments (id, post_slug, parent_id, author_name, author_email, author_avatar, content, status, mod_flags, mod_confidence, mod_reason, mod_source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   stmt.run(
@@ -196,7 +233,9 @@ export function insertComment(data: {
     data.content,
     data.status || "pending",
     data.mod_flags || 0,
-    data.mod_confidence || 0.0
+    data.mod_confidence || 0.0,
+    data.mod_reason || null,
+    data.mod_source || null
   );
 
   const getStmt = db.prepare("SELECT * FROM comments WHERE id = ?");
@@ -211,12 +250,14 @@ export function updateCommentStatus(
   commentId: string,
   status: string,
   modFlags: number,
-  modConfidence: number
+  modConfidence: number,
+  modReason?: string,
+  modSource?: string
 ) {
   const stmt = db.prepare(
-    "UPDATE comments SET status = ?, mod_flags = ?, mod_confidence = ? WHERE id = ?"
+    "UPDATE comments SET status = ?, mod_flags = ?, mod_confidence = ?, mod_reason = COALESCE(?, mod_reason), mod_source = COALESCE(?, mod_source) WHERE id = ?"
   );
-  stmt.run(status, modFlags, modConfidence, commentId);
+  stmt.run(status, modFlags, modConfidence, modReason || null, modSource || null, commentId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -237,6 +278,13 @@ export function insertReport(data: {
     VALUES (?, ?, ?, ?)
   `);
   stmt.run(data.comment_id, data.reporter_session, data.reason, data.custom_text || null);
+
+  // Automatically update comment status to 'flagged' with mod_reason '0x20' (User Report)
+  db.prepare(`
+    UPDATE comments 
+    SET status = 'flagged', mod_reason = '0x20' 
+    WHERE id = ?
+  `).run(data.comment_id);
 }
 
 /**
@@ -254,6 +302,17 @@ export function getUnresolvedReports() {
 }
 
 /**
+ * Check if a session has already reported a comment.
+ */
+export function hasUserReportedComment(commentId: string, reporterSession: string): boolean {
+  const stmt = db.prepare(
+    "SELECT COUNT(*) as count FROM reported_comments WHERE comment_id = ? AND reporter_session = ?"
+  );
+  const row = stmt.get(commentId, reporterSession) as { count: number };
+  return row.count > 0;
+}
+
+/**
  * Resolve a report (admin action: delete comment or dismiss report).
  */
 export function resolveReport(reportId: number, action: "delete" | "dismiss") {
@@ -266,4 +325,115 @@ export function resolveReport(reportId: number, action: "delete" | "dismiss") {
   }
   // Mark report as resolved
   db.prepare("UPDATE reported_comments SET resolved = 1 WHERE id = ?").run(reportId);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// CONTACT FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────
+
+export function insertContact(data: {
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+  ip?: string;
+}) {
+  const id = (Bun as any).randomUUIDv7
+    ? (Bun as any).randomUUIDv7()
+    : `contact-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+  const stmt = db.prepare(`
+    INSERT INTO contacts (id, name, email, subject, message, ip)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  stmt.run(id, data.name, data.email, data.subject || null, data.message, data.ip || null);
+
+  return db.prepare("SELECT * FROM contacts WHERE id = ?").get(id);
+}
+
+export function getPaginatedContacts(page: number = 1, pageSize: number = 20) {
+  const offset = (page - 1) * pageSize;
+  const countRow = db.prepare("SELECT COUNT(*) as total FROM contacts").get() as { total: number };
+  const rows = db.prepare("SELECT * FROM contacts ORDER BY created_at DESC LIMIT ? OFFSET ?").all(pageSize, offset);
+
+  return {
+    contacts: rows,
+    total: countRow.total,
+    page,
+    pageSize,
+    hasMore: offset + rows.length < countRow.total,
+  };
+}
+
+export function updateContactStatus(id: string, status: "unread" | "read" | "archived") {
+  db.prepare("UPDATE contacts SET status = ? WHERE id = ?").run(status, id);
+}
+
+export function deleteContact(id: string) {
+  db.prepare("DELETE FROM contacts WHERE id = ?").run(id);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// ADMIN HELPER FUNCTIONS
+// ─────────────────────────────────────────────────────────────────────────
+
+export function getAdminStats() {
+  const totalComments = (db.prepare("SELECT COUNT(*) as count FROM comments").get() as any).count;
+  const pendingComments = (db.prepare("SELECT COUNT(*) as count FROM comments WHERE status = 'pending'").get() as any).count;
+  const flaggedComments = (db.prepare("SELECT COUNT(*) as count FROM comments WHERE status = 'flagged'").get() as any).count;
+  const totalReports = (db.prepare("SELECT COUNT(*) as count FROM reported_comments WHERE resolved = 0").get() as any).count;
+  const totalContacts = (db.prepare("SELECT COUNT(*) as count FROM contacts").get() as any).count;
+  const unreadContacts = (db.prepare("SELECT COUNT(*) as count FROM contacts WHERE status = 'unread'").get() as any).count;
+
+  return {
+    totalComments,
+    pendingComments,
+    flaggedComments,
+    totalReports,
+    totalContacts,
+    unreadContacts,
+  };
+}
+
+export function getAdminComments(status: string = "all", page: number = 1, pageSize: number = 20) {
+  const offset = (page - 1) * pageSize;
+  let countSql = "SELECT COUNT(*) as total FROM comments";
+  let fetchSql = "SELECT * FROM comments";
+  const params: any[] = [];
+
+  if (status !== "all") {
+    countSql += " WHERE status = ?";
+    fetchSql += " WHERE status = ?";
+    params.push(status);
+  }
+
+  fetchSql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+
+  const countRow = db.prepare(countSql).get(...params) as { total: number };
+  const rows = db.prepare(fetchSql).all(...params, pageSize, offset);
+
+  const pendingCount = (db.prepare("SELECT COUNT(*) as c FROM comments WHERE status = 'pending'").get() as any).c;
+  const flaggedCount = (db.prepare("SELECT COUNT(*) as c FROM comments WHERE status = 'flagged'").get() as any).c;
+  const approvedCount = (db.prepare("SELECT COUNT(*) as c FROM comments WHERE status = 'approved'").get() as any).c;
+
+  return {
+    comments: rows.map(formatCommentRow),
+    total: countRow.total,
+    counts: {
+      all: pendingCount + flaggedCount + approvedCount,
+      pending: pendingCount,
+      flagged: flaggedCount,
+      approved: approvedCount,
+    },
+    page,
+    pageSize,
+  };
+}
+
+export function updateCommentAdminStatus(id: string, status: "approved" | "pending" | "flagged") {
+  db.prepare("UPDATE comments SET status = ? WHERE id = ?").run(status, id);
+}
+
+export function deleteComment(id: string) {
+  db.prepare("DELETE FROM comments WHERE id = ?").run(id);
 }

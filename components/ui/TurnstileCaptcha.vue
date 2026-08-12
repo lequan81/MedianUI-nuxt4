@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
+import type { TurnstileObject } from "~/types/turnstile";
 
 const props = defineProps<{
   sitekey?: string;
@@ -16,26 +17,49 @@ const sitekey = computed<string>(
 );
 
 const widgetContainer = ref<HTMLElement | null>(null);
-const isLoaded = ref(false);
-let widgetId: string | null = null;
+
+const state = reactive({
+  isLoaded: false,
+  isVerified: false,
+  hasError: false,
+  widgetId: null as string | null,
+});
+
+let loadTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getTurnstile(): TurnstileObject | undefined {
+  return (window as any).turnstile as TurnstileObject | undefined;
+}
+
+let checkRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
 onMounted(() => {
-  if (!window.turnstile) {
-    const script = document.createElement("script");
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => initTurnstile();
-    document.head.appendChild(script);
-  } else {
-    initTurnstile();
-  }
+  // Set 10s timeout guard
+  loadTimer = setTimeout(() => {
+    if (!state.isLoaded && !state.isVerified) {
+      state.hasError = true;
+    }
+  }, 10000);
+
+  const checkAndInit = () => {
+    const ts = getTurnstile();
+    if (ts) {
+      initTurnstile();
+    } else if (!state.hasError) {
+      checkRetryTimer = setTimeout(checkAndInit, 100);
+    }
+  };
+
+  checkAndInit();
 });
 
 onUnmounted(() => {
-  if (window.turnstile && widgetId) {
+  if (loadTimer) clearTimeout(loadTimer);
+  if (checkRetryTimer) clearTimeout(checkRetryTimer);
+  const ts = getTurnstile();
+  if (ts && state.widgetId) {
     try {
-      window.turnstile.remove(widgetId);
+      ts.remove(state.widgetId);
     } catch {
       // Ignore unmount error
     }
@@ -43,47 +67,45 @@ onUnmounted(() => {
 });
 
 function initTurnstile() {
-  if (window.turnstile && widgetContainer.value && !widgetId) {
-    isLoaded.value = true;
+  const ts = getTurnstile();
+  if (ts && widgetContainer.value && !state.widgetId) {
+    state.isLoaded = true;
     try {
-      widgetId = window.turnstile.render(widgetContainer.value as HTMLElement, {
+      state.widgetId = ts.render(widgetContainer.value as unknown as HTMLElement, {
         sitekey: sitekey.value,
         theme: "auto",
         size: "normal",
         callback: (token: string) => {
+          state.isVerified = true;
           emit("verify", token);
+        },
+        "error-callback": () => {
+          state.hasError = true;
+        },
+        "expired-callback": () => {
+          state.isVerified = false;
         },
       });
     } catch {
-      // Ignore double render attempt
+      state.hasError = true;
     }
-  }
-}
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (
-        container: HTMLElement | string,
-        options: {
-          sitekey: string;
-          theme?: "light" | "dark" | "auto";
-          size?: "normal" | "compact" | "invisible";
-          callback?: (token: string) => void;
-        }
-      ) => string;
-      reset: (widgetId?: string) => void;
-      remove: (widgetId: string) => void;
-    };
   }
 }
 </script>
 
 <template>
-  <div class="inline-flex items-center gap-2.5 animate-in fade-in slide-in-from-left-2 duration-200">
+  <div v-if="state.hasError" class="inline-flex items-center gap-1.5 text-xs text-rose-500 font-semibold py-1 animate-in fade-in duration-200">
+    <AppIcon name="alert-triangle" :size="14" />
+    <span>captcha lỗi</span>
+  </div>
+  <div v-else-if="!state.isVerified" class="inline-flex items-center gap-2.5 animate-in fade-in slide-in-from-left-2 duration-200">
     <div ref="widgetContainer" class="shrink-0 flex items-center min-h-16"></div>
-    <div v-if="!isLoaded" class="text-xs text-text-muted animate-pulse py-2">
-      Đang nạp xác minh...
+    <div v-if="!state.isLoaded" class="text-xs text-text-muted animate-pulse py-2">
+      Đang load captcha...
     </div>
+  </div>
+  <div v-else class="inline-flex items-center gap-1.5 text-xs text-emerald-500 font-semibold py-1 animate-in fade-in duration-200">
+    <AppIcon name="check-circle-2" :size="14" />
+    <span>Đã xác minh an toàn</span>
   </div>
 </template>

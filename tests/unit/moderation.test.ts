@@ -71,6 +71,12 @@ describe("Hybrid Moderation Engine (Score-Based 3-Tier)", () => {
     expect(res.flags & MOD_FLAGS.PROFANITY).toBeTruthy();
   });
 
+  it("should FLAG sexual obscene comments with leetspeak or dots", () => {
+    const res = moderateComment("Đ.ịt nhau không em?");
+    expect(res.tier).toBe("flagged");
+    expect(res.flags & MOD_FLAGS.NSFW).toBeTruthy();
+  });
+
   it("should FLAG repeated character spam", () => {
     const res = moderateComment("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     expect(res.tier).toBe("flagged");

@@ -1,3 +1,27 @@
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+  status: "unread" | "read" | "archived";
+  created_at: string;
+  ip?: string;
+}
+
+export interface ContactSubmission {
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+  captcha_token?: string;
+}
+
+export interface RequestLog {
+  timestamps: number[];
+  ip?: string;
+}
+
 export interface ContactConfig {
   rateLimit: {
     maxBurstRequests: number;
@@ -7,24 +31,9 @@ export interface ContactConfig {
   };
   messages: {
     success: string;
-    burstLimitExceeded: (retryAfter: number) => string;
-    windowLimitExceeded: (retryAfter: number) => string;
+    burstLimitExceeded: (seconds: number) => string;
+    windowLimitExceeded: (seconds: number) => string;
     validationError: string;
     serverError: string;
   };
-}
-
-export interface ContactFormInput {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  captcha_token: string;
-}
-
-export type ContactFieldErrors = Partial<Record<keyof ContactFormInput, string>>;
-export type ContactTouchedFields = Partial<Record<keyof ContactFormInput, boolean>>;
-
-export interface RateLimitRequestLog {
-  timestamps: number[];
 }

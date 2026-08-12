@@ -4,35 +4,14 @@ import { insertComment, updateCommentStatus } from "~/server/utils/db";
 import { moderateComment } from "~/server/utils/moderation";
 import { geminiModerate } from "~/server/utils/gemini-pool";
 import { verifyTurnstileToken } from "~/server/utils/turnstile";
+import { checkRateLimit } from "~/server/utils/rate-limit";
 
-const commentSchema = v.object({
-  post_slug: v.pipe(
-    v.string("Post slug không được để trống"),
-    v.trim(),
-    v.minLength(1)
-  ),
-  parent_id: v.optional(v.nullable(v.string())),
-  author_name: v.pipe(
-    v.string("Tên người bình luận không được để trống"),
-    v.trim(),
-    v.minLength(2, "Tên phải từ 2 ký tự trở lên"),
-    v.maxLength(60, "Tên tối đa 60 ký tự")
-  ),
-  author_email: v.pipe(
-    v.string("Email không được để trống"),
-    v.trim(),
-    v.email("Định dạng email không hợp lệ")
-  ),
-  content: v.pipe(
-    v.string("Nội dung bình luận không được để trống"),
-    v.trim(),
-    v.minLength(1, "Nội dung bình luận không được để trống"),
-    v.maxLength(1000, "Nội dung bình luận tối đa 1000 ký tự")
-  ),
-  captcha_token: v.optional(v.string()),
-});
+import { commentSchema } from "~/utils/validators/comment";
 
 export default defineEventHandler(async (event) => {
+  // Rate limiting: max 5 comments per minute per IP
+  checkRateLimit(event, "comments_post", 5, 60 * 1000);
+
   const body = await readBody(event);
   const result = v.safeParse(commentSchema, body);
 
@@ -81,12 +60,31 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // ── Insert with initial status ────────────────────────────────────────
+  // ── Determine final status & compact hex code audit log ──────────────────
+  let initialStatus = modResult.tier;
+  let flags = modResult.flags;
+  let modSource = "local_rules";
+
+  if (captcha_token && modResult.tier !== "flagged") {
+    initialStatus = "approved";
+    flags |= 0x40; // Turnstile flag
+    modSource = "turnstile";
+  } else if (modResult.tier === "approved") {
+    initialStatus = "approved";
+    modSource = "clean";
+  }
+
+  // Compact Hex Code e.g. "0x09", "0x40", "0x00"
+  const modReason = `0x${flags.toString(16).padStart(2, "0")}`;
+
+  // ── Insert with initial status & audit log ────────────────────────────
   const newComment = insertComment({
     ...result.output,
-    status: modResult.tier,
-    mod_flags: modResult.flags,
+    status: initialStatus,
+    mod_flags: flags,
     mod_confidence: modResult.score,
+    mod_reason: modReason,
+    mod_source: modSource,
   });
 
   // ── Layer 3: Async Gemini gate for "pending" comments ─────────────────
@@ -94,15 +92,39 @@ export default defineEventHandler(async (event) => {
     geminiModerate(content)
       .then((geminiResult) => {
         if (!geminiResult) {
-          updateCommentStatus(newComment.id, "approved", 0x80, 0.0);
+          updateCommentStatus(
+            newComment.id,
+            "pending",
+            0x80,
+            0.0,
+            "0x80",
+            "gemini_ai"
+          );
           return;
         }
         const isBad = (geminiResult.f & 0x01) !== 0;
         const newStatus = isBad && geminiResult.c > 0.7 ? "flagged" : "approved";
-        updateCommentStatus(newComment.id, newStatus, geminiResult.f, geminiResult.c);
+        const finalFlags = geminiResult.f | 0x80;
+        const reasonHex = `0x${finalFlags.toString(16).padStart(2, "0")}`;
+
+        updateCommentStatus(
+          newComment.id,
+          newStatus,
+          finalFlags,
+          geminiResult.c,
+          reasonHex,
+          "gemini_ai"
+        );
       })
       .catch(() => {
-        updateCommentStatus(newComment.id, "approved", 0x80, 0.0);
+        updateCommentStatus(
+          newComment.id,
+          "pending",
+          0x80,
+          0.0,
+          "0x80",
+          "gemini_ai"
+        );
       });
   }
 

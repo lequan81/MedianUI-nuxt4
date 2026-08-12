@@ -13,8 +13,19 @@ useSeo({
   description: `Trang liên hệ trực tiếp với ${authorConfig.name}. Gửi tin nhắn, góp ý hoặc trao đổi hợp tác dự án.`,
 });
 
-const { form, fieldErrors, validFields, validateField, formState, toggleCard, handleSubmit } = useContactForm();
+const captchaToken = ref("");
+const { form, fieldErrors, validFields, validateField, formState, toggleCard, resetFormState, handleSubmit } = useContactForm();
 
+function onCaptchaVerify(token: string) {
+  captchaToken.value = token;
+}
+
+function submitWithCaptcha(e?: Event) {
+  if (e && typeof e.preventDefault === "function") {
+    e.preventDefault();
+  }
+  handleSubmit(captchaToken.value);
+}
 </script>
 
 
@@ -76,7 +87,7 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
             <a v-for="social in authorConfig.socials" :key="social.name" :href="social.href" target="_blank"
               rel="noreferrer" :title="social.name" :aria-label="social.name"
               class="flex h-8 w-8 items-center justify-center rounded-lg border border-border-main bg-bg-sec text-text-main transition-all duration-200 hover:border-primary hover:text-primary hover:bg-primary-subtle/40 hover:scale-105 active:scale-95 shadow-2xs select-none">
-              <AppIcon :name="social.icon" :size="14" class="shrink-0" />
+              <AppIcon :name="social.icon || 'link'" :size="14" class="shrink-0" />
             </a>
           </div>
         </div>
@@ -161,27 +172,79 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
           </div>
 
 
-          <!-- Alert Tin Nhắn Đã Gửi Thành Công -->
+          <!-- GIAO DIỆN CẢM ƠN CAO CẤP CHUẨN MEDIAN UI V1.7 -->
           <div v-if="formState.isSubmitted"
-            class="relative my-auto rounded-xl border border-primary/30 bg-primary-subtle/30 p-5 sm:p-6 text-center space-y-3">
+            class="relative my-auto overflow-hidden rounded-2xl border border-emerald-500/30 bg-bg-sec/80 p-6 sm:p-8 text-center space-y-5 shadow-xl transition-all duration-300">
+
+            <!-- Glow hiệu ứng nền -->
             <div
-              class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-sm">
-              <AppIcon name="sparkles" :size="18" />
+              class="absolute -top-12 -right-12 h-36 w-36 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none">
             </div>
-            <h4 class="text-sm font-bold text-text-main">Cảm ơn bạn đã liên hệ!</h4>
-            <p class="text-xs text-text-alt max-w-sm mx-auto leading-relaxed">
-              Tin nhắn của bạn đã được gửi thành công. Mình sẽ phản hồi qua Email trong thời gian sớm nhất.
-            </p>
-            <button type="button"
-              class="inline-flex rounded-lg border border-primary bg-bg-sec px-4 py-2 text-xs font-semibold text-primary shadow-2xs transition-all hover:bg-primary hover:text-white cursor-pointer active:scale-95"
-              @click="formState.isSubmitted = false">
-              Gửi tin nhắn khác
-            </button>
+            <div class="absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-primary/10 blur-2xl pointer-events-none">
+            </div>
+
+            <!-- Icon Tích xanh thành công -->
+            <div
+              class="relative mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 ring-8 ring-emerald-500/10 shadow-xs">
+              <AppIcon name="check" :size="28" class="stroke-3" />
+            </div>
+
+            <!-- Tiêu đề & Lời cảm ơn -->
+            <div class="space-y-1.5 max-w-md mx-auto">
+              <h4 class="text-base sm:text-lg font-bold text-text-main tracking-tight">
+                Gửi tin nhắn thành công! 🎉
+              </h4>
+              <p class="text-xs text-text-alt leading-relaxed">
+                Cảm ơn bạn đã liên hệ. Tin nhắn của bạn đã được lưu lại và chuyển trực tiếp tới hộp thư của Lê Quân.
+              </p>
+            </div>
+
+            <!-- Tóm tắt thông tin đã gửi (Glassmorphism Card) -->
+            <div v-if="formState.submittedData"
+              class="rounded-xl border border-border-subtle bg-bg-base/90 p-4 text-left space-y-2 text-xs shadow-2xs backdrop-blur-xs">
+              <div
+                class="flex items-center justify-between text-text-muted pb-2 border-b border-border-subtle text-[11px] font-semibold">
+                <span class="flex items-center gap-1">
+                  <AppIcon name="mail" :size="13" class="text-primary" />
+                  <span>XÁC NHẬN THÔNG TIN</span>
+                </span>
+                <span class="text-[10.5px] font-medium">{{ formState.submittedData.time }}</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <div>
+                  <span class="text-text-muted text-[11px]">Người gửi:</span>
+                  <p class="font-semibold text-text-main truncate">{{ formState.submittedData.name }}</p>
+                </div>
+                <div>
+                  <span class="text-text-muted text-[11px]">Email phản hồi:</span>
+                  <p class="font-semibold text-primary truncate">{{ formState.submittedData.email }}</p>
+                </div>
+              </div>
+              <div v-if="formState.submittedData.subject" class="pt-1 border-t border-border-subtle/50">
+                <span class="text-text-muted text-[11px]">Tiêu đề:</span>
+                <p class="font-medium text-text-main truncate">{{ formState.submittedData.subject }}</p>
+              </div>
+            </div>
+
+            <!-- Nút Thao tác -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button type="button"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all duration-200 hover:bg-primary/90 hover:shadow-lg cursor-pointer active:scale-95"
+                @click="resetFormState">
+                <AppIcon name="rotate-ccw" :size="14" />
+                <span>Gửi tin nhắn khác</span>
+              </button>
+
+              <NuxtLink to="/"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-border-main bg-bg-base px-5 py-2.5 text-xs font-semibold text-text-main shadow-2xs transition-all duration-200 hover:border-primary hover:text-primary hover:bg-bg-subtle cursor-pointer active:scale-95">
+                <AppIcon name="home" :size="14" />
+                <span>Về trang chủ</span>
+              </NuxtLink>
+            </div>
           </div>
 
-          <!-- Form Fields với Validation Lỗi Chi Tiết -->
-          <form v-else class="relative flex-1 flex flex-col justify-between space-y-3.5 sm:space-y-4"
-            @submit.prevent="handleSubmit">
+          <!-- Container Form Fields với Validation Lỗi Chi Tiết -->
+          <div v-else class="relative flex-1 flex flex-col justify-between space-y-3.5 sm:space-y-4">
             <div class="space-y-3">
               <div class="grid gap-3 sm:grid-cols-2">
                 <div class="relative">
@@ -189,27 +252,17 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
                     Họ và tên <span class="text-rose-500 font-bold ml-0.5">*</span>
                   </label>
                   <div class="relative flex items-center w-full">
-                    <input
-                      v-model="form.name"
-                      type="text"
-                      placeholder="Nhập tên của bạn"
-                      :class="[
-                        'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
-                        validFields.name ? 'pr-8' : '',
-                        fieldErrors.name
-                          ? 'border-rose-500 focus:ring-1 focus:ring-rose-500'
-                          : validFields.name
+                    <input v-model="form.name" type="text" placeholder="Nhập tên của bạn" :class="[
+                      'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
+                      validFields.name ? 'pr-8' : '',
+                      fieldErrors.name
+                        ? 'border-rose-500 focus:ring-1 focus:ring-rose-500'
+                        : validFields.name
                           ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
                           : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                      ]"
-                      @input="validateField('name')"
-                    />
-                    <AppIcon
-                      v-if="validFields.name"
-                      name="check"
-                      :size="14"
-                      class="absolute right-3 text-emerald-500 shrink-0 pointer-events-none"
-                    />
+                    ]" @input="validateField('name')" />
+                    <AppIcon v-if="validFields.name" name="check" :size="14"
+                      class="absolute right-3 text-emerald-500 shrink-0 pointer-events-none" />
                   </div>
                   <p v-if="fieldErrors.name" class="mt-1 text-[11px] font-medium text-rose-500">
                     {{ fieldErrors.name }}
@@ -221,27 +274,17 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
                     Email <span class="text-rose-500 font-bold ml-0.5">*</span>
                   </label>
                   <div class="relative flex items-center w-full">
-                    <input
-                      v-model="form.email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      :class="[
-                        'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
-                        validFields.email ? 'pr-8' : '',
-                        fieldErrors.email
-                          ? 'border-rose-500 focus:ring-1 focus:ring-rose-500'
-                          : validFields.email
+                    <input v-model="form.email" type="email" placeholder="your.email@example.com" :class="[
+                      'w-full rounded-lg border bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs',
+                      validFields.email ? 'pr-8' : '',
+                      fieldErrors.email
+                        ? 'border-rose-500 focus:ring-1 focus:ring-rose-500'
+                        : validFields.email
                           ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
                           : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                      ]"
-                      @input="validateField('email')"
-                    />
-                    <AppIcon
-                      v-if="validFields.email"
-                      name="check"
-                      :size="14"
-                      class="absolute right-3 text-emerald-500 shrink-0 pointer-events-none"
-                    />
+                    ]" @input="validateField('email')" />
+                    <AppIcon v-if="validFields.email" name="check" :size="14"
+                      class="absolute right-3 text-emerald-500 shrink-0 pointer-events-none" />
                   </div>
                   <p v-if="fieldErrors.email" class="mt-1 text-[11px] font-medium text-rose-500">
                     {{ fieldErrors.email }}
@@ -254,7 +297,7 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
                   Tiêu đề
                 </label>
                 <input v-model="form.subject" type="text" placeholder="Tiêu đề lời nhắn (không bắt buộc)"
-                  class="w-full rounded-lg border border-border-main bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder:text-text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs" />
+                  class="w-full rounded-lg border border-border-main bg-bg-sec px-3 py-2.5 text-xs text-text-main placeholder-text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs" />
               </div>
 
               <div class="relative">
@@ -262,20 +305,15 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
                   Nội dung tin nhắn <span class="text-rose-500 font-bold ml-0.5">*</span>
                 </label>
                 <div class="relative flex items-center w-full">
-                  <textarea
-                    v-model="form.message"
-                    rows="3"
-                    placeholder="Nội dung bạn muốn trao đổi với Lê Quân..."
+                  <textarea v-model="form.message" rows="3" placeholder="Nội dung bạn muốn trao đổi với Lê Quân..."
                     :class="[
-                      'w-full rounded-lg border bg-bg-sec p-3 text-xs text-text-main placeholder:text-text-muted outline-none transition-all shadow-2xs resize-y',
+                      'w-full rounded-lg border bg-bg-sec p-3 text-xs text-text-main placeholder-text-muted outline-none transition-all shadow-2xs resize-y',
                       fieldErrors.message
                         ? 'border-rose-500 focus:ring-1 focus:ring-rose-500'
                         : validFields.message
-                        ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
-                        : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                    ]"
-                    @input="validateField('message')"
-                  ></textarea>
+                          ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
+                          : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
+                    ]" @input="validateField('message')"></textarea>
                 </div>
                 <p v-if="fieldErrors.message" class="mt-1 text-[11px] font-medium text-rose-500">
                   {{ fieldErrors.message }}
@@ -284,9 +322,11 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
 
             </div>
 
-            <div class="pt-1.5 flex justify-end">
-              <button type="submit" :disabled="formState.isSubmitting || formState.isLocked"
-                class="group/btn w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-primary bg-bg-sec px-5 py-2.5 text-xs font-semibold text-primary shadow-2xs transition-all duration-200 hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95">
+            <div class="pt-1.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <TurnstileCaptcha @verify="onCaptchaVerify" />
+              <button type="button" :disabled="formState.isSubmitting || formState.isLocked"
+                class="group/btn w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-primary bg-bg-sec px-5 py-2.5 text-xs font-semibold text-primary shadow-2xs transition-all duration-200 hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95"
+                @click.prevent.stop="submitWithCaptcha">
                 <AppIcon v-if="!formState.isSubmitting" name="send" :size="13"
                   class="text-primary transition-colors group-hover/btn:text-white" />
                 <span>
@@ -297,7 +337,7 @@ const { form, fieldErrors, validFields, validateField, formState, toggleCard, ha
               </button>
             </div>
 
-          </form>
+          </div>
         </div>
       </div>
     </div>

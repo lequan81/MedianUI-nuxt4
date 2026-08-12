@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { reactive, computed, onMounted } from "vue";
 import { useSeoMeta } from "#imports";
+import { adminSidebarItems, type NavItem } from "~/app/config/navigation";
+
+definePageMeta({
+  middleware: ["admin-auth"] as any,
+});
 
 if (import.meta.server) {
   useSeoMeta({
@@ -9,44 +14,105 @@ if (import.meta.server) {
   });
 }
 
-const stats = [
-  { label: "Tổng lượt xem", value: "48,290", change: "+12.4%", icon: "eye", color: "text-blue-500", bg: "bg-blue-500/10", link: "#" },
-  { label: "Bài viết", value: "18", change: "Mới cập nhật", icon: "file-text", color: "text-purple-500", bg: "bg-purple-500/10", link: "/" },
-  { label: "Bình luận", value: "142", change: "2 chờ duyệt", icon: "message-square", color: "text-emerald-500", bg: "bg-emerald-500/10", link: "/admin/comments" },
-  { label: "Tin nhắn liên hệ", value: "9", change: "2 chưa đọc", icon: "mail", color: "text-amber-500", bg: "bg-amber-500/10", link: "/admin/contacts" },
-];
-
-const pendingComments = ref([
-  {
-    id: 101,
-    author: "Hoàng Long",
-    email: "hoanglong@example.com",
-    postTitle: "Phân tích trường hợp bị hack khi chạy code từ GitHub",
-    content: "Bài viết rất thực tế! Mình cũng từng bị cài bẫy phần mềm độc hại khi clone repo từ GitHub.",
-    date: "Vừa xong",
+const state = reactive({
+  liveStats: {
+    totalComments: 0,
+    pendingComments: 0,
+    flaggedComments: 0,
+    totalReports: 0,
+    totalContacts: 0,
+    unreadContacts: 0,
   },
-  {
-    id: 102,
-    author: "Minh Anh",
-    email: "minhanh@example.com",
-    postTitle: "Hướng dẫn cài đặt môi trường Nuxt 4 & Tailwind CSS v4",
-    content: "Cảm ơn tác giả! Cho mình hỏi bản Nuxt 4 này chạy với Bun runtime có bị đụng độ module nào không?",
-    date: "15 phút trước",
-  },
-]);
+  pendingComments: [] as any[],
+  recentContacts: [] as any[],
+  isLoading: true,
+});
 
-const recentContacts = ref([
-  { id: 1, name: "Nguyễn Văn A", email: "nguyena@example.com", subject: "Hợp tác dự án Nuxt 4", date: "Vừa xong", read: false },
-  { id: 2, name: "Trần Thị B", email: "thib@example.com", subject: "Góp ý giao diện Median UI", date: "2 giờ trước", read: false },
-  { id: 3, name: "Phạm Hoàng C", email: "hoangc@example.com", subject: "Hỏi về Bun:sqlite connector", date: "1 ngày trước", read: true },
-]);
+async function fetchDashboardData() {
+  state.isLoading = true;
+  try {
+    const [statsRes, commentsRes, contactsRes] = await Promise.all([
+      $fetch<any>("/api/admin/stats"),
+      $fetch<any>("/api/admin/comments?status=pending"),
+      $fetch<any>("/api/admin/contacts?pageSize=5"),
+    ]);
 
-function approveComment(id: number) {
-  pendingComments.value = pendingComments.value.filter((c) => c.id !== id);
+    if (statsRes) state.liveStats = statsRes;
+    if (commentsRes?.comments) state.pendingComments = commentsRes.comments;
+    if (contactsRes?.contacts) state.recentContacts = contactsRes.contacts;
+  } catch {
+    // Graceful fallback
+  } finally {
+    state.isLoading = false;
+  }
 }
 
-function deleteComment(id: number) {
-  pendingComments.value = pendingComments.value.filter((c) => c.id !== id);
+onMounted(() => {
+  fetchDashboardData();
+});
+const navMap = Object.fromEntries(adminSidebarItems.map((item: NavItem) => [item.id, item]));
+
+const statsList = computed(() => [
+  {
+    id: "views",
+    label: "Tổng lượt xem",
+    value: "48,290",
+    change: "Hệ thống",
+    icon: "eye",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10",
+    link: navMap["admin-home"]?.to || "#",
+  },
+  {
+    id: "posts",
+    label: "Bài viết",
+    value: "18",
+    change: "Hoạt động",
+    icon: "file-text",
+    color: "text-purple-500",
+    bg: "bg-purple-500/10",
+    link: navMap["admin-website"]?.to || "/",
+  },
+  {
+    id: "comments",
+    label: navMap["admin-comments"]?.label || "Bình luận",
+    value: String(state.liveStats.totalComments),
+    change: `${state.liveStats.pendingComments} chờ duyệt`,
+    icon: navMap["admin-comments"]?.icon || "message-square",
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+    link: navMap["admin-comments"]?.to || "/admin/comments",
+  },
+  {
+    id: "contacts",
+    label: navMap["admin-contacts"]?.label || "Tin nhắn liên hệ",
+    value: String(state.liveStats.totalContacts),
+    change: `${state.liveStats.unreadContacts} chưa đọc`,
+    icon: navMap["admin-contacts"]?.icon || "mail",
+    color: "text-amber-500",
+    bg: "bg-amber-500/10",
+    link: navMap["admin-contacts"]?.to || "/admin/contacts",
+  },
+]);
+
+async function approveComment(id: string) {
+  try {
+    await $fetch(`/api/admin/comments/${id}`, { method: "POST", body: { action: "approve" } });
+    state.pendingComments = state.pendingComments.filter((c) => c.id !== id);
+    fetchDashboardData();
+  } catch {
+    // Ignore error
+  }
+}
+
+async function deleteComment(id: string) {
+  try {
+    await $fetch(`/api/admin/comments/${id}`, { method: "POST", body: { action: "delete" } });
+    state.pendingComments = state.pendingComments.filter((c) => c.id !== id);
+    fetchDashboardData();
+  } catch {
+    // Ignore error
+  }
 }
 </script>
 
@@ -88,7 +154,7 @@ function deleteComment(id: number) {
 
     <!-- Analytics Stats Grid Căn Chỉnh Chiều Cao Đều Đặn (items-stretch) -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
-      <NuxtLink v-for="stat in stats" :key="stat.label" :to="stat.link"
+      <div v-for="stat in statsList" :key="stat.label" :to="stat.link"
         class="group flex flex-col justify-between h-full rounded-xl border border-dashed border-border-main bg-bg-alt/60 p-4.5 space-y-3 shadow-2xs transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt">
         <div class="flex items-center justify-between">
           <span class="text-xs font-medium text-text-alt group-hover:text-primary transition-colors">{{ stat.label
@@ -105,7 +171,7 @@ function deleteComment(id: number) {
             {{ stat.change }}
           </p>
         </div>
-      </NuxtLink>
+      </div>
     </div>
 
     <!-- Grid 2 Cột: Duyệt Bình Luận Chờ (Trái) & Tin Nhắn Liên Hệ (Phải) -->
@@ -119,38 +185,53 @@ function deleteComment(id: number) {
           </h2>
 
           <NuxtLink to="/admin/comments" class="text-xs font-semibold text-primary hover:underline">
-            Xem tất cả ({{ pendingComments.length }})
+            Xem tất cả ({{ state.pendingComments.length }})
           </NuxtLink>
         </div>
 
-        <div v-if="pendingComments.length"
-          class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
-          <div v-for="item in pendingComments" :key="item.id"
-            class="p-4 space-y-2 transition-colors hover:bg-bg-sec/40">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold text-text-main">{{ item.author }}</span>
-              <span class="text-[10px] text-text-muted">{{ item.date }}</span>
+        <div v-if="state.pendingComments.length"
+          class="rounded-xl border border-border-main shadow-2xs overflow-hidden divide-y divide-border-subtle/80">
+          <div v-for="(item, idx) in state.pendingComments" :key="item.id"
+            :class="[
+              'p-4 space-y-2.5 transition-colors duration-150',
+              idx % 2 === 0 ? 'bg-[#0e1424]/90 hover:bg-[#121a2e]' : 'bg-[#141b2d]/90 hover:bg-[#192238]'
+            ]">
+            <div class="flex items-center justify-between gap-2 min-w-0">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <NuxtImg :src="item.author.avatar" :alt="item.author.name"
+                  class="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-primary/20 bg-bg-base" format="webp" loading="lazy" />
+                <span class="text-xs font-bold text-text-main truncate">{{ item.author.name }}</span>
+              </div>
+              <span class="text-[10px] text-text-muted shrink-0">{{ item.date }}</span>
             </div>
-            <p class="text-[11.5px] font-semibold text-primary truncate">
-              Bài viết: {{ item.postTitle }}
+
+            <p class="text-[11.5px] text-text-muted truncate">
+              Bài viết: <NuxtLink :to="`/blog/${item.post_slug}`" target="_blank" class="font-semibold text-text-main hover:text-primary hover:underline">{{ item.post_slug }}</NuxtLink>
             </p>
-            <p
-              class="text-xs text-text-alt line-clamp-2 leading-relaxed bg-bg-base/60 p-2.5 rounded-lg border border-border-subtle">
+
+            <p class="text-xs text-text-alt line-clamp-2 leading-relaxed bg-bg-base/80 p-2.5 rounded-lg border border-border-subtle">
               "{{ item.content }}"
             </p>
-            <div class="flex items-center justify-end gap-2 pt-1">
-              <button type="button"
-                class="inline-flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-colors cursor-pointer"
-                @click="approveComment(item.id)">
-                <AppIcon name="check" :size="12" />
-                <span>Duyệt</span>
-              </button>
-              <button type="button"
-                class="inline-flex items-center gap-1 rounded border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11px] font-bold text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-                @click="deleteComment(item.id)">
-                <AppIcon name="x" :size="12" />
-                <span>Xóa</span>
-              </button>
+
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <span class="text-[10px] font-mono font-semibold text-primary bg-bg-base px-2 py-0.5 rounded border border-border-subtle">
+                {{ item.mod_reason || '0x80' }}
+              </span>
+
+              <div class="flex items-center gap-2">
+                <button type="button"
+                  class="inline-flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-colors cursor-pointer"
+                  @click="approveComment(item.id)">
+                  <AppIcon name="check" :size="12" />
+                  <span>Duyệt</span>
+                </button>
+                <button type="button"
+                  class="inline-flex items-center gap-1 rounded border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-[11px] font-bold text-rose-400 hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
+                  @click="deleteComment(item.id)">
+                  <AppIcon name="x" :size="12" />
+                  <span>Xóa</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -176,7 +257,7 @@ function deleteComment(id: number) {
 
         <div
           class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
-          <NuxtLink v-for="item in recentContacts" :key="item.id" :to="`/admin/contacts?id=${item.id}`"
+          <NuxtLink v-for="item in state.recentContacts" :key="item.id" :to="`/admin/contacts?id=${item.id}`"
             class="group p-4 flex items-start gap-3 transition-colors hover:bg-bg-sec/60 cursor-pointer">
             <div
               :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white', item.read ? 'bg-zinc-600' : 'bg-primary']">

@@ -1,31 +1,13 @@
-import { defineEventHandler, readBody, createError, setHeader, getCookie, getRequestIP } from "h3";
+import { defineEventHandler, readBody, createError, getRequestIP } from "h3";
 import * as v from "valibot";
 import { contactConfig } from "~/app/config/contact";
+import { insertContact } from "~/server/utils/db";
+import { verifyTurnstileToken } from "~/server/utils/turnstile";
+import type { RequestLog } from "~/types/contact";
+import { contactSchema } from "~/utils/validators/contact";
 
-const contactSchema = v.object({
-  name: v.pipe(
-    v.string("Tên không được để trống"),
-    v.trim(),
-    v.minLength(2, "Tên phải có ít nhất 2 ký tự"),
-    v.maxLength(60, "Tên không quá 60 ký tự")
-  ),
-  email: v.pipe(
-    v.string("Email không được để trống"),
-    v.trim(),
-    v.email("Định dạng email không hợp lệ")
-  ),
-  subject: v.optional(v.string()),
-  message: v.pipe(
-    v.string("Nội dung không được để trống"),
-    v.trim(),
-    v.minLength(10, "Nội dung tin nhắn phải có ít nhất 10 ký tự"),
-    v.maxLength(2000, "Nội dung quá dài (tối đa 2000 ký tự)")
-  ),
-});
 
-interface RequestLog {
-  timestamps: number[];
-}
+
 
 const rateLimitStore = new Map<string, RequestLog>();
 
@@ -34,7 +16,7 @@ setInterval(() => {
   const maxAge = contactConfig.rateLimit.maxWindowSeconds * 1000;
 
   for (const [key, log] of rateLimitStore.entries()) {
-    log.timestamps = log.timestamps.filter((ts) => now - ts < maxAge);
+    log.timestamps = log.timestamps.filter((ts: number) => now - ts < maxAge);
     if (log.timestamps.length === 0) {
       rateLimitStore.delete(key);
     }
@@ -56,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
   // Rate Limit Burst Check
   const burstWindowMs = contactConfig.rateLimit.burstWindowSeconds * 1000;
-  const recentBurstRequests = log.timestamps.filter((ts) => now - ts < burstWindowMs);
+  const recentBurstRequests = log.timestamps.filter((ts: number) => now - ts < burstWindowMs);
 
   if (recentBurstRequests.length >= contactConfig.rateLimit.maxBurstRequests) {
     const oldestInBurst = recentBurstRequests[0] ?? now;
@@ -76,7 +58,7 @@ export default defineEventHandler(async (event) => {
 
   // Rate Limit Window Check
   const maxWindowMs = contactConfig.rateLimit.maxWindowSeconds * 1000;
-  const recentWindowRequests = log.timestamps.filter((ts) => now - ts < maxWindowMs);
+  const recentWindowRequests = log.timestamps.filter((ts: number) => now - ts < maxWindowMs);
 
   if (recentWindowRequests.length >= contactConfig.rateLimit.maxWindowRequests) {
     const oldestInWindow = recentWindowRequests[0] ?? now;
@@ -116,10 +98,32 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Verify Captcha token if provided
+  if (body?.captcha_token) {
+    const turnstile = await verifyTurnstileToken(body.captcha_token);
+    if (!turnstile.success) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        data: { message: "Xác minh Captcha không hợp lệ. Vui lòng thử lại." },
+      });
+    }
+  }
+
+  // Persist contact message to SQLite DB
+  const savedContact = insertContact({
+    name: result.output.name,
+    email: result.output.email,
+    subject: result.output.subject,
+    message: result.output.message,
+    ip,
+  });
+
   log.timestamps.push(now);
 
   return {
     success: true,
     message: contactConfig.messages.success,
+    contact: savedContact,
   };
 });

@@ -21,7 +21,16 @@ export function useContactForm() {
     isSubmitted: false,
     isLocked: false,
     activeCard: null as string | null,
+    submittedData: null as { name: string; email: string; subject: string; message: string; time: string } | null,
   });
+
+  function resetFormState() {
+    formState.isSubmitted = false;
+    formState.submittedData = null;
+    form.value = { name: "", email: "", subject: "", message: "" };
+    fieldErrors.value = {};
+    touchedFields.value = {};
+  }
 
   function validateField(field: string) {
     touchedFields.value[field] = true;
@@ -49,10 +58,10 @@ export function useContactForm() {
     } else if (field === "message") {
       if (!val) {
         fieldErrors.value.message = "Nội dung tin nhắn không được để trống";
-      } else if (val.length < 5) {
-        fieldErrors.value.message = "Nội dung lời nhắn phải từ 5 ký tự trở lên";
-      } else if (val.length > 1000) {
-        fieldErrors.value.message = "Nội dung lời nhắn không quá 1000 ký tự";
+      } else if (val.length < 10) {
+        fieldErrors.value.message = "Nội dung lời nhắn phải từ 10 ký tự trở lên";
+      } else if (val.length > 2000) {
+        fieldErrors.value.message = "Nội dung lời nhắn không quá 2000 ký tự";
       } else {
         delete fieldErrors.value.message;
       }
@@ -105,8 +114,8 @@ export function useContactForm() {
         !fieldErrors.value.email,
       message:
         (touchedFields.value.message || form.value.message.length > 0) &&
-        messageVal.length >= 5 &&
-        messageVal.length <= 1000 &&
+        messageVal.length >= 10 &&
+        messageVal.length <= 2000 &&
         !fieldErrors.value.message,
     };
   });
@@ -122,7 +131,7 @@ export function useContactForm() {
     }, seconds * 1000);
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(captchaToken?: string) {
     fieldErrors.value = {};
     touchedFields.value = { name: true, email: true, message: true };
 
@@ -148,8 +157,21 @@ export function useContactForm() {
     try {
       const res = await $fetch<{ success: boolean; message: string }>("/api/contact", {
         method: "POST",
-        body: form.value,
+        body: {
+          ...form.value,
+          captcha_token: captchaToken,
+        },
       });
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) + ", " + now.toLocaleDateString("vi-VN");
+      formState.submittedData = {
+        name: form.value.name,
+        email: form.value.email,
+        subject: form.value.subject,
+        message: form.value.message,
+        time: timeStr,
+      };
 
       formState.isSubmitting = false;
       formState.isSubmitted = true;
@@ -185,6 +207,7 @@ export function useContactForm() {
     formState,
     validateField,
     toggleCard,
+    resetFormState,
     handleSubmit,
   };
 }

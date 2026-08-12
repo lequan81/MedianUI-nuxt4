@@ -8,8 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "bun --bun nuxt prepare",
-    "test": "bun --bun vitest run",
-    "test:watch": "bun --bun vitest"
+    "test": "NODE_ENV=test DB_FILE_NAME=lequan81dev_test.sqlite bun --bun vitest run",
+    "test:watch": "NODE_ENV=test DB_FILE_NAME=lequan81dev_test.sqlite bun --bun vitest"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.8.0",

@@ -61,10 +61,37 @@ const PROFANITY_WORDS: readonly string[] = [
 
 // ── NSFW / Sexual ────────────────────────────────────────────────────────
 const NSFW_WORDS: readonly string[] = [
+  "địt nhau",
+  "dit nhau",
+  "djt nhau",
+  "chịch nhau",
+  "chich nhau",
+  "địt",
+  "dit",
+  "djt",
+  "chịch",
+  "chich",
+  "xoạc",
+  "xoac",
+  "nện",
+  "phịch",
+  "phich",
+  "xếp hình",
+  "xep hinh",
+  "bú cu",
+  "bu cu",
+  "bú lồn",
+  "bu lon",
+  "liếm lồn",
+  "liem lon",
+  "bóp vú",
+  "bop vu",
   "gái gọi",
   "gai goi",
   "cave",
   "sex",
+  "sẽx",
+  "sếch",
   "xxx",
   "porn",
   "dâm dục",
@@ -160,9 +187,17 @@ addWords(SPAM_LINK_PATTERNS, "SPAM_LINK");
 export function scanBlacklist(text: string): BlacklistMatch {
   if (!text) return { matched: false, score: 0 };
   const lower = text.toLowerCase();
+  // Strip punctuation/leetspeak dots (e.g. "Đ.ịt" -> "địt", "đ.ị.t" -> "địt"), preserving word boundaries
+  const normalized = lower.replace(/[\.\_\-\*\@\!\?\,\;]/g, "");
 
   for (const [keyword, category] of wordCategoryMap) {
-    if (lower.includes(keyword)) {
+    const keywordLower = keyword.toLowerCase();
+    const keywordNormalized = keywordLower.replace(/[\.\_\-\*\@\!\?\,\;]/g, "");
+
+    if (
+      lower.includes(keywordLower) ||
+      (keywordNormalized.length >= 2 && normalized.includes(keywordNormalized))
+    ) {
       return {
         matched: true,
         category,

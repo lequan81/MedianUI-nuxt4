@@ -1,57 +1,117 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { reactive, watch, onMounted } from "vue";
 import { useSeoMeta } from "#imports";
+
+definePageMeta({
+  middleware: ["admin-auth"] as any,
+});
 
 if (import.meta.server) {
   useSeoMeta({
-    title: "Duyệt Bình Luận - Admin Median UI",
-    description: "Quản lý và duyệt bình luận từ độc giả trên blog",
+    title: "Quản lý Bình Luận - Admin Median UI",
+    description: "Quản lý và duyệt bình luận từ độc giả trên blog cá nhân",
   });
 }
 
-const comments = ref([
-  {
-    id: 101,
-    author: "Hoàng Long",
-    email: "hoanglong@example.com",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80&q=80",
-    postTitle: "Phân tích trường hợp bị hack khi chạy code từ GitHub",
-    postSlug: "/blog/phan-tich-truong-hop-bi-hack-khi-chay-code-tu-github",
-    content: "Bài viết rất thực tế! Mình cũng từng bị cài bẫy phần mềm độc hại khi clone repo từ GitHub.",
-    date: "Vừa xong",
-    status: "pending",
+const state = reactive({
+  filterStatus: "all",
+  comments: [] as any[],
+  counts: {
+    all: 0,
+    pending: 0,
+    flagged: 0,
+    approved: 0,
   },
-  {
-    id: 102,
-    author: "Minh Anh",
-    email: "minhanh@example.com",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80",
-    postTitle: "Hướng dẫn cài đặt môi trường Nuxt 4 & Tailwind CSS v4",
-    postSlug: "/blog/huong-dan-cai-dat-moi-truong-nuxt-4-tailwind-css-v4",
-    content: "Cảm ơn tác giả! Cho mình hỏi bản Nuxt 4 này chạy với Bun runtime có bị đụng độ với module nào không?",
-    date: "15 phút trước",
-    status: "pending",
-  },
-  {
-    id: 103,
-    author: "Đức Trí",
-    email: "ductri@example.com",
-    avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&h=80&q=80",
-    postTitle: "Cách cài đặt J2TEAM Security cho trình duyệt Chrome",
-    postSlug: "/blog/cach-cai-dat-j2team-security-cho-trinh-duyet-chrome",
-    content: "Tool này dùng cực ngon, chặn phishing bảo vệ tài khoản Facebook rất an toàn.",
-    date: "2 giờ trước",
-    status: "approved",
-  },
-]);
+  isLoading: true,
+});
 
-function approveComment(id: number) {
-  const item = comments.value.find((c) => c.id === id);
-  if (item) item.status = "approved";
+async function fetchComments() {
+  state.isLoading = true;
+  try {
+    const res = await $fetch<any>(`/api/admin/comments?status=${state.filterStatus}`);
+    if (res && Array.isArray(res.comments)) {
+      state.comments = res.comments;
+    }
+    if (res?.counts) {
+      state.counts = res.counts;
+    }
+  } catch {
+    // Keep list
+  } finally {
+    state.isLoading = false;
+  }
 }
 
-function deleteComment(id: number) {
-  comments.value = comments.value.filter((c) => c.id !== id);
+onMounted(() => {
+  fetchComments();
+});
+
+watch(() => state.filterStatus, () => {
+  fetchComments();
+});
+
+async function approveComment(id: string) {
+  try {
+    await $fetch(`/api/admin/comments/${id}`, { method: "POST", body: { action: "approve" } });
+    fetchComments();
+  } catch {
+    // Ignore error
+  }
+}
+
+async function deleteComment(id: string) {
+  try {
+    await $fetch(`/api/admin/comments/${id}`, { method: "POST", body: { action: "delete" } });
+    state.comments = state.comments.filter((c) => c.id !== id);
+    fetchComments();
+  } catch {
+    // Ignore error
+  }
+}
+
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "approved":
+      return { label: "Đã duyệt", class: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" };
+    case "flagged":
+      return { label: "Bị gắn cờ", class: "bg-rose-500/10 text-rose-400 border-rose-500/20" };
+    default:
+      return { label: "Chờ duyệt", class: "bg-amber-500/10 text-amber-400 border-amber-500/20" };
+  }
+}
+
+function getPrelineTabBadge(tabId: string, isActive: boolean) {
+  if (isActive) {
+    return "bg-white/20 text-white font-bold";
+  }
+  switch (tabId) {
+    case "pending":
+      return "bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold";
+    case "flagged":
+      return "bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold";
+    case "approved":
+      return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold";
+    default:
+      return "bg-primary/10 text-primary border border-primary/20 font-bold";
+  }
+}
+
+/**
+ * Decode compact hex code in mod_reason (e.g., "0x09", "0x81", "0x40")
+ */
+function decodeModReason(reasonHex?: string, modFlags?: number) {
+  const flags = modFlags ?? (reasonHex ? parseInt(reasonHex, 16) : 0);
+  if (!flags) return { label: "Nội dung an toàn", code: "0x00", type: "clean" };
+
+  if (flags & 0x40) return { label: "Turnstile Captcha", code: "0x40", type: "turnstile" };
+  if (flags & 0x80) return { label: "AI Gemini Checked", code: `0x${flags.toString(16)}`, type: "ai" };
+  if (flags & 0x08) return { label: "NSFW / Đồi trụy", code: `0x${flags.toString(16)}`, type: "flagged" };
+  if (flags & 0x10) return { label: "Profanity / Ngôn từ độc hại", code: `0x${flags.toString(16)}`, type: "flagged" };
+  if (flags & 0x02) return { label: "Spam Link / URL", code: `0x${flags.toString(16)}`, type: "pending" };
+  if (flags & 0x20 || reasonHex === "0x20") return { label: "Độc giả báo cáo", code: "0x20", type: "flagged" };
+  if (flags & 0x01) return { label: "Nội dung vi phạm", code: `0x${flags.toString(16)}`, type: "flagged" };
+
+  return { label: `Mã kiểm duyệt: 0x${flags.toString(16)}`, code: `0x${flags.toString(16)}`, type: "info" };
 }
 </script>
 
@@ -74,67 +134,114 @@ function deleteComment(id: number) {
         <NuxtLink to="/admin"
           class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs">
           <AppIcon name="arrow-left" :size="14" />
-          <span>Về Dashboard</span>
+          <span>Dashboard</span>
         </NuxtLink>
       </div>
     </div>
 
-    <!-- Comments Moderation List -->
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-text-muted">
-          Tất cả bình luận ({{ comments.length }})
-        </h2>
-        <span class="text-xs font-semibold text-amber-400">
-          {{comments.filter(c => c.status === 'pending').length}} chờ duyệt
-        </span>
+    <!-- Single Container Filter Bar (Preline UI Badge Style) -->
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-bg-alt/80 p-1.5 rounded-xl border border-border-main shadow-2xs">
+      <div class="flex items-center gap-1.5 overflow-x-auto">
+        <button v-for="tab in [
+          { id: 'all', label: 'Tất cả', count: state.counts.all },
+          { id: 'pending', label: 'Chờ duyệt', count: state.counts.pending },
+          { id: 'flagged', label: 'Bị gắn cờ', count: state.counts.flagged },
+          { id: 'approved', label: 'Đã duyệt', count: state.counts.approved }
+        ]" :key="tab.id" type="button"
+          :class="[
+            'inline-flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer select-none',
+            state.filterStatus === tab.id
+              ? 'bg-primary text-white shadow-2xs font-bold'
+              : 'text-text-alt hover:text-text-main hover:bg-bg-sec/60'
+          ]"
+          @click="state.filterStatus = tab.id">
+          <span>{{ tab.label }}</span>
+          <span :class="[
+            'inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[10.5px] font-mono transition-colors',
+            getPrelineTabBadge(tab.id, state.filterStatus === tab.id)
+          ]">
+            {{ tab.count }}
+          </span>
+        </button>
       </div>
 
-      <div
-        class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
-        <div v-for="item in comments" :key="item.id" class="p-5 space-y-3 transition-colors hover:bg-bg-sec/40">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div class="flex items-center gap-3">
-              <img :src="item.avatar" :alt="item.author"
-                class="h-9 w-9 rounded-full object-cover ring-2 ring-primary/20" />
-              <div>
-                <h3 class="text-xs font-bold text-text-main flex items-center gap-2">
-                  <span>{{ item.author }}</span>
-                  <span class="text-[11px] font-normal text-text-muted">({{ item.email }})</span>
+      <span v-if="state.counts.pending > 0" class="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 border border-amber-500/20 mr-1">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+        </span>
+        <span>{{ state.counts.pending }} bình luận cần duyệt</span>
+      </span>
+      <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/20 mr-1">
+        <span>✓ Tất cả bình luận đã được xử lý</span>
+      </span>
+    </div>
+
+    <!-- Comments Moderation List with Zebra Striping (Soccer Pitch Pattern) -->
+    <div class="space-y-4">
+      <div v-if="state.isLoading" class="p-8 text-center text-xs text-text-muted">
+        Đang tải danh sách bình luận...
+      </div>
+
+      <div v-else-if="state.comments.length === 0" class="rounded-xl border border-border-main bg-bg-alt/40 p-12 text-center space-y-2">
+        <AppIcon name="message-square" :size="32" class="mx-auto text-text-muted" />
+        <h3 class="text-sm font-bold text-text-main">Không có bình luận nào</h3>
+        <p class="text-xs text-text-alt">Chưa có bình luận nào khớp với danh mục lọc hiện tại.</p>
+      </div>
+
+      <!-- Zebra Striped Container (xen kẽ Odd / Even màu nền như sân bóng đá) -->
+      <div class="rounded-xl border border-border-main shadow-2xs overflow-hidden divide-y divide-border-subtle/80">
+        <div v-for="(item, idx) in state.comments" :key="item.id"
+          :class="[
+            'p-5 space-y-3.5 transition-colors duration-150',
+            idx % 2 === 0 ? 'bg-[#0e1424]/90 hover:bg-[#121a2e]' : 'bg-[#141b2d]/90 hover:bg-[#192238]'
+          ]">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <NuxtImg :src="item.author.avatar" :alt="item.author.name"
+                class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 bg-bg-base" format="webp" loading="lazy" />
+              <div class="min-w-0 flex-1">
+                <h3 class="text-xs font-bold text-text-main flex items-center gap-2 truncate">
+                  <span>{{ item.author.name }}</span>
+                  <span class="text-[11px] font-normal text-text-muted">({{ item.author_email }})</span>
                 </h3>
-                <NuxtLink :to="item.postSlug" target="_blank"
-                  class="text-[11.5px] font-semibold text-primary hover:underline block truncate max-w-md">
-                  Bài viết: {{ item.postTitle }}
-                </NuxtLink>
+                <p class="text-[11.5px] text-text-muted truncate max-w-md">
+                  Bài viết: <NuxtLink :to="`/blog/${item.post_slug}`" target="_blank" class="font-semibold text-text-main hover:text-primary hover:underline">{{ item.post_slug }}</NuxtLink>
+                </p>
               </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
-              <span :class="[
-                'inline-flex items-center rounded px-2 py-0.5 text-[10.5px] font-bold',
-                item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-              ]">
-                {{ item.status === 'approved' ? 'Đã duyệt' : 'Chờ duyệt' }}
+              <!-- Compact Hex Code Audit Badge -->
+              <span :title="decodeModReason(item.mod_reason, item.mod_flags).label"
+                class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10.5px] font-mono font-semibold bg-bg-base/80 text-text-alt border border-border-subtle">
+                <span class="text-primary font-bold">{{ item.mod_reason || decodeModReason(item.mod_reason, item.mod_flags).code }}</span>
+                <span class="text-text-muted">({{ decodeModReason(item.mod_reason, item.mod_flags).label }})</span>
               </span>
-              <span class="text-[11px] text-text-muted">{{ item.date }}</span>
+
+              <span :class="['inline-flex items-center rounded-md px-2.5 py-0.5 text-[10.5px] font-bold border', getStatusBadge(item.status).class]">
+                {{ getStatusBadge(item.status).label }}
+              </span>
+              <span class="text-[11px] text-text-muted">{{ item.date || item.created_at }}</span>
             </div>
           </div>
 
-          <div
-            class="rounded-lg bg-bg-base/70 p-3.5 text-xs text-text-main border border-border-subtle leading-relaxed">
+          <!-- Nội dung bình luận -->
+          <div class="rounded-lg bg-bg-base/80 p-3.5 text-xs text-text-main border border-border-subtle/80 leading-relaxed shadow-2xs">
             "{{ item.content }}"
           </div>
 
+          <!-- Quản lý Hành động -->
           <div class="flex items-center justify-end gap-2 pt-1">
-            <button v-if="item.status === 'pending'" type="button"
-              class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-colors cursor-pointer"
+            <button v-if="item.status !== 'approved'" type="button"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all cursor-pointer active:scale-95 shadow-2xs"
               @click="approveComment(item.id)">
               <AppIcon name="check" :size="13" />
-              <span>Duyệt bình luận</span>
+              <span>Duyệt bình luận này</span>
             </button>
 
             <button type="button"
-              class="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3.5 py-1.5 text-xs font-bold text-rose-400 hover:bg-rose-500 hover:text-white transition-all cursor-pointer active:scale-95 shadow-2xs"
               @click="deleteComment(item.id)">
               <AppIcon name="x" :size="13" />
               <span>Xóa</span>

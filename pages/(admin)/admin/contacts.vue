@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { reactive, onMounted } from "vue";
 import { useRoute, useSeoMeta } from "#imports";
+
+definePageMeta({
+  middleware: ["admin-auth"] as any,
+});
 
 const route = useRoute();
 
@@ -11,54 +15,62 @@ if (import.meta.server) {
   });
 }
 
-const contacts = ref([
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    email: "nguyena@example.com",
-    subject: "Hợp tác dự án Nuxt 4",
-    message: "Chào Lê Quân, mình rất ấn tượng với giao diện Median UI v1.7 trên Nuxt 4 của bạn. Bạn có nhận freelance hợp tác xây dựng hệ thống tương tự không?",
-    date: "02/08/2026 09:15",
-    read: false,
-  },
-  {
-    id: 2,
-    name: "Trần Thị B",
-    email: "thib@example.com",
-    subject: "Góp ý giao diện Median UI",
-    message: "Hi Quân, trang blog cực kỳ tối ưu trải nghiệm đọc, tốc độ load với Bun rất mượt. Hy vọng bạn sẽ chia sẻ thêm bài viết về an toàn thông tin!",
-    date: "01/08/2026 21:40",
-    read: false,
-  },
-  {
-    id: 3,
-    name: "Phạm Hoàng C",
-    email: "hoangc@example.com",
-    subject: "Hỏi về Bun:sqlite connector",
-    message: "Cho mình hỏi bạn dùng bun:sqlite trực tiếp trong server/utils của Nuxt 4 như thế nào vậy? Cảm ơn bạn nhiều!",
-    date: "31/07/2026 14:10",
-    read: true,
-  },
-]);
+const state = reactive({
+  contacts: [] as any[],
+  selectedContact: null as any,
+  isLoading: true,
+});
 
-const selectedContact = ref<any>(null);
-
-function openMessage(contact: any) {
-  contact.read = true;
-  selectedContact.value = contact;
+async function fetchContacts() {
+  state.isLoading = true;
+  try {
+    const res = await $fetch<any>("/api/admin/contacts");
+    if (res && Array.isArray(res.contacts)) {
+      state.contacts = res.contacts;
+    }
+  } catch {
+    // Keep list
+  } finally {
+    state.isLoading = false;
+  }
 }
 
-onMounted(() => {
-  const queryId = Number(route.query.id);
+async function selectMessage(contact: any) {
+  state.selectedContact = contact;
+  if (contact && contact.status === "unread") {
+    contact.status = "read";
+    try {
+      await $fetch(`/api/admin/contacts/${contact.id}`, { method: "POST", body: { action: "read" } });
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+async function deleteMessage(id: string) {
+  try {
+    await $fetch(`/api/admin/contacts/${id}`, { method: "POST", body: { action: "delete" } });
+    state.contacts = state.contacts.filter((c) => c.id !== id);
+    if (state.selectedContact?.id === id) {
+      state.selectedContact = state.contacts[0] || null;
+    }
+  } catch {
+    // Ignore
+  }
+}
+
+onMounted(async () => {
+  await fetchContacts();
+  const queryId = String(route.query.id || "");
   if (queryId) {
-    const found = contacts.value.find((c) => c.id === queryId);
+    const found = state.contacts.find((c) => c.id === queryId);
     if (found) {
-      openMessage(found);
+      selectMessage(found);
       return;
     }
   }
-  if (contacts.value.length > 0) {
-    openMessage(contacts.value[0]);
+  if (state.contacts.length > 0) {
+    state.selectedContact = state.contacts[0];
   }
 });
 </script>
@@ -82,49 +94,67 @@ onMounted(() => {
         <NuxtLink to="/admin"
           class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs">
           <AppIcon name="arrow-left" :size="14" />
-          <span>Về Dashboard</span>
+          <span>Dashboard</span>
         </NuxtLink>
       </div>
     </div>
 
-    <!-- Contact Messages Grid & Detail View Căn Chỉnh Hàng Đều Nhau 100% -->
+    <!-- Contact Messages Grid & Detail View -->
     <div class="grid gap-6 lg:grid-cols-12 items-start">
       <!-- List Column (5 cols) -->
       <div class="lg:col-span-5 space-y-3">
         <div class="flex items-center justify-between h-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-text-muted">
-            Danh sách tin nhắn ({{ contacts.length }})
+            Danh sách tin nhắn ({{ state.contacts.length }})
           </h2>
+          <span v-if="state.contacts.filter(c => c.status === 'unread').length > 0"
+            class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            {{ state.contacts.filter(c => c.status === 'unread').length }} chưa đọc
+          </span>
         </div>
 
-        <div
-          class="rounded-xl border border-border-main bg-bg-alt/60 divide-y divide-border-subtle shadow-2xs overflow-hidden">
-          <div v-for="item in contacts" :key="item.id" :class="[
-            'p-4 cursor-pointer transition-all hover:bg-bg-sec/80',
-            selectedContact?.id === item.id ? 'bg-primary-subtle/30 border-l-4 border-l-primary' : '',
-          ]" @click="openMessage(item)">
-            <div class="flex items-start justify-between gap-2 mb-1">
+        <div v-if="state.isLoading" class="p-8 text-center text-xs text-text-muted">
+          Đang tải tin nhắn...
+        </div>
+
+        <div v-else-if="state.contacts.length === 0"
+          class="rounded-xl border border-border-main bg-bg-alt/40 p-8 text-center text-text-muted space-y-1">
+          <p class="text-xs font-medium">Chưa có tin nhắn liên hệ nào</p>
+        </div>
+
+        <!-- Zebra Striped Message List -->
+        <div v-else
+          class="rounded-xl border border-border-main shadow-2xs overflow-hidden divide-y divide-border-subtle/80">
+          <div v-for="(item, idx) in state.contacts" :key="item.id" :class="[
+            'p-4 cursor-pointer transition-all duration-150',
+            idx % 2 === 0 ? 'bg-[#0e1424]/90 hover:bg-[#121a2e]' : 'bg-[#141b2d]/90 hover:bg-[#192238]',
+            state.selectedContact?.id === item.id ? 'border-l-4 border-l-primary bg-primary-subtle/20' : '',
+          ]" @click="selectMessage(item)">
+            <div class="flex items-center justify-between gap-2 mb-1">
               <span class="text-xs font-bold text-text-main truncate">
                 {{ item.name }}
               </span>
-              <span v-if="!item.read"
-                class="inline-flex items-center rounded bg-primary px-1.5 py-0.2 text-[10px] font-bold text-white shrink-0">
+              <!-- Badge Mới Style Preline UI (Nổi bật & Tự động biến mất khi click xem) -->
+              <span v-if="item.status === 'unread'"
+                class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 shrink-0 shadow-2xs">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                 Mới
               </span>
             </div>
 
             <p class="text-xs font-semibold text-primary truncate mb-0.5">
-              {{ item.subject }}
+              {{ item.subject || 'Không có tiêu đề' }}
             </p>
             <p class="text-[11.5px] text-text-alt line-clamp-1">
               {{ item.message }}
             </p>
-            <span class="text-[10px] text-text-muted block mt-2">{{ item.date }}</span>
+            <span class="text-[10px] text-text-muted block mt-2">{{ item.created_at }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Detail View Column (7 cols) Căn Chuẩn Ngang Hàng Với Card Trái -->
+      <!-- Detail View Column (7 cols) -->
       <div class="lg:col-span-7 space-y-3">
         <div class="flex items-center justify-between h-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-text-muted">
@@ -132,34 +162,38 @@ onMounted(() => {
           </h2>
         </div>
 
-        <div v-if="selectedContact"
+        <div v-if="state.selectedContact"
           class="rounded-xl border border-border-main bg-bg-alt/80 p-6 space-y-4 shadow-sm backdrop-blur-md">
           <div class="flex items-center justify-between border-b border-border-subtle pb-3">
             <div>
-              <h3 class="text-base font-bold text-text-main">
-                {{ selectedContact.subject }}
+              <h3 class="text-base font-bold text-text-main flex items-center gap-2">
+                <span>{{ state.selectedContact.subject || 'Không có tiêu đề' }}</span>
+                <span v-if="state.selectedContact.status === 'unread'"
+                  class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Mới
+                </span>
               </h3>
               <p class="text-xs text-text-alt mt-0.5">
-                Từ: <strong class="text-text-main">{{ selectedContact.name }}</strong> (&lt;{{ selectedContact.email
-                }}&gt;)
+                Từ: <strong class="text-text-main">{{ state.selectedContact.name }}</strong> (&lt;{{ state.selectedContact.email }}&gt;)
               </p>
             </div>
-            <span class="text-xs text-text-muted font-medium">{{ selectedContact.date }}</span>
+            <span class="text-xs text-text-muted font-medium">{{ state.selectedContact.created_at }}</span>
           </div>
 
           <div class="text-xs leading-relaxed text-text-main/90 space-y-3 pt-2">
-            <p>{{ selectedContact.message }}</p>
+            <p>{{ state.selectedContact.message }}</p>
           </div>
 
           <div class="pt-4 border-t border-border-subtle flex items-center justify-between">
-            <a :href="`mailto:${selectedContact.email}?subject=Re: ${encodeURIComponent(selectedContact.subject)}`"
+            <a :href="`mailto:${state.selectedContact.email}?subject=Re: ${encodeURIComponent(state.selectedContact.subject || '')}`"
               class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-primary-hover transition-colors">
               <AppIcon name="mail" :size="14" />
               <span>Trả lời qua Email</span>
             </a>
 
-            <button type="button" class="text-xs font-semibold text-red-500 hover:underline cursor-pointer"
-              @click="contacts = contacts.filter(c => c.id !== selectedContact.id); selectedContact = null;">
+            <button type="button" class="text-xs font-semibold text-rose-500 hover:underline cursor-pointer"
+              @click="deleteMessage(state.selectedContact.id)">
               Xóa tin nhắn
             </button>
           </div>

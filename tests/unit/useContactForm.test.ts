@@ -18,4 +18,16 @@ describe("useContactForm composable", () => {
     toggleCard("author");
     expect(formState.activeCard).toBe(null);
   });
+
+  it("should reset form state cleanly via resetFormState", () => {
+    const { form, formState, resetFormState } = useContactForm();
+    form.value.name = "Test User";
+    formState.isSubmitted = true;
+    formState.submittedData = { name: "Test User", email: "test@example.com", subject: "Test", message: "Hello Test", time: "12:00" };
+
+    resetFormState();
+    expect(form.value.name).toBe("");
+    expect(formState.isSubmitted).toBe(false);
+    expect(formState.submittedData).toBe(null);
+  });
 });

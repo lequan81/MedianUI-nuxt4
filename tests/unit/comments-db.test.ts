@@ -11,6 +11,7 @@ describe("Bun SQLite Comments System & Deferred Join Pagination", () => {
       author_name: "Tester 1",
       author_email: "tester1@example.com",
       content: "Nội dung bình luận thử nghiệm unit test",
+      status: "approved",
     });
 
     expect(comment).toBeDefined();
@@ -25,6 +26,7 @@ describe("Bun SQLite Comments System & Deferred Join Pagination", () => {
       author_name: "Parent Author",
       author_email: "parent@example.com",
       content: "Bình luận cha",
+      status: "approved",
     });
 
     const reply = insertComment({
@@ -33,6 +35,7 @@ describe("Bun SQLite Comments System & Deferred Join Pagination", () => {
       author_name: "Reply Author",
       author_email: "reply@example.com",
       content: "Bình luận con phản hồi",
+      status: "approved",
     });
 
     expect(reply.parent_id).toBe(parent.id);

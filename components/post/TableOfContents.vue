@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, watch } from "vue";
-
-export interface TocItem {
-  id: string;
-  text: string;
-  depth: number;
-  children?: TocItem[];
-}
+import type { TocItem } from "~/types/post";
 
 const props = defineProps<{
   links: TocItem[];
@@ -145,7 +139,7 @@ function isExactActive(id: string) {
 
 function isParentActive(link: TocItem) {
   if (isExactActive(link.id)) return true;
-  return Boolean(link.children?.some((child) => child.id === state.activeId));
+  return Boolean(link.children?.some((child: TocItem) => child.id === state.activeId));
 }
 
 function scrollToHeading(id: string) {

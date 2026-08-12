@@ -1,3 +1,5 @@
+import { ref, computed, onMounted } from "vue";
+
 /**
  * Guest Identity Composable
  * Generates a stable guest-{short-uuid} identity per browser session (e.g. guest-987854a8).
@@ -7,26 +9,47 @@ export function useGuestIdentity() {
   const STORAGE_KEY = "median_guest_id";
 
   function generateGuestId(): string {
-    const shortUuid = crypto.randomUUID().replaceAll("-", "").substring(0, 8);
-    return `guest-${shortUuid}`;
+    const cleanUuid = crypto.randomUUID().replace(/-/g, "").substring(0, 8);
+    return `guest-${cleanUuid}`;
   }
 
-  function getGuestId(): string {
-    if (import.meta.server) return generateGuestId();
+  const rawGuestId = ref<string>("guest-default");
 
-    const stored = sessionStorage.getItem(STORAGE_KEY);
-    if (stored) return stored;
-
-    const id = generateGuestId();
-    sessionStorage.setItem(STORAGE_KEY, id);
-    return id;
+  if (!import.meta.server && typeof window !== "undefined") {
+    try {
+      let stored = sessionStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        stored = generateGuestId();
+        sessionStorage.setItem(STORAGE_KEY, stored);
+      }
+      rawGuestId.value = stored;
+    } catch {
+      rawGuestId.value = generateGuestId();
+    }
   }
 
-  const guestId = getGuestId();
-  const displayName = guestId;
+  onMounted(() => {
+    try {
+      let stored = sessionStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        stored = generateGuestId();
+        sessionStorage.setItem(STORAGE_KEY, stored);
+      }
+      rawGuestId.value = stored;
+    } catch {
+      // ignore fallback
+    }
+  });
+
+  const guestId = computed(() => rawGuestId.value);
+  const displayName = computed(() => rawGuestId.value);
+  const avatar = computed(
+    () => `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(rawGuestId.value)}`
+  );
 
   return {
     guestId,
     displayName,
+    avatar,
   };
 }

@@ -1,15 +1,13 @@
 import { defineEventHandler, readBody, createError } from "h3";
 import * as v from "valibot";
+import { requireAdminAuth } from "~/server/utils/admin-auth";
 import { resolveReport } from "~/server/utils/db";
-
-const actionSchema = v.object({
-  report_id: v.number(),
-  action: v.picklist(["delete", "dismiss"]),
-});
+import { adminReportActionSchema } from "~/utils/validators/admin";
 
 export default defineEventHandler(async (event) => {
+  requireAdminAuth(event);
   const body = await readBody(event);
-  const result = v.safeParse(actionSchema, body);
+  const result = v.safeParse(adminReportActionSchema, body);
 
   if (!result.success) {
     throw createError({

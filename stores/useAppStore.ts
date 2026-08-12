@@ -1,34 +1,36 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { reactive, computed } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
   // State
-  const isSidebarCollapsed = ref(true)
-  const isMobileMenuOpen = ref(false)
-  const isSearchOpen = ref(false)
-  const isDarkMode = ref(false)
-  const viewMode = ref<'grid' | 'list'>('grid')
-  const bookmarkedPostIds = ref<number[]>([1, 3])
+  const state = reactive({
+    isSidebarCollapsed: true,
+    isMobileMenuOpen: false,
+    isSearchOpen: false,
+    isDarkMode: false,
+    viewMode: 'grid' as 'grid' | 'list',
+    bookmarkedPostIds: [1, 3] as number[],
+  })
 
   // Actions
   function toggleSidebar() {
-    isSidebarCollapsed.value = !isSidebarCollapsed.value
+    state.isSidebarCollapsed = !state.isSidebarCollapsed
   }
 
   function toggleMobileMenu() {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value
+    state.isMobileMenuOpen = !state.isMobileMenuOpen
   }
 
   function closeMobileMenu() {
-    isMobileMenuOpen.value = false
+    state.isMobileMenuOpen = false
   }
 
   function toggleSearchModal() {
-    isSearchOpen.value = !isSearchOpen.value
+    state.isSearchOpen = !state.isSearchOpen
   }
 
   function closeSearchModal() {
-    isSearchOpen.value = false
+    state.isSearchOpen = false
   }
 
   function initTheme() {
@@ -38,10 +40,10 @@ export const useAppStore = defineStore('app', () => {
       const isDocDark = document.documentElement.classList.contains('dark')
 
       if (savedTheme === 'dark' || (!savedTheme && systemDark) || isDocDark) {
-        isDarkMode.value = true
+        state.isDarkMode = true
         document.documentElement.classList.add('dark')
       } else {
-        isDarkMode.value = false
+        state.isDarkMode = false
         document.documentElement.classList.remove('dark')
       }
     }
@@ -49,11 +51,10 @@ export const useAppStore = defineStore('app', () => {
 
   function toggleDarkMode() {
     if (import.meta.client) {
-      // Sync current reality before toggling in case initTheme wasn't called
       const isCurrentlyDark = document.documentElement.classList.contains('dark')
       const targetState = !isCurrentlyDark
 
-      isDarkMode.value = targetState
+      state.isDarkMode = targetState
       if (targetState) {
         document.documentElement.classList.add('dark')
         localStorage.setItem('median_theme', 'dark')
@@ -62,35 +63,35 @@ export const useAppStore = defineStore('app', () => {
         localStorage.setItem('median_theme', 'light')
       }
     } else {
-      isDarkMode.value = !isDarkMode.value
+      state.isDarkMode = !state.isDarkMode
     }
   }
 
-
   function setViewMode(mode: 'grid' | 'list') {
-    viewMode.value = mode
+    state.viewMode = mode
   }
 
   function toggleBookmark(postId: number) {
-    const index = bookmarkedPostIds.value.indexOf(postId)
+    const index = state.bookmarkedPostIds.indexOf(postId)
     if (index > -1) {
-      bookmarkedPostIds.value.splice(index, 1)
+      state.bookmarkedPostIds.splice(index, 1)
     } else {
-      bookmarkedPostIds.value.push(postId)
+      state.bookmarkedPostIds.push(postId)
     }
   }
 
   function isBookmarked(postId: number) {
-    return bookmarkedPostIds.value.includes(postId)
+    return state.bookmarkedPostIds.includes(postId)
   }
 
   return {
-    isSidebarCollapsed,
-    isMobileMenuOpen,
-    isSearchOpen,
-    isDarkMode,
-    viewMode,
-    bookmarkedPostIds,
+    state,
+    isSidebarCollapsed: computed(() => state.isSidebarCollapsed),
+    isMobileMenuOpen: computed(() => state.isMobileMenuOpen),
+    isSearchOpen: computed(() => state.isSearchOpen),
+    isDarkMode: computed(() => state.isDarkMode),
+    viewMode: computed(() => state.viewMode),
+    bookmarkedPostIds: computed(() => state.bookmarkedPostIds),
     toggleSidebar,
     toggleMobileMenu,
     closeMobileMenu,

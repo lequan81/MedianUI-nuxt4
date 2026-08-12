@@ -17,16 +17,28 @@ const form = reactive({
   username: "admin",
   password: "admin123",
   isLoading: false,
+  errorMessage: "",
 });
 
-function handleLogin() {
+async function handleLogin() {
+  if (!form.password) return;
   form.isLoading = true;
+  form.errorMessage = "";
 
-  // Demo Mode: Bấm Enter hoặc Click là vào thẳng Dashboard Admin
-  setTimeout(() => {
+  try {
+    const res = await $fetch<any>("/api/admin/auth/login", {
+      method: "POST",
+      body: { password: form.password },
+    });
+
+    if (res?.success) {
+      navigateTo("/admin");
+    }
+  } catch (err: any) {
+    form.errorMessage = err?.data?.data?.message || err?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại mật khẩu.";
+  } finally {
     form.isLoading = false;
-    navigateTo("/admin");
-  }, 400);
+  }
 }
 
 </script>
@@ -62,6 +74,10 @@ function handleLogin() {
               class="rounded bg-bg-sec px-1.5 py-0.5 text-[10px] font-mono border border-border-subtle">Enter</kbd> hoặc
             nút bên dưới để truy cập ngay.
           </p>
+        </div>
+
+        <div v-if="form.errorMessage" class="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-500 font-medium">
+          {{ form.errorMessage }}
         </div>
 
         <form class="space-y-4" @submit.prevent="handleLogin">

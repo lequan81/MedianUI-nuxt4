@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed } from "vue";
+import { useAutoReset } from "~/composables/useTimeout";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const props = defineProps<{
@@ -11,8 +12,7 @@ const props = defineProps<{
   class?: string | null;
 }>();
 
-const copied = ref(false);
-let resetTimer: ReturnType<typeof setTimeout> | null = null;
+const { state: copied, trigger: triggerCopied } = useAutoReset(false, false, 2000);
 
 const languageLabel = computed(() => {
   if (!props.language) return "CODE";
@@ -27,18 +27,10 @@ function copyCode() {
 
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(value).then(() => {
-      copied.value = true;
-      if (resetTimer) clearTimeout(resetTimer);
-      resetTimer = setTimeout(() => {
-        copied.value = false;
-      }, 2000);
+      triggerCopied(true);
     });
   }
 }
-
-onBeforeUnmount(() => {
-  if (resetTimer) clearTimeout(resetTimer);
-});
 </script>
 
 <template>

@@ -140,7 +140,7 @@ watch(
             </button>
 
             <!-- Submenu khi mở dropdown -->
-            <ul v-show="isOpen(item)" v-if="!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen"
+            <ul v-if="isOpen(item) && (!appStore.isSidebarCollapsed || appStore.isMobileMenuOpen)"
               class="relative ml-14 mr-4 mt-1 space-y-1 pb-2 text-xs sm:text-sm text-text-alt">
               <li v-for="child in item.children" :key="child.label" class="relative min-h-7 pl-5">
                 <span class="absolute left-0 top-0 h-4 w-3 rounded-bl-md border-b border-l border-border-main"></span>
@@ -157,7 +157,7 @@ watch(
             </ul>
 
             <!-- Tooltip Popover khi Sidebar Thu Gọn trên Desktop -->
-            <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
+            <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen && hoveredTooltipId === item.id"
               class="absolute left-17.5 top-1/2 z-50 w-56 -translate-y-1/2 rounded-xl border border-border-main bg-bg-alt p-2.5 text-xs shadow-md">
               <div class="sr-only">submenu</div>
               <ul class="space-y-1">
@@ -214,9 +214,10 @@ watch(
             </a>
 
 
-            <div v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen" v-show="hoveredTooltipId === item.id"
-
-              class="pointer-events-none select-none absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-md">
+            <div
+              v-if="appStore.isSidebarCollapsed && !appStore.isMobileMenuOpen && hoveredTooltipId === item.id"
+              class="pointer-events-none select-none absolute left-17.5 top-1/2 z-50 max-w-56 -translate-y-1/2 whitespace-nowrap rounded-xl border border-border-main bg-bg-alt px-3 py-2 text-xs font-medium text-text-main shadow-md"
+            >
               {{ item.label }}
             </div>
           </template>

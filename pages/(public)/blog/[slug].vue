@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
 import { useBlogPost } from "~/composables/useBlogPost";
 import { getPostImage, getPostPath } from "~/composables/usePosts";
 
@@ -15,9 +16,38 @@ const {
   slug,
   status
 } = useBlogPost();
+
+const readingProgress = ref(0);
+let scrollRafId = 0;
+
+function updateReadingProgress() {
+  if (scrollRafId) return;
+  scrollRafId = window.requestAnimationFrame(() => {
+    scrollRafId = 0;
+    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (totalHeight > 0) {
+      readingProgress.value = Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100));
+    }
+  });
+}
+
+onMounted(() => {
+  window.addEventListener("scroll", updateReadingProgress, { passive: true });
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", updateReadingProgress);
+  if (scrollRafId) window.cancelAnimationFrame(scrollRafId);
+});
 </script>
 
 <template>
+  <!-- Top Reading Progress Indicator -->
+  <div
+    class="fixed top-0 left-0 right-0 h-0.75 bg-primary z-50 transition-all duration-75 pointer-events-none"
+    :style="{ width: `${readingProgress}%` }"
+  ></div>
+
   <article v-if="post" class="mx-auto max-w-4xl space-y-10 min-w-0 wrap-break-word">
     <section class="min-w-0 space-y-8">
       <header>
@@ -95,74 +125,53 @@ const {
       <section v-if="relatedPosts?.length" class="mt-8 pt-2">
         <WidgetTitle title="Bạn có thể thích những bài đăng này" />
 
-        <!-- 1. Giao diện Mobile (< sm): Grid 2 Card / 1 Hàng dạng Card Dọc -->
-        <div class="grid grid-cols-2 gap-3 sm:hidden">
-          <article v-for="item in relatedPosts" :key="item.path"
-            class="group flex flex-col overflow-hidden rounded-xl border border-border-main bg-bg-alt/70 p-2.5 transition-all duration-300 hover:border-primary/60 hover:bg-bg-alt shadow-2xs cursor-pointer">
-            <NuxtLink :to="getPostPath(item)"
-              class="relative mb-2 aspect-video w-full overflow-hidden rounded-lg bg-bg-sec border border-border-subtle shrink-0">
-              <NuxtImg v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
-                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy" />
-              <div v-else class="flex h-full w-full items-center justify-center text-[10px] text-text-muted">
-                No image
-              </div>
-              <span
-                class="absolute left-1.5 top-1.5 rounded-md bg-black/60 backdrop-blur-xs px-1.5 py-0.5 text-[9.5px] font-semibold text-white border border-white/10 shadow-xs truncate max-w-[85%]">
-                {{ item.category }}
-              </span>
-            </NuxtLink>
-
-            <div class="flex flex-1 flex-col justify-between min-w-0 space-y-1.5">
-              <h3
-                class="line-clamp-2 text-xs font-bold leading-snug text-text-main group-hover:text-primary transition-colors">
-                <NuxtLink :to="getPostPath(item)">
-                  {{ item.title }}
-                </NuxtLink>
-              </h3>
-
-              <div
-                class="flex items-center justify-between pt-1 text-[10px] text-text-muted border-t border-border-subtle/70 mt-auto">
-                <span class="truncate">{{ item.date }}</span>
-                <span v-if="item.readTime" class="font-medium text-primary shrink-0 ml-1">{{ item.readTime }}</span>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <!-- 2. Giao diện Desktop (>= sm): Chuẩn 100% Layout Median UI v1.7 (Số thứ tự + Tiêu đề + Snippet + Ảnh nhỏ bên phải) -->
-        <div class="hidden sm:grid sm:grid-cols-2 gap-x-8 gap-y-6">
-          <article v-for="(item, index) in relatedPosts" :key="item.path"
-            class="group flex items-start justify-between gap-3.5 pb-5 border-b border-border-subtle cursor-pointer">
-            <span class="w-6 shrink-0 text-sm font-bold text-text-muted leading-snug pt-0.5">
+        <!-- Unified Responsive Related Posts Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+          <article
+            v-for="(item, index) in relatedPosts"
+            :key="item.path"
+            class="group flex items-start justify-between gap-3.5 pb-4 border-b border-border-subtle cursor-pointer"
+          >
+            <span class="w-5.5 shrink-0 text-xs sm:text-sm font-bold text-text-muted leading-snug pt-0.5">
               {{ String(index + 1).padStart(2, "0") }}
             </span>
 
-            <div class="min-w-0 flex-1 flex flex-col justify-between min-h-20 pr-1">
+            <div class="min-w-0 flex-1 flex flex-col justify-between min-h-18 sm:min-h-20 pr-1">
               <NuxtLink :to="getPostPath(item)" class="group/link block">
-                <h3 class="line-clamp-2 text-sm sm:text-base font-bold leading-snug text-text-main group-hover/link:text-primary transition-colors">
+                <h3 class="line-clamp-2 text-xs sm:text-sm font-bold leading-snug text-text-main group-hover/link:text-primary transition-colors">
                   {{ item.title }}
                 </h3>
-                <p v-if="item.snippet" class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-alt font-normal">
+                <p v-if="item.snippet" class="mt-1 hidden sm:line-clamp-2 text-xs leading-relaxed text-text-alt font-normal">
                   {{ item.snippet }}
                 </p>
               </NuxtLink>
 
-              <div class="mt-2.5 flex items-center gap-1.5 text-xs">
-                <NuxtLink :to="`/?category=${encodeURIComponent(item.category)}`"
-                  class="font-semibold text-primary hover:underline truncate max-w-28" @click.stop>
+              <div class="mt-2 flex items-center gap-1.5 text-[11px] sm:text-xs">
+                <NuxtLink
+                  :to="`/?category=${encodeURIComponent(item.category)}`"
+                  class="font-semibold text-primary hover:underline truncate max-w-28"
+                  @click.stop
+                >
                   {{ item.category }}
                 </NuxtLink>
                 <span class="text-text-muted">•</span>
-                <span class="text-text-muted text-[11px] font-medium">{{ item.date }}</span>
+                <span class="text-text-muted text-[10px] sm:text-[11px] font-medium">{{ item.date }}</span>
               </div>
             </div>
 
-            <NuxtLink :to="getPostPath(item)"
-              class="relative h-20 w-20 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
-              <NuxtImg v-if="getPostImage(item)" :src="getPostImage(item)" :alt="item.title"
+            <NuxtLink
+              :to="getPostPath(item)"
+              class="relative h-18 w-18 sm:h-22 sm:w-22 shrink-0 overflow-hidden rounded-lg bg-bg-sec border border-border-subtle"
+            >
+              <NuxtImg
+                v-if="getPostImage(item)"
+                :src="getPostImage(item)"
+                :alt="item.title"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy" />
+                loading="lazy"
+                format="webp"
+                quality="80"
+              />
               <div v-else class="flex h-full w-full items-center justify-center text-[10px] text-text-muted">
                 No image
               </div>
@@ -170,12 +179,10 @@ const {
           </article>
         </div>
       </section>
-
-      <PostComments />
     </section>
 
     <TableOfContents v-if="tocLinks.length" :links="tocLinks" />
-    <ShareModal :is-open="isShareModalOpen" :title="post.title" @close="isShareModalOpen = false" />
+    <LazyShareModal :is-open="isShareModalOpen" :title="post.title" @close="isShareModalOpen = false" />
   </article>
 
   <!-- 404 Page: Tối ưu UI/UX Mobile & Desktop Chuẩn Đẹp Tự Động -->

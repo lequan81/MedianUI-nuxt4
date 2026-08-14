@@ -3,6 +3,7 @@ import { useAppConfig } from "#imports";
 import { useHomePosts } from "~/composables/useHomePosts";
 import { useSeo } from "~/composables/useSeo";
 import { getPostImage, getPostPath } from "~/composables/usePosts";
+import { prefetchOnHover } from "~/composables/useIdlePrefetch";
 
 const appConfig = useAppConfig();
 const postText = appConfig.postText;
@@ -59,7 +60,7 @@ const {
       <div class="space-y-6">
         <article v-for="post in pinnedPosts" :key="post.path"
           class="group grid gap-5 sm:grid-cols-[minmax(220px,288px)_1fr]">
-          <NuxtLink :to="getPostPath(post)" class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
+          <NuxtLink :to="getPostPath(post)" @mouseenter.once="prefetchOnHover(getPostPath(post))" class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <NuxtImg :src="getPostImage(post)" :alt="post.title" :width="600" :height="338"
               sizes="sm:100vw md:50vw lg:33vw"
               class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
@@ -80,7 +81,7 @@ const {
                 {{ post.category }}
               </NuxtLink>
             </div>
-            <NuxtLink :to="getPostPath(post)" class="group/link block">
+            <NuxtLink :to="getPostPath(post)" @mouseenter.once="prefetchOnHover(getPostPath(post))" class="group/link block">
               <h2 class="line-clamp-2 text-lg font-semibold leading-snug text-text-main lg:text-xl group-hover/link:text-primary transition-colors">
                 {{ post.title }}
               </h2>

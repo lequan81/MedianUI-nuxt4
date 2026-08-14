@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, watch } from "vue";
+import { useTimeout } from "~/composables/useTimeout";
 import type { TocItem } from "~/types/post";
 
 const props = defineProps<{
@@ -71,7 +72,9 @@ function updateActiveHeading() {
   state.activeId = currentActiveId;
 }
 
-let isScrolling = false;
+let rafId: number | null = null;
+const { set: setHeadingTimer, clear: clearHeadingTimer } = useTimeout();
+
 function onScroll() {
   if (!import.meta.client) return;
   const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
@@ -87,11 +90,10 @@ function onScroll() {
   }
   lastScrollY = currentScrollY;
 
-  if (!isScrolling) {
-    isScrolling = true;
-    requestAnimationFrame(() => {
+  if (!rafId) {
+    rafId = requestAnimationFrame(() => {
       updateActiveHeading();
-      isScrolling = false;
+      rafId = null;
     });
   }
 }
@@ -100,7 +102,7 @@ watch(
   flatLinks,
   () => {
     if (import.meta.client) {
-      setTimeout(updateActiveHeading, 100);
+      setHeadingTimer(updateActiveHeading, 100);
     }
   },
   { immediate: true },
@@ -110,13 +112,15 @@ onMounted(() => {
   if (import.meta.client) {
     lastScrollY = window.scrollY || 0;
     window.addEventListener("scroll", onScroll, { passive: true });
-    setTimeout(updateActiveHeading, 100);
+    setHeadingTimer(updateActiveHeading, 100);
   }
 });
 
 onBeforeUnmount(() => {
   if (import.meta.client) {
     window.removeEventListener("scroll", onScroll);
+    if (rafId) cancelAnimationFrame(rafId);
+    clearHeadingTimer();
   }
 });
 

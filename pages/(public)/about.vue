@@ -21,7 +21,7 @@ const { data: page } = await useAsyncData(
 
 const tocLinks = computed(() => {
   if (!page.value) return [];
-  return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
+  return page.value.body?.toc?.links || [];
 });
 
 useSeo({

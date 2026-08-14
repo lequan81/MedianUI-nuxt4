@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
+
+vi.stubGlobal("useRoute", () => ({ query: {} }));
+vi.stubGlobal("useAsyncData", () => ({ data: ref([]), status: ref("idle") }));
+
 import { useHomePosts } from "~/composables/useHomePosts";
 
 describe("useHomePosts composable", () => {

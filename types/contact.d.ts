@@ -1,39 +1,46 @@
+export type ContactFormStatus =
+  | { readonly kind: "idle" }
+  | { readonly kind: "submitting" }
+  | { readonly kind: "submitted"; readonly data: SubmittedContactData }
+  | { readonly kind: "error"; readonly message: string };
+
 export interface ContactMessage {
-  id: string;
-  name: string;
-  email: string;
-  subject?: string;
-  message: string;
-  status: "unread" | "read" | "archived";
-  created_at: string;
-  ip?: string;
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly subject?: string;
+  readonly message: string;
+  readonly status: "unread" | "read" | "archived";
+  readonly created_at: string;
+  readonly ip?: string;
 }
 
 export interface ContactSubmission {
-  name: string;
-  email: string;
-  subject?: string;
-  message: string;
-  captcha_token?: string;
+  readonly name: string;
+  readonly email: string;
+  readonly subject?: string;
+  readonly message: string;
+  readonly captcha_token?: string;
 }
 
 export interface RequestLog {
   timestamps: number[];
-  ip?: string;
+  readonly ip?: string;
+}
+
+export interface SubmittedContactData {
+  readonly name: string;
+  readonly email: string;
+  readonly subject: string;
+  readonly message: string;
+  readonly time: string;
 }
 
 export interface ContactConfig {
-  rateLimit: {
-    maxBurstRequests: number;
-    burstWindowSeconds: number;
-    maxWindowRequests: number;
-    maxWindowSeconds: number;
-  };
-  messages: {
-    success: string;
-    burstLimitExceeded: (seconds: number) => string;
-    windowLimitExceeded: (seconds: number) => string;
-    validationError: string;
-    serverError: string;
+  readonly rateLimit: {
+    readonly maxBurstRequests: number;
+    readonly burstWindowSeconds: number;
+    readonly maxWindowRequests: number;
+    readonly maxWindowSeconds: number;
   };
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { useAutoReset } from "~/composables/useTimeout";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const props = defineProps<{
@@ -12,7 +12,7 @@ const emit = defineEmits<{
   (e: "close"): void;
 }>();
 
-const isCopied = ref(false);
+const { state: isCopied, trigger: triggerCopied } = useAutoReset(false, false, 2000);
 
 function getShareUrl() {
   if (props.url) return props.url;
@@ -35,10 +35,7 @@ function handleCopy() {
     document.body.removeChild(input);
   }
 
-  isCopied.value = true;
-  setTimeout(() => {
-    isCopied.value = false;
-  }, 2000);
+  triggerCopied(true);
 }
 
 function openShare(platform: string) {

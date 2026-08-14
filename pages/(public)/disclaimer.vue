@@ -12,7 +12,7 @@ const { data: page } = await useAsyncData("page-disclaimer", async () => {
 
 const tocLinks = computed(() => {
   if (!page.value) return [];
-  return page.value.body?.toc?.links || (page.value as any).toc?.links || [];
+  return page.value.body?.toc?.links || [];
 });
 
 useSeo({

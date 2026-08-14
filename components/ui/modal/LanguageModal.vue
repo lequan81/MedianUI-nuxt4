@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { useLangStore, supportedLanguages } from '~/stores/useLangStore'
-import AppIcon from '~/components/ui/icon/AppIcon.vue'
+import { isSupportedLocale } from "~/app/config/languages";
+import { useLangStore, supportedLanguages } from "~/stores/useLangStore";
+import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
-const langStore = useLangStore()
+const { setLocale } = useI18n();
+const langStore = useLangStore();
+
+function changeLanguage(code: string) {
+  if (isSupportedLocale(code) && typeof setLocale === "function") {
+    setLocale(code);
+  }
+  langStore.setLanguage(code);
+}
 </script>
 
 <template>
@@ -47,7 +56,7 @@ const langStore = useLangStore()
                 langStore.currentLang === lang.code
                   ? 'border-primary bg-primary-subtle text-primary font-semibold'
                   : 'border-border-main bg-bg-sec text-text-main hover:border-primary hover:text-primary hover:bg-bg-alt'
-              ]" @click="langStore.setLanguage(lang.code)">
+              ]" @click="changeLanguage(lang.code)">
                 <div class="flex items-center gap-2 min-w-0">
                   <!-- Real Flag Image API with gentle rounded corners -->
                   <div

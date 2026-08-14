@@ -1,19 +1,26 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import { getPostPath } from "~/composables/usePosts";
 import { useAppStore } from "~/stores/useAppStore";
+import { useTimeout } from "~/composables/useTimeout";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const appStore = useAppStore();
 const searchQuery = ref("");
+const selectedIndex = ref(0);
 const inputRef = ref<HTMLInputElement | null>(null);
 
-const posts = ref<any[]>([]);
+const posts = shallowRef<any[]>([]);
+let hasLoadedPosts = false;
 
-onMounted(async () => {
-  const data = await queryCollection("posts").all();
-  posts.value = data || [];
-});
+async function ensurePostsLoaded() {
+  if (hasLoadedPosts) return;
+  hasLoadedPosts = true;
+  try {
+    const data = await queryCollection("posts").all();
+    posts.value = data || [];
+  } catch {}
+}
 
 const popularTags = computed(() => {
   const categories = new Set(
@@ -35,22 +42,62 @@ const results = computed(() => {
     .slice(0, 8);
 });
 
+watch(searchQuery, () => {
+  selectedIndex.value = 0;
+});
+
+const keyHandlers: Record<string, (e: KeyboardEvent) => void> = {
+  Escape: () => appStore.closeSearchModal(),
+  ArrowDown: (e) => {
+    e.preventDefault();
+    if (results.value.length) {
+      selectedIndex.value = (selectedIndex.value + 1) % results.value.length;
+    }
+  },
+  ArrowUp: (e) => {
+    e.preventDefault();
+    if (results.value.length) {
+      selectedIndex.value =
+        selectedIndex.value <= 0 ? results.value.length - 1 : selectedIndex.value - 1;
+    }
+  },
+  Enter: (e) => {
+    const targetPost = results.value[selectedIndex.value];
+    if (targetPost) {
+      e.preventDefault();
+      appStore.closeSearchModal();
+      navigateTo(getPostPath(targetPost));
+    }
+  },
+};
+
 function handleKeyDown(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
     appStore.toggleSearchModal();
-  } else if (e.key === "Escape" && appStore.isSearchOpen) {
-    appStore.closeSearchModal();
+    return;
+  }
+
+  if (!appStore.isSearchOpen) return;
+
+  const handler = keyHandlers[e.key];
+  if (handler) {
+    handler(e);
   }
 }
+
+const { set: setFocusTimer } = useTimeout();
 
 watch(
   () => appStore.isSearchOpen,
   (isOpen) => {
     if (isOpen) {
-      setTimeout(() => inputRef.value?.focus(), 100);
+      ensurePostsLoaded();
+      selectedIndex.value = 0;
+      setFocusTimer(() => inputRef.value?.focus(), 100);
     } else {
       searchQuery.value = "";
+      selectedIndex.value = 0;
     }
   },
 );
@@ -89,7 +136,7 @@ onUnmounted(() => {
               ref="inputRef"
               v-model="searchQuery"
               type="text"
-              placeholder="Tìm kiếm bài viết, chuyên mục..."
+              placeholder="Tìm kiếm bài viết, chuyên mục... (Dùng ↑ ↓ để chọn, Enter để mở)"
               class="w-full bg-transparent text-xs sm:text-sm font-medium text-text-main outline-none placeholder:text-text-muted"
             />
             <button
@@ -135,17 +182,26 @@ onUnmounted(() => {
                 <span class="font-bold text-primary">"{{ searchQuery }}"</span>
               </div>
 
-              <!-- Search Results Cards -->
+              <!-- Search Results Cards with Keyboard Navigation Highlight -->
               <NuxtLink
-                v-for="post in results"
+                v-for="(post, index) in results"
                 :key="post.path"
                 :to="getPostPath(post)"
-                class="group block rounded-xl border border-border-main bg-bg-sec p-2.5 sm:p-3.5 transition-all duration-200 hover:border-primary hover:bg-bg-alt shadow-2xs cursor-pointer"
+                :class="[
+                  'group block rounded-xl border p-2.5 sm:p-3.5 transition-all duration-150 shadow-2xs cursor-pointer',
+                  selectedIndex === index
+                    ? 'border-primary bg-primary-subtle/30 ring-1 ring-primary/40'
+                    : 'border-border-main bg-bg-sec hover:border-primary hover:bg-bg-alt',
+                ]"
+                @mouseenter="selectedIndex = index"
                 @click="appStore.closeSearchModal"
               >
                 <div class="flex items-center justify-between gap-2 mb-0.5 sm:mb-1">
                   <span
-                    class="block truncate text-xs sm:text-sm font-bold text-text-main group-hover:text-primary transition-colors"
+                    :class="[
+                      'block truncate text-xs sm:text-sm font-bold transition-colors',
+                      selectedIndex === index ? 'text-primary' : 'text-text-main group-hover:text-primary',
+                    ]"
                   >
                     {{ post.title }}
                   </span>
@@ -169,14 +225,24 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Modal Footer Info -->
+          <!-- Modal Footer Info with Keyboard Shortcuts -->
           <div
             class="flex items-center justify-between border-t border-border-subtle bg-bg-sec/60 px-4 py-2.5 text-[11px] text-text-muted"
           >
-            <span>Tìm kiếm toàn bộ nội dung</span>
-            <span class="font-medium text-text-main"
-              >{{ results.length }} kết quả</span
-            >
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:inline-flex items-center gap-1">
+                <kbd class="rounded bg-bg-base px-1 py-0.2 border border-border-subtle text-[10px]">↑</kbd>
+                <kbd class="rounded bg-bg-base px-1 py-0.2 border border-border-subtle text-[10px]">↓</kbd>
+                <span>Di chuyển</span>
+              </span>
+              <span class="hidden sm:inline-flex items-center gap-1">
+                <kbd class="rounded bg-bg-base px-1 py-0.2 border border-border-subtle text-[10px]">↵</kbd>
+                <span>Mở bài viết</span>
+              </span>
+            </div>
+            <span class="font-medium text-text-main">
+              {{ results.length }} kết quả
+            </span>
           </div>
         </div>
       </div>

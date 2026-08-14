@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./components/toast.css";
 
 @theme {
   --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

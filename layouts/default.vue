@@ -35,7 +35,7 @@ const hideRightSidebar = computed(() => {
               </div>
 
               <!-- RightSidebar Container trên Desktop -->
-              <aside v-show="!hideRightSidebar" class="hidden w-72 max-w-125 shrink-0 xl:block">
+              <aside v-if="!hideRightSidebar" class="hidden w-72 max-w-125 shrink-0 xl:block">
                 <div class="sticky top-20">
                   <RightSidebar />
                 </div>
@@ -50,9 +50,9 @@ const hideRightSidebar = computed(() => {
 
     <!-- Modals & Toasts Global Overlay -->
     <ClientOnly>
-      <SearchModal />
-      <LanguageModal />
-      <FloatingTopButton />
+      <LazySearchModal />
+      <LazyLanguageModal />
+      <LazyFloatingTopButton />
       <AppToast />
     </ClientOnly>
   </div>

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import AppInput from "~/components/ui/input/AppInput.vue";
 
-
 describe("AppInput Primitive UI Component", () => {
   it("should render label and placeholder correctly", () => {
     const wrapper = mount(AppInput, {
@@ -10,6 +9,11 @@ describe("AppInput Primitive UI Component", () => {
         label: "Họ và tên",
         placeholder: "Nhập tên...",
         required: true,
+      },
+      global: {
+        stubs: {
+          AppIcon: true,
+        },
       },
     });
 
@@ -21,6 +25,11 @@ describe("AppInput Primitive UI Component", () => {
   it("should emit update:modelValue on input event", async () => {
     const wrapper = mount(AppInput, {
       props: { modelValue: "" },
+      global: {
+        stubs: {
+          AppIcon: true,
+        },
+      },
     });
 
     const input = wrapper.find("input");
@@ -33,6 +42,11 @@ describe("AppInput Primitive UI Component", () => {
   it("should display error message and red border when error prop is set", () => {
     const wrapper = mount(AppInput, {
       props: { error: "Email không hợp lệ" },
+      global: {
+        stubs: {
+          AppIcon: true,
+        },
+      },
     });
 
     expect(wrapper.text()).toContain("Email không hợp lệ");

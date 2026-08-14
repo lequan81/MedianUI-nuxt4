@@ -1,87 +1,87 @@
-import { defineStore } from 'pinia'
-import { reactive, computed } from 'vue'
+import { defineStore } from "pinia";
+import { reactive, computed } from "vue";
 
-export const useAppStore = defineStore('app', () => {
+export const useAppStore = defineStore("app", () => {
+  const themeCookie = useCookie<string>("theme", {
+    default: () => "light",
+    maxAge: 31536000,
+    path: "/",
+  });
+
   // State
   const state = reactive({
     isSidebarCollapsed: true,
     isMobileMenuOpen: false,
     isSearchOpen: false,
-    isDarkMode: false,
-    viewMode: 'grid' as 'grid' | 'list',
+    isDarkMode: themeCookie.value === "dark",
+    viewMode: "grid" as "grid" | "list",
     bookmarkedPostIds: [1, 3] as number[],
-  })
+  });
 
   // Actions
   function toggleSidebar() {
-    state.isSidebarCollapsed = !state.isSidebarCollapsed
+    state.isSidebarCollapsed = !state.isSidebarCollapsed;
   }
 
   function toggleMobileMenu() {
-    state.isMobileMenuOpen = !state.isMobileMenuOpen
+    state.isMobileMenuOpen = !state.isMobileMenuOpen;
   }
 
   function closeMobileMenu() {
-    state.isMobileMenuOpen = false
+    state.isMobileMenuOpen = false;
   }
 
   function toggleSearchModal() {
-    state.isSearchOpen = !state.isSearchOpen
+    state.isSearchOpen = !state.isSearchOpen;
   }
 
   function closeSearchModal() {
-    state.isSearchOpen = false
+    state.isSearchOpen = false;
   }
 
   function initTheme() {
     if (import.meta.client) {
-      const savedTheme = localStorage.getItem('median_theme')
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      const isDocDark = document.documentElement.classList.contains('dark')
+      const isDocDark = document.documentElement.classList.contains("dark");
+      const isDark = themeCookie.value === "dark" || isDocDark;
 
-      if (savedTheme === 'dark' || (!savedTheme && systemDark) || isDocDark) {
-        state.isDarkMode = true
-        document.documentElement.classList.add('dark')
+      state.isDarkMode = isDark;
+      if (isDark) {
+        document.documentElement.classList.add("dark");
       } else {
-        state.isDarkMode = false
-        document.documentElement.classList.remove('dark')
+        document.documentElement.classList.remove("dark");
       }
     }
   }
 
   function toggleDarkMode() {
-    if (import.meta.client) {
-      const isCurrentlyDark = document.documentElement.classList.contains('dark')
-      const targetState = !isCurrentlyDark
+    const targetState = !state.isDarkMode;
+    state.isDarkMode = targetState;
+    themeCookie.value = targetState ? "dark" : "light";
 
-      state.isDarkMode = targetState
+    if (import.meta.client) {
       if (targetState) {
-        document.documentElement.classList.add('dark')
-        localStorage.setItem('median_theme', 'dark')
+        document.documentElement.classList.add("dark");
       } else {
-        document.documentElement.classList.remove('dark')
-        localStorage.setItem('median_theme', 'light')
+        document.documentElement.classList.remove("dark");
       }
-    } else {
-      state.isDarkMode = !state.isDarkMode
     }
   }
 
-  function setViewMode(mode: 'grid' | 'list') {
-    state.viewMode = mode
+  function setViewMode(mode: "grid" | "list") {
+    state.viewMode = mode;
   }
 
   function toggleBookmark(postId: number) {
-    const index = state.bookmarkedPostIds.indexOf(postId)
+    const index = state.bookmarkedPostIds.indexOf(postId);
     if (index > -1) {
-      state.bookmarkedPostIds.splice(index, 1)
+      state.bookmarkedPostIds.splice(index, 1);
     } else {
-      state.bookmarkedPostIds.push(postId)
+      state.bookmarkedPostIds.push(postId);
     }
   }
 
   function isBookmarked(postId: number) {
-    return state.bookmarkedPostIds.includes(postId)
+    return state.bookmarkedPostIds.includes(postId);
   }
 
   return {
@@ -101,6 +101,6 @@ export const useAppStore = defineStore('app', () => {
     toggleDarkMode,
     setViewMode,
     toggleBookmark,
-    isBookmarked
-  }
-})
+    isBookmarked,
+  };
+});

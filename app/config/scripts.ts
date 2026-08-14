@@ -1,14 +1,15 @@
 /**
  * Application Head Scripts Configuration
- * Centralized definition for inline theme IIFE and external scripts (Cloudflare Turnstile).
+ * Centralized definition for inline theme initialization.
  */
 
-// Theme initialization IIFE script (prevents FOUC on initial page render)
+// Zero-FOUC theme initialization script (runs synchronously in head before layout render)
 export const themeInitScript = `
 (function() {
   try {
-    var theme = localStorage.getItem('median_theme');
-    var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var match = document.cookie.match(/(?:^|; )theme=([^;]*)/);
+    var cookieTheme = match ? decodeURIComponent(match[1]) : null;
+    var isDark = cookieTheme === 'dark' || (!cookieTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
@@ -21,18 +22,11 @@ export const themeInitScript = `
 /**
  * Generates head script objects for Nuxt app config.
  */
-export function getHeadScripts(turnstileUrl?: string) {
-  const turnstileSrc = turnstileUrl || "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-
+export function getHeadScripts() {
   return [
     {
       innerHTML: themeInitScript,
       type: "text/javascript",
-    },
-    {
-      src: turnstileSrc,
-      async: true,
-      defer: true,
     },
   ];
 }

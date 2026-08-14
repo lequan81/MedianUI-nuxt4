@@ -5,6 +5,8 @@ import AppIcon from '~/components/ui/icon/AppIcon.vue'
 const isVisible = ref(false)
 let lastScrollY = 0
 
+let rafId: number | null = null
+
 function checkScroll() {
   if (!import.meta.client) return
   if (window.innerWidth >= 640) {
@@ -12,11 +14,7 @@ function checkScroll() {
     return
   }
 
-  const y = Math.max(
-    window.scrollY || 0,
-    document.documentElement.scrollTop || 0,
-    document.body.scrollTop || 0
-  )
+  const y = window.scrollY || document.documentElement.scrollTop || 0
 
   if (y <= 200) {
     isVisible.value = false
@@ -31,6 +29,15 @@ function checkScroll() {
   lastScrollY = y
 }
 
+function handleScroll() {
+  if (!rafId) {
+    rafId = requestAnimationFrame(() => {
+      checkScroll()
+      rafId = null
+    })
+  }
+}
+
 function scrollToTop() {
   if (import.meta.client) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -42,15 +49,14 @@ onMounted(() => {
   if (import.meta.client) {
     lastScrollY = window.scrollY || 0
     checkScroll()
-    window.addEventListener('scroll', checkScroll, { passive: true })
-    document.addEventListener('scroll', checkScroll, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true })
   }
 })
 
 onBeforeUnmount(() => {
   if (import.meta.client) {
-    window.removeEventListener('scroll', checkScroll)
-    document.removeEventListener('scroll', checkScroll)
+    window.removeEventListener('scroll', handleScroll)
+    if (rafId) cancelAnimationFrame(rafId)
   }
 })
 </script>

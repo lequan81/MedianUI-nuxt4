@@ -1,33 +1,33 @@
-import type { LucideName } from "~/app/config/site";
+import type { LucideName } from "~/types/ui";
 
 export interface NavChild {
-  label: string;
-  to?: string;
-  href?: string;
-  external?: boolean;
+  readonly label: string;
+  readonly to?: string;
+  readonly href?: string;
+  readonly external?: boolean;
 }
 
 export interface NavItem {
-  id: string;
-  label: string;
-  to?: string;
-  href?: string;
-  icon: LucideName;
-  badge?: string;
-  external?: boolean;
-  dividerAfter?: boolean;
-  children?: NavChild[];
+  readonly id: string;
+  readonly label: string;
+  readonly to?: string;
+  readonly href?: string;
+  readonly icon: LucideName;
+  readonly badge?: string;
+  readonly external?: boolean;
+  readonly dividerAfter?: boolean;
+  readonly children?: readonly NavChild[];
 }
 
 export interface NavSocialIcons {
-  label: string;
-  to?: string;
-  href?: string;
-  icon: LucideName;
-  external?: boolean;
+  readonly label: string;
+  readonly to?: string;
+  readonly href?: string;
+  readonly icon: LucideName;
+  readonly external?: boolean;
 }
 
 export interface BreadcrumbItem {
-  label: string;
-  to?: string;
+  readonly label: string;
+  readonly to?: string;
 }

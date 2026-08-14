@@ -1,43 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
-const STORAGE_KEY = "median_notification_dismissed_until";
-const HIDE_DURATION_DAYS = 7;
-const HIDE_DURATION_MS = HIDE_DURATION_DAYS * 24 * 60 * 60 * 1000;
+// Update this version string whenever a new banner/announcement is published
+const CURRENT_ANNOUNCEMENT_ID = "median-v1.7.0-release";
 
-const isVisible = ref(false);
-
-onMounted(() => {
-  const isClient = import.meta.client || typeof window !== "undefined";
-  if (isClient) {
-    try {
-      const dismissedUntil = localStorage.getItem(STORAGE_KEY);
-      if (dismissedUntil) {
-        const untilTimestamp = parseInt(dismissedUntil, 10);
-        if (!isNaN(untilTimestamp) && Date.now() < untilTimestamp) {
-          isVisible.value = false;
-          return;
-        }
-      }
-    } catch {
-      // Fallback if localStorage is restricted
-    }
-    isVisible.value = true;
-  }
+// 14 days time-to-live cookie for announcement dismissal
+const dismissedCookie = useCookie<string | null>("median_dismissed_banner", {
+  maxAge: 14 * 24 * 60 * 60, // 14 days
+  path: "/",
+  default: () => null,
 });
+
+// SSR-compatible visibility: automatically false if current version was already dismissed within 14 days
+const isVisible = ref(dismissedCookie.value !== CURRENT_ANNOUNCEMENT_ID);
 
 function dismiss() {
   isVisible.value = false;
-  const isClient = import.meta.client || typeof window !== "undefined";
-  if (isClient) {
-    try {
-      const untilTimestamp = Date.now() + HIDE_DURATION_MS;
-      localStorage.setItem(STORAGE_KEY, String(untilTimestamp));
-    } catch {
-      // Fallback if localStorage is restricted
-    }
-  }
+  dismissedCookie.value = CURRENT_ANNOUNCEMENT_ID;
 }
 </script>
 
@@ -52,9 +32,9 @@ function dismiss() {
         <span class="leading-normal">
           🎉 Welcome to <strong>Median UI v1.7</strong> reconstructed with <strong>Nuxt 4</strong> &amp; <strong>Tailwind CSS v4</strong>!
         </span>
-        <a href="/blog" class="underline hover:text-white/80 dark:hover:text-primary font-semibold ml-1 inline-flex items-center gap-0.5 shrink-0">
+        <NuxtLink to="/blog" class="underline hover:text-white/80 dark:hover:text-primary font-semibold ml-1 inline-flex items-center gap-0.5 shrink-0">
           Learn More &rarr;
-        </a>
+        </NuxtLink>
       </div>
 
       <button

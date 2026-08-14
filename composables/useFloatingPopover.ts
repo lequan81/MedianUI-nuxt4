@@ -1,12 +1,6 @@
 import { onMounted, onUnmounted, ref, watch, type Ref } from "vue";
 import { autoUpdate, computePosition, flip, offset, shift, type Placement } from "@floating-ui/dom";
-
-export interface UseFloatingPopoverOptions {
-  placement?: Placement;
-  offsetDistance?: number;
-  padding?: number;
-  headerOffset?: number;
-}
+import type { UseFloatingPopoverOptions } from "~/types/ui";
 
 export function useFloatingPopover(
   referenceRef: Ref<HTMLElement | null>,

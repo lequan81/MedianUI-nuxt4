@@ -1,4 +1,4 @@
-import type { LucideName } from "~/app/config/site";
+import type { LucideName } from "~/types/ui";
 
 export interface AuthorSocial {
   name?: string;

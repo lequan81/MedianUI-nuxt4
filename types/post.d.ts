@@ -1,4 +1,4 @@
-import type { AuthorConfig } from "~/app/config/author";
+import type { AuthorConfig } from "~/types/author";
 
 export interface PostItem {
   path: string;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { useAutoReset } from "~/composables/useTimeout";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 const props = defineProps<{
@@ -7,18 +7,15 @@ const props = defineProps<{
   url?: string;
 }>();
 
-const copied = ref(false);
+const { state: copied, trigger: triggerCopied } = useAutoReset(false, false, 2000);
 
 function copyToClipboard() {
   const currentUrl =
     props.url || (import.meta.client ? window.location.href : "");
 
-  if (navigator.clipboard) {
+  if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(currentUrl).then(() => {
-      copied.value = true;
-      setTimeout(() => {
-        copied.value = false;
-      }, 2000);
+      triggerCopied(true);
     });
   }
 }

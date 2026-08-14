@@ -1,31 +1,27 @@
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
 import { useAuthor } from "~/composables/useAuthor";
 import { getPostPath } from "~/composables/usePosts";
 import { useSeo } from "~/composables/useSeo";
+import { useTimeout } from "~/composables/useTimeout";
 import type { PostItem } from "~/types/post";
 
 
 export function useBlogPost() {
-  const route = typeof useRoute === "function" ? useRoute() : ({ params: {} } as any);
+  const route = useRoute();
   const slug = computed(() => String(route.params.slug || ""));
   const isShareModalOpen = ref(false);
 
-  const { data: post, status } = typeof useAsyncData === "function"
-    ? useAsyncData(`post-${slug.value}`, async () => {
-        if (typeof queryCollection === "function") {
-          const byPath = await queryCollection("posts")
-            .path(`/blog/${slug.value}`)
-            .first();
-          if (byPath) return byPath as PostItem;
+  const { data: post, status } = useAsyncData(`post-${slug.value}`, async () => {
+    const byPath = await queryCollection("posts")
+      .path(`/blog/${slug.value}`)
+      .first();
+    if (byPath) return byPath as unknown as PostItem;
 
-          const all = await queryCollection("posts").all();
-          return (
-            all.find((item: any) => getPostPath(item) === `/blog/${slug.value}`) || null
-          ) as PostItem | null;
-        }
-        return null as PostItem | null;
-      })
-    : { data: ref(null as PostItem | null), status: ref("idle") };
+    const all = await queryCollection("posts").all();
+    return (
+      (all as unknown as PostItem[]).find((item) => getPostPath(item) === `/blog/${slug.value}`) || null
+    );
+  });
 
 
   const authorInfo = computed(() => {
@@ -82,7 +78,7 @@ export function useBlogPost() {
         .slice(0, 6);
     }
   )
-  : { data: ref([] as PostItem[]) };
+  : { data: shallowRef([] as PostItem[]) };
 
 
   const allPostTags = computed(() => {
@@ -101,8 +97,9 @@ export function useBlogPost() {
   });
 
   const maxTagsLimit = computed(() => {
-    if (typeof (post.value as any)?.maxTags === "number") {
-      return (post.value as any).maxTags;
+    const postItem = post.value as PostItem | null;
+    if (typeof postItem?.maxTags === "number") {
+      return postItem.maxTags;
     }
     return 5;
   });
@@ -112,55 +109,54 @@ export function useBlogPost() {
   });
 
   const visiblePostTags = computed(() => {
-    if (isOverflowingTags.value) {
-      return allPostTags.value.slice(0, maxTagsLimit.value - 1);
-    }
-    return allPostTags.value;
+    if (isTagsExpanded.value) return allPostTags.value;
+    return allPostTags.value.slice(0, maxTagsLimit.value);
   });
 
   const hiddenPostTags = computed(() => {
     if (isOverflowingTags.value) {
-      return allPostTags.value.slice(maxTagsLimit.value - 1);
+      return allPostTags.value.slice(maxTagsLimit.value);
     }
     return [];
   });
 
-  const extractedTocLinks = ref<any[]>([]);
+  const hiddenTagsCount = computed(() => {
+    return Math.max(0, allPostTags.value.length - maxTagsLimit.value);
+  });
+
+  const extractedTocLinks = ref<TocLink[]>([]);
 
   function extractHeadingsFromDOM() {
     if (!import.meta.client) return;
-    const articleEl = document.querySelector(".prose-content");
-    if (!articleEl) return;
 
-    const headings = articleEl.querySelectorAll("h2, h3");
-    const items: any[] = [];
-    let lastH2: any = null;
+    const container = document.querySelector(".prose-content, article");
+    if (!container) return;
 
-    headings.forEach((heading, idx) => {
+    const headings = container.querySelectorAll("h2, h3");
+    const items: TocLink[] = [];
+
+    headings.forEach((el, index) => {
+      const heading = el as HTMLElement;
       let id = heading.id;
       if (!id) {
-        id = `heading-${idx}`;
+        id = `heading-${index}`;
         heading.id = id;
       }
 
       const text = heading.textContent?.trim() || "";
-      if (!text) return;
+      const depth = heading.tagName.toLowerCase() === "h2" ? 2 : 3;
 
-      const item = {
-        id,
-        text,
-        depth: heading.tagName.toLowerCase() === "h2" ? 2 : 3,
-        children: [],
-      };
-
-      if (item.depth === 2) {
-        items.push(item);
-        lastH2 = item;
-      } else if (item.depth === 3) {
-        if (lastH2) {
-          lastH2.children.push(item);
+      if (text) {
+        if (depth === 2) {
+          items.push({ id, text, depth, children: [] });
         } else {
-          items.push(item);
+          const lastH2 = items[items.length - 1];
+          if (lastH2) {
+            if (!lastH2.children) lastH2.children = [];
+            lastH2.children.push({ id, text, depth });
+          } else {
+            items.push({ id, text, depth });
+          }
         }
       }
     });
@@ -170,14 +166,16 @@ export function useBlogPost() {
 
   const tocLinks = computed(() => {
     if (!post.value) return [];
-    const contentToc = post.value.body?.toc?.links || (post.value as any).toc?.links || [];
+    const contentToc = post.value.body?.toc?.links || [];
     if (contentToc && contentToc.length > 0) return contentToc;
     return extractedTocLinks.value;
   });
 
+  const { set: setTocTimer } = useTimeout();
+
   onMounted(() => {
     if (import.meta.client && !post.value?.body?.toc?.links?.length) {
-      setTimeout(extractHeadingsFromDOM, 300);
+      setTocTimer(extractHeadingsFromDOM, 300);
     }
   });
 

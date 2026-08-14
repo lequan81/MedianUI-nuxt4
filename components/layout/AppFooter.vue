@@ -1,13 +1,24 @@
 <script setup lang="ts">
-import { footerLinks, siteConfig } from "~/app/config/site";
+import { computed } from "vue";
+import { useRequestURL } from "#imports";
+import { footerLinks } from "~/app/config/site";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
+
+const currentYear = new Date().getFullYear();
+const requestUrl = useRequestURL();
+
+const currentHost = computed(() => {
+  if (import.meta.client) {
+    return window.location.hostname || "lequan81.dev";
+  }
+  return requestUrl.hostname || "lequan81.dev";
+});
 
 function scrollToTop(e?: Event) {
   if (e) {
     e.preventDefault();
     e.stopPropagation();
   }
-  console.log("[AppFooter] Clicked! Scrolling smooth to top...");
   if (import.meta.client) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -20,7 +31,7 @@ function scrollToTop(e?: Event) {
       class="mx-auto flex max-w-7xl flex-col gap-3 border-t border-border-main px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
     >
       <span class="truncate text-text-muted text-xs font-normal">
-        &copy; {{ siteConfig.copyright }}
+        &copy; {{ currentYear }} <strong class="font-semibold text-text-main">{{ currentHost }}</strong>. All rights reserved.
       </span>
 
       <nav class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-text-muted">
@@ -33,7 +44,7 @@ function scrollToTop(e?: Event) {
             {{ link.label }}
           </NuxtLink>
           <a
-            v-else
+            v-else-if="link.href"
             :href="link.href"
             class="transition-colors hover:text-primary px-0.5 py-0.5"
             target="_blank"

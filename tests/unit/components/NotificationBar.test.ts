@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { ref } from "vue";
 import NotificationBar from "~/components/layout/NotificationBar.vue";
+
+const cookieValue = ref<string | null>(null);
+
+vi.stubGlobal("useCookie", () => cookieValue);
 
 describe("NotificationBar UI Component Test", () => {
   beforeEach(() => {
-    localStorage.clear();
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
+    cookieValue.value = null;
   });
 
   it("should display notification bar when not dismissed before", async () => {
@@ -19,11 +19,9 @@ describe("NotificationBar UI Component Test", () => {
     expect(wrapper.text()).toContain("Welcome to Median UI v1.7");
   });
 
-  it("should hide notification bar and store 7-day expiration timestamp when dismissed", async () => {
+  it("should hide notification bar and store announcement ID in cookie when dismissed", async () => {
     const wrapper = mount(NotificationBar);
     await wrapper.vm.$nextTick();
-
-    expect(wrapper.find("div").exists()).toBe(true);
 
     const closeBtn = wrapper.find("button[aria-label='Đóng thông báo']");
     expect(closeBtn.exists()).toBe(true);
@@ -31,17 +29,11 @@ describe("NotificationBar UI Component Test", () => {
     await closeBtn.trigger("click");
     await wrapper.vm.$nextTick();
 
-    const storedUntil = localStorage.getItem("median_notification_dismissed_until");
-    expect(storedUntil).not.toBeNull();
-
-    const untilTimestamp = parseInt(storedUntil || "0", 10);
-    const expectedTimestamp = Date.now() + 7 * 24 * 60 * 60 * 1000;
-    expect(Math.abs(untilTimestamp - expectedTimestamp)).toBeLessThan(1000);
+    expect(cookieValue.value).toBe("median-v1.7.0-release");
   });
 
-  it("should remain hidden on mount if dismissed timestamp is still valid", async () => {
-    const validUntil = Date.now() + 3 * 24 * 60 * 60 * 1000; // 3 days in future
-    localStorage.setItem("median_notification_dismissed_until", String(validUntil));
+  it("should remain hidden on mount if dismissed announcement ID is already set", async () => {
+    cookieValue.value = "median-v1.7.0-release";
 
     const wrapper = mount(NotificationBar);
     await wrapper.vm.$nextTick();

@@ -17,27 +17,18 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     dbFileName: readEnv("DB_FILE_NAME", "lequan81dev_app.sqlite"),
-    geminiApiKey: readEnv("GEMINI_API_KEY"),
-    geminiModels: readEnv(
-      "GEMINI_MODELS",
-      "gemini-3.1-flash-lite,gemini-2.0-flash-lite,gemini-1.5-flash"
-    ),
-    geminiBaseUrl: readEnv(
-      "GEMINI_BASE_URL",
-      "https://generativelanguage.googleapis.com/v1beta/models"
-    ),
-    geminiTimeout: Number(readEnv("GEMINI_TIMEOUT", "3000")) || 3000,
+    adminSecret: readEnv("ADMIN_SECRET", "admin123"),
+    adminPassword: readEnv("ADMIN_PASSWORD", ""),
+    adminHmacSecret: readEnv("ADMIN_HMAC_SECRET", ""),
     turnstileSecretKey: readEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA"),
-    turnstileVerifyUrl: readEnv(
-      "TURNSTILE_VERIFY_URL",
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify"
-    ),
+    turnstileVerifyUrl: readEnv("TURNSTILE_VERIFY_URL", "https://challenges.cloudflare.com/turnstile/v0/siteverify"),
     public: {
       turnstileSiteKey: readEnv("NUXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA"),
       turnstileScriptUrl: readEnv(
         "NUXT_PUBLIC_TURNSTILE_SCRIPT_URL",
         "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
       ),
+      siteUrl: "https://lequan81.dev",
     },
   },
 
@@ -55,6 +46,14 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    "/**": {
+      headers: {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      },
+    },
     "/": { isr: 60 },
     "/blog/**": { isr: 300 },
     "/about": { prerender: true },
@@ -78,12 +77,29 @@ export default defineNuxtConfig({
 
   modules: [
     "@pinia/nuxt",
+    "@nuxtjs/i18n",
     "@nuxt/content",
     "@nuxtjs/sitemap",
     "@nuxtjs/robots",
     "@nuxt/scripts",
     "@nuxt/image",
   ],
+
+  i18n: {
+    defaultLocale: "vi",
+    langDir: "locales",
+    strategy: "no_prefix",
+    locales: [
+      { code: "vi", name: "Tiếng Việt", file: "vi.json" },
+      { code: "en", name: "English", file: "en.json" },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "locale",
+      redirectOn: "root",
+      alwaysRedirect: false,
+    },
+  },
 
   vite: {
     plugins: [tailwindcss()],
@@ -102,7 +118,7 @@ export default defineNuxtConfig({
     name: "Lê Quân (@lequan81) - Blog Cá Nhân",
     description: "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân.",
     defaultLocale: "vi",
-  } as any,
+  },
 
   robots: {
     groups: [
@@ -145,12 +161,7 @@ export default defineNuxtConfig({
           content: "Chia sẻ bài viết, trải nghiệm lập trình & công nghệ cá nhân.",
         },
       ],
-      script: getHeadScripts(
-        readEnv(
-          "NUXT_PUBLIC_TURNSTILE_SCRIPT_URL",
-          "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-        )
-      ),
+      script: getHeadScripts(),
       link: [
         { rel: "dns-prefetch", href: "https://fonts.googleapis.com" },
         { rel: "dns-prefetch", href: "https://fonts.gstatic.com" },

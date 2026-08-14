@@ -1,8 +1,7 @@
 import type { NavChild, NavItem, NavSocialIcons } from "~/types/navigation";
 export type { NavChild, NavItem, NavSocialIcons };
 
-
-export const sidebarItems: NavItem[] = [
+export const sidebarItems: readonly NavItem[] = [
   {
     id: "home",
     label: "Trang chủ",
@@ -65,14 +64,8 @@ export const sidebarItems: NavItem[] = [
   },
 ];
 
-export const adminSidebarItems: NavItem[] = [
+export const adminSidebarItems: readonly NavItem[] = [
   { id: "admin-home", label: "Tổng quan Admin", icon: "home", to: "/admin" },
-  {
-    id: "admin-comments",
-    label: "Duyệt bình luận",
-    icon: "message-square",
-    to: "/admin/comments",
-  },
   {
     id: "admin-contacts",
     label: "Hòm thư liên hệ",
@@ -94,7 +87,7 @@ export const adminSidebarItems: NavItem[] = [
   },
 ];
 
-export const footerLinks: NavChild[] = [
+export const footerLinks: readonly NavChild[] = [
   { label: "Sitemap", href: "/sitemap.xml", external: true },
   { label: "Terms of Service", to: "/tos" },
   { label: "Disclaimer", to: "/disclaimer" },
@@ -102,7 +95,7 @@ export const footerLinks: NavChild[] = [
   { label: "Faq", to: "/faq" },
 ];
 
-export const footerSocials: NavSocialIcons[] = [
+export const footerSocials: readonly NavSocialIcons[] = [
   {
     label: "Facebook",
     href: "https://www.facebook.com/lequan81",
@@ -123,7 +116,7 @@ export const footerSocials: NavSocialIcons[] = [
   },
 ];
 
-export const mobileNavItems: NavItem[] = [
+export const mobileNavItems: readonly NavItem[] = [
   { id: "home", label: "Home", to: "/", icon: "home" },
   { id: "menu", label: "Menu", icon: "menu" },
   { id: "saved", label: "Saved", to: "/#saved", icon: "bookmark" },

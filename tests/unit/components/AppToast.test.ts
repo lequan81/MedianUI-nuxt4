@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { h, defineComponent } from "vue";
 
 // Mock vue-sonner
 vi.mock("vue-sonner", () => ({
@@ -9,11 +10,13 @@ vi.mock("vue-sonner", () => ({
     warning: vi.fn(),
     info: vi.fn(),
   },
-  Toaster: {
+  Toaster: defineComponent({
     name: "Toaster",
-    template: "<div data-sonner-toaster />",
-    props: ["position", "visibleToasts", "duration", "offset", "gap", "theme", "richColors", "closeButton", "toastOptions"],
-  },
+    props: ["position", "visibleToasts", "duration", "offset", "gap", "theme", "closeButton", "toastOptions"],
+    render() {
+      return h("div", { "data-sonner-toaster": "", class: "toaster-mock" });
+    },
+  }),
 }));
 
 import AppToast from "~/components/ui/toast/AppToast.vue";
@@ -21,12 +24,11 @@ import AppToast from "~/components/ui/toast/AppToast.vue";
 describe("AppToast UI Component Test", () => {
   it("should render vue-sonner Toaster component", () => {
     const wrapper = mount(AppToast);
-    expect(wrapper.html()).toContain("data-sonner-toaster");
+    expect(wrapper.find("[data-sonner-toaster]").exists()).toBe(true);
   });
 
   it("should render with top-center position", () => {
     const wrapper = mount(AppToast);
-    // Toaster component is rendered
     expect(wrapper.findComponent({ name: "Toaster" }).exists()).toBe(true);
   });
 });

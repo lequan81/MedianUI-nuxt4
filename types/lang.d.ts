@@ -1,8 +1,10 @@
+export type { SupportedLocale, SupportedLanguage } from "~/app/config/languages";
+
 export interface LanguageItem {
-  code: string;
-  countryCode: string;
-  name: string;
-  localName: string;
-  flag: string;
-  flagUrl: string;
+  readonly code: string;
+  readonly countryCode: string;
+  readonly name: string;
+  readonly localName: string;
+  readonly flag: string;
+  readonly flagUrl: string;
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useTimeout } from "~/composables/useTimeout";
 
 const props = withDefaults(
   defineProps<{
@@ -25,7 +26,7 @@ const computedPos = ref<{ vertical: "top" | "bottom"; horizontal: "left" | "righ
   horizontal: props.align,
 });
 
-let hideTimer: ReturnType<typeof setTimeout> | null = null;
+const { set: setHideTimer, clear: clearHideTimer } = useTimeout();
 
 function calculatePosition() {
   if (!triggerRef.value) return;
@@ -54,13 +55,13 @@ function calculatePosition() {
 }
 
 function showTooltip() {
-  if (hideTimer) clearTimeout(hideTimer);
+  clearHideTimer();
   calculatePosition();
   isVisible.value = true;
 }
 
 function hideTooltip() {
-  hideTimer = setTimeout(() => {
+  setHideTimer(() => {
     isVisible.value = false;
   }, props.delay);
 }

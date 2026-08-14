@@ -1,12 +1,16 @@
-export default defineNuxtPlugin((nuxtApp) => {
+import type { RouteLocationNormalized } from "vue-router";
+
+export default defineNuxtPlugin((nuxtApp: any) => {
   const router = useRouter();
+
+  const MIN_SHOW_MS = 250; // Smooth visual feedback duration without stalling navigation
 
   const overlay = document.createElement("div");
   overlay.id = "global-loading-overlay";
   overlay.setAttribute("aria-hidden", "true");
   overlay.setAttribute("data-nosnippet", "");
   overlay.className =
-    "fixed inset-0 z-9999 flex items-center justify-center bg-bg-base/95 dark:bg-bg-base/95 select-none pointer-events-none opacity-0 transform-gpu";
+    "fixed inset-0 z-9999 flex items-center justify-center bg-bg-base/90 dark:bg-bg-base/90 select-none pointer-events-none opacity-0 transition-opacity duration-200 ease-out transform-gpu";
 
   overlay.innerHTML = `
     <div class="grid-loader">
@@ -23,89 +27,75 @@ export default defineNuxtPlugin((nuxtApp) => {
   `;
 
   document.body.appendChild(overlay);
-
   const gridLoader = overlay.querySelector(".grid-loader") as HTMLElement;
 
-  let loadStartTime = 0;
-  const MIN_SHOW_MS = 450;
-
-  let timer: ReturnType<typeof setTimeout> | null = null;
+  let showTimer: ReturnType<typeof setTimeout> | null = null;
+  let hideTimer: ReturnType<typeof setTimeout> | null = null;
   let maxSafetyTimer: ReturnType<typeof setTimeout> | null = null;
+  let shownAt = 0;
+  let isShown = false;
 
   function showLoader() {
-    if (timer) clearTimeout(timer);
+    if (showTimer) clearTimeout(showTimer);
+    if (hideTimer) clearTimeout(hideTimer);
     if (maxSafetyTimer) clearTimeout(maxSafetyTimer);
 
-    loadStartTime = performance.now();
+    // If navigation takes longer than 60ms, display the smooth loading animation
+    showTimer = setTimeout(() => {
+      isShown = true;
+      shownAt = performance.now();
+      overlay.style.opacity = "1";
+      overlay.style.pointerEvents = "auto";
+      if (gridLoader) {
+        gridLoader.classList.add("run-anim");
+      }
+      document.body.classList.add("page-loading");
+    }, 60);
 
-    // Instant show (0ms delay)
-    overlay.style.transition = "none";
-    overlay.style.opacity = "1";
-    overlay.style.pointerEvents = "auto";
-
-    // Fast 0.01ms keyframe animation clock reset to t=0ms
-    if (gridLoader) {
-      gridLoader.classList.remove("run-anim");
-      void gridLoader.offsetWidth;
-      gridLoader.classList.add("run-anim");
-    }
-
-    document.body.classList.add("page-loading");
-
-    // Safety fallback: auto dismiss after 3.5s
-    maxSafetyTimer = setTimeout(hideLoader, 3500);
+    maxSafetyTimer = setTimeout(forceHide, 3500);
   }
 
   function hideLoader() {
-    if (maxSafetyTimer) clearTimeout(maxSafetyTimer);
-    if (timer) clearTimeout(timer);
+    if (showTimer) {
+      clearTimeout(showTimer);
+      showTimer = null;
+    }
 
-    const elapsed = Math.round(performance.now() - loadStartTime);
+    if (!isShown) {
+      forceHide();
+      return;
+    }
+
+    const elapsed = performance.now() - shownAt;
     const remaining = Math.max(0, MIN_SHOW_MS - elapsed);
 
-    timer = setTimeout(() => {
-      // Step 1: Render <main> behind opaque overlay
-      document.body.classList.remove("page-loading");
-
-      // Step 2: Double rAF to complete GPU layout & paint behind overlay
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // Step 3: Smooth 0.2s curtain fade-out
-          overlay.style.transition = "opacity 0.2s ease-out";
-          overlay.style.opacity = "0";
-          overlay.style.pointerEvents = "none";
-
-          if (gridLoader) {
-            gridLoader.classList.remove("run-anim");
-          }
-        });
-      });
-    }, remaining);
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(forceHide, remaining);
   }
 
-  // Native Pointer Capture for instant 0ms response before router processing
-  if (import.meta.client) {
-    window.addEventListener(
-      "click",
-      (e) => {
-        const target = (e.target as HTMLElement)?.closest("a");
-        if (target && target.getAttribute("href")?.startsWith("/")) {
-          const href = target.getAttribute("href");
-          if (href && href !== window.location.pathname) {
-            showLoader();
-          }
-        }
-      },
-      { capture: true, passive: true }
-    );
+  function forceHide() {
+    if (showTimer) clearTimeout(showTimer);
+    if (hideTimer) clearTimeout(hideTimer);
+    if (maxSafetyTimer) clearTimeout(maxSafetyTimer);
+    showTimer = null;
+    hideTimer = null;
+    maxSafetyTimer = null;
+    isShown = false;
+
+    document.body.classList.remove("page-loading");
+    overlay.style.opacity = "0";
+    overlay.style.pointerEvents = "none";
+    if (gridLoader) {
+      gridLoader.classList.remove("run-anim");
+    }
   }
 
-  router.beforeEach((to, from) => {
+  router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized) => {
     if (to.path !== from.path) {
       showLoader();
     }
   });
 
   nuxtApp.hook("page:finish", hideLoader);
-  nuxtApp.hook("app:error", hideLoader);
+  nuxtApp.hook("app:error", forceHide);
 });

@@ -37,8 +37,7 @@ export default defineEventHandler(async (event) => {
     { loc: "/disclaimer", changefreq: "yearly", priority: 0.3 },
   ];
 
-  try {
-    const posts = await (queryCollection as any)(event, "posts").all();
+    const posts = await queryCollection(event, "posts").all();
     if (Array.isArray(posts)) {
       const postUrls = posts.map((post: any) => ({
         loc: post.path || `/blog/${post.stem || post.id}`,

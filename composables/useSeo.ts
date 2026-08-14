@@ -1,16 +1,6 @@
-import type { Ref } from "vue";
 import { authorConfig, siteConfig } from "~/app/config/site";
 import type { PostItem } from "~/types/post";
-
-export interface SeoOptions {
-  title?: string | (() => string);
-  description?: string | (() => string);
-  image?: string | (() => string);
-  type?: "website" | "article";
-  publishedTime?: string | (() => string);
-  jsonLdType?: "WebPage" | "BlogPosting";
-  post?: Ref<PostItem | null | any> | PostItem | any;
-}
+import type { SeoOptions } from "~/types/seo";
 
 /**
  * Unified SEO Composable for pages and articles

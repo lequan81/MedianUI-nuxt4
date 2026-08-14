@@ -1,0 +1,75 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "products": "Products",
+    "communities": "Communities",
+    "saved": "Saved",
+    "theme": "Theme",
+    "menu": "Menu",
+    "admin": "Admin",
+    "searchPlaceholder": "Search articles, categories..."
+  },
+  "post": {
+    "readingTime": "min read",
+    "updatedAt": "Updated",
+    "relatedPosts": "Related Articles",
+    "tableOfContents": "Table of Contents",
+    "share": "Share",
+    "copied": "Copied",
+    "copy": "Copy",
+    "discussionTitle": "Discussion & Feedback",
+    "discussionDesc": "Have a question, found an issue, or want to discuss this topic further? Feel free to share your feedback with the author.",
+    "githubDiscussions": "GitHub Discussions",
+    "directFeedback": "Send Direct Feedback",
+    "notFoundTitle": "Post Not Found",
+    "notFoundMessage": "The requested article does not exist or has been removed.",
+    "backHome": "Back to Home"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Send a direct message to Le Quan",
+    "name": "Full Name",
+    "namePlaceholder": "Enter your name",
+    "email": "Email",
+    "emailPlaceholder": "your.email@example.com",
+    "subject": "Subject",
+    "subjectPlaceholder": "Subject (optional)",
+    "message": "Message Content",
+    "messagePlaceholder": "What would you like to discuss with Le Quan...",
+    "submit": "Send Message",
+    "submitting": "Sending...",
+    "successTitle": "Message sent successfully! 🎉",
+    "successDesc": "Thank you for reaching out. Your message has been routed directly to the author.",
+    "sendAnother": "Send another message",
+    "directEmail": "Direct Email",
+    "responseTime": "Response Time",
+    "responseGuarantee": "Committed response within < 24 hours",
+    "location": "Location",
+    "locationValue": "Vietnam (UTC+07:00 timezone)"
+  },
+  "search": {
+    "title": "Search",
+    "popularTags": "Popular Categories",
+    "resultsFor": "Search results for:",
+    "noResults": "No matching articles found.",
+    "totalResults": "{count} results",
+    "navigateHint": "Navigate",
+    "openHint": "Open article"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "disclaimer": "Disclaimer",
+    "faq": "FAQ",
+    "sitemap": "Sitemap",
+    "top": "Back to Top"
+  },
+  "lang": {
+    "title": "Language / Ngôn ngữ",
+    "subtitle": "Choose display language",
+    "note": "Language preference is automatically saved for future visits."
+  }
+}

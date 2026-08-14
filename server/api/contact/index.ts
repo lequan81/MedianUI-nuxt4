@@ -1,13 +1,29 @@
-import { defineEventHandler, readBody, createError, getRequestIP } from "h3";
+import { defineEventHandler, readBody, createError, getRequestIP, getCookie, setHeader } from "h3";
 import * as v from "valibot";
 import { contactConfig } from "~/app/config/contact";
 import { insertContact } from "~/server/utils/db";
-import { verifyTurnstileToken } from "~/server/utils/turnstile";
 import type { RequestLog } from "~/types/contact";
 import { contactSchema } from "~/utils/validators/contact";
 
-
-
+async function verifyTurnstileToken(
+  token: string,
+  ip?: string,
+  secretKey?: string,
+  verifyUrl = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+): Promise<{ success: boolean }> {
+  if (!secretKey || secretKey === "1x0000000000000000000000000000000AA") {
+    return { success: true }; // Allow always-pass test key & local testing
+  }
+  try {
+    const res = await $fetch<{ success: boolean }>(verifyUrl, {
+      method: "POST",
+      body: { secret: secretKey, response: token, remoteip: ip },
+    });
+    return { success: Boolean(res?.success) };
+  } catch {
+    return { success: true };
+  }
+}
 
 const rateLimitStore = new Map<string, RequestLog>();
 
@@ -49,9 +65,8 @@ export default defineEventHandler(async (event) => {
       statusCode: 429,
       statusMessage: "Too Many Requests",
       data: {
-        reason: "burst",
+        code: "RATE_LIMIT_BURST",
         retryAfter: retryAfterSeconds,
-        message: contactConfig.messages.burstLimitExceeded(retryAfterSeconds),
       },
     });
   }
@@ -69,14 +84,34 @@ export default defineEventHandler(async (event) => {
       statusCode: 429,
       statusMessage: "Too Many Requests",
       data: {
-        reason: "window",
+        code: "RATE_LIMIT_WINDOW",
         retryAfter: retryAfterSeconds,
-        message: contactConfig.messages.windowLimitExceeded(retryAfterSeconds),
       },
     });
   }
 
   const body = await readBody(event);
+
+  // Anti-bot Trap 1: Honeypot field (hidden website_url)
+  if (body?.website_url && String(body.website_url).trim() !== "") {
+    // Fake success return to trick bot without inserting into DB
+    return {
+      success: true,
+      code: "SUCCESS",
+    };
+  }
+
+  // Anti-bot Trap 2: Time-to-Submit trap (form completed < 1.5 seconds)
+  if (body?._t && typeof body._t === "number" && now - body._t < 1500) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Bad Request",
+      data: {
+        code: "SUBMIT_TOO_FAST",
+      },
+    });
+  }
+
   const result = v.safeParse(contactSchema, body);
 
   if (!result.success) {
@@ -92,7 +127,7 @@ export default defineEventHandler(async (event) => {
       statusCode: 400,
       statusMessage: "Bad Request",
       data: {
-        message: contactConfig.messages.validationError,
+        code: "VALIDATION_ERROR",
         fieldErrors,
       },
     });
@@ -100,12 +135,20 @@ export default defineEventHandler(async (event) => {
 
   // Verify Captcha token if provided
   if (body?.captcha_token) {
-    const turnstile = await verifyTurnstileToken(body.captcha_token);
+    const config = useRuntimeConfig(event);
+    const turnstile = await verifyTurnstileToken(
+      body.captcha_token,
+      ip,
+      config.turnstileSecretKey,
+      config.turnstileVerifyUrl
+    );
     if (!turnstile.success) {
       throw createError({
         statusCode: 400,
         statusMessage: "Bad Request",
-        data: { message: "Xác minh Captcha không hợp lệ. Vui lòng thử lại." },
+        data: {
+          code: "CAPTCHA_INVALID",
+        },
       });
     }
   }
@@ -123,7 +166,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    message: contactConfig.messages.success,
+    code: "SUCCESS",
     contact: savedContact,
   };
 });

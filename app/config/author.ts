@@ -1,6 +1,6 @@
 import type { AuthorConfig } from "~/types/author";
 
-export const authorConfig: AuthorConfig = {
+export const authorConfig = {
   name: "Lê Quân",
   handle: "@lequan81",
   avatar: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhL3yrcwWnlPeCOG6T3jtIoy42wtnpAvvPmo4s77w6SqVUi9xkSQam983z330vy7o-zOD77wK3qlMNIw5VhDcBAqMyJvtkcODRCf7FXXfsoCse2BRsdTXAPByodpi3C9zI/w40-h40-p-k-no-nu/juno-okyo-logo.png",
@@ -14,4 +14,4 @@ export const authorConfig: AuthorConfig = {
     { name: "Website", icon: "globe", href: "https://lequan81.dev" },
     { name: "Email", icon: "mail", href: "mailto:contact@lequan81.dev" },
   ],
-};
+} as const satisfies AuthorConfig;

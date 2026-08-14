@@ -15,7 +15,7 @@ export function useGuestIdentity() {
 
   const rawGuestId = ref<string>("guest-default");
 
-  if (!import.meta.server && typeof window !== "undefined") {
+  if (import.meta.client) {
     try {
       let stored = sessionStorage.getItem(STORAGE_KEY);
       if (!stored) {

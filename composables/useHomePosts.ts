@@ -4,7 +4,7 @@ import { useAuthor } from "~/composables/useAuthor";
 import type { PostItem } from "~/types/post";
 
 export function useHomePosts() {
-  const route = typeof useRoute === "function" ? useRoute() : ({ query: {} } as any);
+  const route = useRoute();
   const pageSize = 8;
   const dropdownContainer = ref<HTMLElement | null>(null);
 
@@ -15,15 +15,10 @@ export function useHomePosts() {
     isAddCategoryOpen: false,
   });
 
-  const { data: posts, status } = typeof useAsyncData === "function"
-    ? useAsyncData("home-posts", async () => {
-        if (typeof queryCollection === "function") {
-          const result = await queryCollection("posts").all();
-          return (result || []) as PostItem[];
-        }
-        return [] as PostItem[];
-      })
-    : { data: ref([] as PostItem[]), status: ref("idle") };
+  const { data: posts, status } = useAsyncData("home-posts", async () => {
+    const result = await queryCollection("posts").all();
+    return (result || []) as unknown as PostItem[];
+  });
 
 
   function getAuthorInfo(post: PostItem | any) {
@@ -165,20 +160,11 @@ export function useHomePosts() {
     }
   }
 
-  let autoplayTimer: ReturnType<typeof setInterval> | null = null;
-
-  function nextSlide() {
-    if (!sliderPosts.value.length) return;
-    state.currentSlide = (state.currentSlide + 1) % sliderPosts.value.length;
-  }
-
   onMounted(() => {
-    autoplayTimer = setInterval(nextSlide, 5200);
     window.addEventListener("click", handleClickOutside);
   });
 
   onUnmounted(() => {
-    if (autoplayTimer) clearInterval(autoplayTimer);
     window.removeEventListener("click", handleClickOutside);
   });
 

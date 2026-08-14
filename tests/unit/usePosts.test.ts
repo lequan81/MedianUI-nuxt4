@@ -5,7 +5,7 @@ import {
   getLabelCounts,
   sortPopularPosts,
   sortPinnedFirst,
-  formatTimeAgo,
+  formatPostTimeAgo,
 } from "../../composables/usePosts";
 
 describe("usePosts Helpers", () => {
@@ -38,24 +38,24 @@ describe("usePosts Helpers", () => {
 
   it("should sort pinned posts first", () => {
     const mockPosts = [
-      { id: 1, title: "Post 1", pinned: false },
-      { id: 2, title: "Post 2", pinned: true },
-      { id: 3, title: "Post 3", pinned: false },
+      { id: 1, title: "Post 1", pinned: false, path: "/blog/post-1", category: "Tech", date: "2024-01-01" },
+      { id: 2, title: "Post 2", pinned: true, path: "/blog/post-2", category: "Tech", date: "2024-01-02" },
+      { id: 3, title: "Post 3", pinned: false, path: "/blog/post-3", category: "Tech", date: "2024-01-03" },
     ];
     const sorted = sortPinnedFirst(mockPosts);
-    expect(sorted[0]?.id).toBe(2);
+    expect(sorted[0]?.title).toBe("Post 2");
   });
 
   it("should sort popular posts by comments count descending", () => {
     const mockPosts = [
-      { id: 1, comments: 5 },
-      { id: 2, comments: 20 },
-      { id: 3, comments: 12 },
+      { id: 1, title: "Post 1", path: "/blog/post-1", category: "Tech", date: "2024-01-01", comments: 5 },
+      { id: 2, title: "Post 2", path: "/blog/post-2", category: "Tech", date: "2024-01-02", comments: 20 },
+      { id: 3, title: "Post 3", path: "/blog/post-3", category: "Tech", date: "2024-01-03", comments: 12 },
     ];
     const sorted = sortPopularPosts(mockPosts);
-    expect(sorted[0]?.id).toBe(2);
-    expect(sorted[1]?.id).toBe(3);
-    expect(sorted[2]?.id).toBe(1);
+    expect(sorted[0]?.title).toBe("Post 2");
+    expect(sorted[1]?.title).toBe("Post 3");
+    expect(sorted[2]?.title).toBe("Post 1");
   });
 
   it("should format relative time ago strings correctly", () => {
@@ -63,8 +63,8 @@ describe("usePosts Helpers", () => {
     const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
     const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
-    expect(formatTimeAgo({ date: tenMinutesAgo })).toBe("10 minutes ago");
-    expect(formatTimeAgo({ date: twoDaysAgo })).toBe("2 days ago");
-    expect(formatTimeAgo(null, "Unknown")).toBe("Unknown");
+    expect(formatPostTimeAgo({ date: tenMinutesAgo })).toBe("10m");
+    expect(formatPostTimeAgo({ date: twoDaysAgo })).toBe("2d");
+    expect(formatPostTimeAgo(null, "Unknown")).toBe("Unknown");
   });
 });

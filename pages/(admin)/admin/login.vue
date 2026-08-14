@@ -26,14 +26,12 @@ async function handleLogin() {
   form.errorMessage = "";
 
   try {
-    const res = await $fetch<any>("/api/admin/auth/login", {
+    await $fetch("/api/admin/auth/login", {
       method: "POST",
       body: { password: form.password },
     });
 
-    if (res?.success) {
-      navigateTo("/admin");
-    }
+    navigateTo("/admin");
   } catch (err: any) {
     form.errorMessage = err?.data?.data?.message || err?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại mật khẩu.";
   } finally {

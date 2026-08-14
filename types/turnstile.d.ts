@@ -1,22 +1,57 @@
-export interface TurnstileWidgetOptions {
+export interface TurnstileRenderOptions {
   sitekey: string;
   callback?: (token: string) => void;
-  "error-callback"?: (error?: any) => void;
+  "error-callback"?: (errorCode?: string) => void;
   "expired-callback"?: () => void;
   theme?: "light" | "dark" | "auto";
+  appearance?: "always" | "execute" | "interaction-only";
   size?: "normal" | "compact" | "flexible";
+  action?: string;
+  cData?: string;
 }
 
-export interface TurnstileObject {
-  render: (container: string | HTMLElement, options: TurnstileWidgetOptions) => string;
+export interface TurnstileInstance {
+  render: (container: string | HTMLElement | Element | unknown, options: TurnstileRenderOptions) => string;
   reset: (widgetId?: string) => void;
-  remove: (widgetId: string) => void;
+  remove: (widgetId?: string) => void;
+  getResponse: (widgetId?: string) => string | undefined;
 }
 
 declare global {
   interface Window {
-    turnstile?: TurnstileObject;
+    turnstile?: TurnstileInstance;
+    onloadTurnstileCallback?: () => void;
   }
 }
 
-export {};
+declare module "@nuxt/schema" {
+  interface PublicRuntimeConfig {
+    turnstileSiteKey: string;
+    turnstileScriptUrl: string;
+    siteUrl: string;
+  }
+  interface RuntimeConfig {
+    turnstileSecretKey: string;
+    turnstileVerifyUrl: string;
+    dbFileName: string;
+    adminSecret: string;
+    adminPassword?: string;
+    adminHmacSecret?: string;
+  }
+}
+
+declare module "nuxt/schema" {
+  interface PublicRuntimeConfig {
+    turnstileSiteKey: string;
+    turnstileScriptUrl: string;
+    siteUrl: string;
+  }
+  interface RuntimeConfig {
+    turnstileSecretKey: string;
+    turnstileVerifyUrl: string;
+    dbFileName: string;
+    adminSecret: string;
+    adminPassword?: string;
+    adminHmacSecret?: string;
+  }
+}

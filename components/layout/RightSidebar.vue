@@ -5,8 +5,8 @@ import {
   getLabelCounts,
   getPostImage,
   getPostPath,
-  formatTimeAgo,
   sortPopularPosts,
+  formatPostTimeAgo,
 } from "~/composables/usePosts";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
@@ -116,7 +116,7 @@ function isCategoryActive(name: string) {
             <div class="min-w-0 flex-1">
               <div class="mb-1 flex items-baseline text-xs text-text-alt">
                 <span>{{
-                  formatTimeAgo(popularPosts[0], popularPosts[0].date)
+                  formatPostTimeAgo(popularPosts[0], popularPosts[0].date)
                 }}</span>
                 <span class="mx-1">/</span>
                 <span class="font-medium text-primary">{{
@@ -141,7 +141,7 @@ function isCategoryActive(name: string) {
           </span>
           <div class="min-w-0 flex-1">
             <div class="mb-0.5 flex items-baseline text-xs text-text-alt">
-              <span>{{ formatTimeAgo(post, post.date) }}</span>
+              <span>{{ formatPostTimeAgo(post, post.date) }}</span>
               <span class="mx-1">/</span>
               <span class="font-medium text-primary">{{ post.category }}</span>
             </div>

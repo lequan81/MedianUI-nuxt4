@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from "vue";
+import { computed, ref, shallowRef, watch, nextTick, onMounted, onUnmounted } from "vue";
 import { getPostPath } from "~/composables/usePosts";
 import { useAppStore } from "~/stores/useAppStore";
 import { useTimeout } from "~/composables/useTimeout";
@@ -9,6 +9,7 @@ const appStore = useAppStore();
 const searchQuery = ref("");
 const selectedIndex = ref(0);
 const inputRef = ref<HTMLInputElement | null>(null);
+const resultsContainerRef = ref<HTMLDivElement | null>(null);
 
 const posts = shallowRef<any[]>([]);
 let hasLoadedPosts = false;
@@ -42,21 +43,54 @@ const results = computed(() => {
     .slice(0, 8);
 });
 
+let isKeyboardNav = false;
+
+function scrollToActiveItem(index: number) {
+  nextTick(() => {
+    const container = resultsContainerRef.value;
+    if (!container) return;
+
+    const items = container.querySelectorAll<HTMLElement>("[data-search-item]");
+    const activeEl = items[index];
+    if (activeEl && typeof activeEl.scrollIntoView === "function") {
+      activeEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  });
+}
+
+watch(selectedIndex, (newIdx) => {
+  if (isKeyboardNav) {
+    scrollToActiveItem(newIdx);
+  }
+});
+
 watch(searchQuery, () => {
   selectedIndex.value = 0;
+  nextTick(() => {
+    if (resultsContainerRef.value) {
+      resultsContainerRef.value.scrollTop = 0;
+    }
+  });
 });
+
+function onMouseMove(index: number) {
+  isKeyboardNav = false;
+  selectedIndex.value = index;
+}
 
 const keyHandlers: Record<string, (e: KeyboardEvent) => void> = {
   Escape: () => appStore.closeSearchModal(),
   ArrowDown: (e) => {
     e.preventDefault();
     if (results.value.length) {
+      isKeyboardNav = true;
       selectedIndex.value = (selectedIndex.value + 1) % results.value.length;
     }
   },
   ArrowUp: (e) => {
     e.preventDefault();
     if (results.value.length) {
+      isKeyboardNav = true;
       selectedIndex.value =
         selectedIndex.value <= 0 ? results.value.length - 1 : selectedIndex.value - 1;
     }
@@ -155,7 +189,10 @@ onUnmounted(() => {
           </div>
 
           <!-- Content Search Body -->
-          <div class="space-y-3 sm:space-y-4 overflow-y-auto p-3.5 sm:p-5">
+          <div
+            ref="resultsContainerRef"
+            class="space-y-3 sm:space-y-4 overflow-y-auto p-3.5 sm:p-5 max-h-[60vh] sm:max-h-[65vh]"
+          >
             <div v-if="!searchQuery">
               <h4
                 class="mb-2.5 text-[10.5px] font-bold uppercase tracking-wider text-text-muted"
@@ -186,26 +223,30 @@ onUnmounted(() => {
               <NuxtLink
                 v-for="(post, index) in results"
                 :key="post.path"
+                data-search-item
                 :to="getPostPath(post)"
                 :class="[
                   'group block rounded-xl border p-2.5 sm:p-3.5 transition-all duration-150 shadow-2xs cursor-pointer',
                   selectedIndex === index
                     ? 'border-primary bg-primary-subtle/30 ring-1 ring-primary/40'
-                    : 'border-border-main bg-bg-sec hover:border-primary hover:bg-bg-alt',
+                    : 'border-border-main bg-bg-sec hover:bg-bg-alt/70',
                 ]"
-                @mouseenter="selectedIndex = index"
+                @mousemove="onMouseMove(index)"
                 @click="appStore.closeSearchModal"
               >
                 <div class="flex items-center justify-between gap-2 mb-0.5 sm:mb-1">
                   <span
                     :class="[
                       'block truncate text-xs sm:text-sm font-bold transition-colors',
-                      selectedIndex === index ? 'text-primary' : 'text-text-main group-hover:text-primary',
+                      selectedIndex === index ? 'text-primary' : 'text-text-main',
                     ]"
                   >
                     {{ post.title }}
                   </span>
-                  <span v-if="post.category" class="shrink-0 text-[9.5px] sm:text-[10px] font-semibold text-primary rounded bg-primary-subtle px-1.5 py-0.5">
+                  <span
+                    v-if="post.category"
+                    class="shrink-0 text-[9.5px] sm:text-[10px] font-semibold text-primary rounded bg-primary-subtle px-1.5 py-0.5"
+                  >
                     {{ post.category }}
                   </span>
                 </div>

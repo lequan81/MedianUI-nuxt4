@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isSupportedLocale } from "~/app/config/languages";
+import { isI18nLocale, isSupportedLocale } from "~/app/config/defaults";
 import { useLangStore, supportedLanguages } from "~/stores/useLangStore";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
@@ -7,7 +7,7 @@ const { setLocale } = useI18n();
 const langStore = useLangStore();
 
 function changeLanguage(code: string) {
-  if (isSupportedLocale(code) && typeof setLocale === "function") {
+  if (isI18nLocale(code) && typeof setLocale === "function") {
     setLocale(code);
   }
   langStore.setLanguage(code);
@@ -61,7 +61,7 @@ function changeLanguage(code: string) {
                   <!-- Real Flag Image API with gentle rounded corners -->
                   <div
                     class="relative h-3.5 w-5 shrink-0 overflow-hidden rounded-xs border border-white/20 shadow-2xs bg-bg-sec">
-                    <NuxtImg :src="lang.flagUrl" :alt="lang.name" class="h-full w-full object-cover" loading="lazy" format="webp" />
+                    <NuxtImg :src="lang.flagUrl" :alt="lang.name" width="20" height="14" class="absolute inset-0 object-cover" loading="lazy" format="webp" />
                   </div>
 
                   <div class="min-w-0">

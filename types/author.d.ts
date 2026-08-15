@@ -3,7 +3,7 @@ import type { LucideName } from "~/types/ui";
 export interface AuthorSocial {
   name?: string;
   label?: string;
-  icon?: LucideName;
+  icon?: LucideName | string;
   href: string;
 }
 
@@ -15,5 +15,5 @@ export interface AuthorConfig {
   bio: string;
   email: string;
   website: string;
-  socials: AuthorSocial[];
+  socials: readonly AuthorSocial[];
 }

@@ -1,4 +1,5 @@
-import type { SupportedLocale } from "~/app/config/languages";
+import type { Ref } from "vue";
+import type { SupportedLocale } from "~/types/lang";
 
 export interface NuxtI18nComposer {
   locale: Ref<SupportedLocale>;

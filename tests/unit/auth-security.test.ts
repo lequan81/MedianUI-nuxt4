@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { generateUUIDv7 } from "../../server/utils/id";
-import { signSession, verifySessionToken } from "../../server/utils/admin-auth";
+import { generateUUIDv7 } from "~/server/utils/id";
+import { signSessionToken, verifySessionToken } from "~/server/services/auth.service";
 
 describe("Server Security & Auth Utilities", () => {
   it("should generate valid UUIDv7 strings", () => {
@@ -18,7 +18,7 @@ describe("Server Security & Auth Utilities", () => {
     const sessionId = generateUUIDv7();
     const expiresAt = Date.now() + 3600000;
 
-    const token = signSession(sessionId, expiresAt, secret);
+    const token = signSessionToken(sessionId, expiresAt, secret);
     expect(token).toBeDefined();
 
     const isValid = verifySessionToken(token, secret);
@@ -27,7 +27,7 @@ describe("Server Security & Auth Utilities", () => {
     const isTamperedValid = verifySessionToken(token + "tampered", secret);
     expect(isTamperedValid).toBe(false);
 
-    const isExpiredValid = verifySessionToken(signSession(sessionId, Date.now() - 1000, secret), secret);
+    const isExpiredValid = verifySessionToken(signSessionToken(sessionId, Date.now() - 1000, secret), secret);
     expect(isExpiredValid).toBe(false);
   });
 });

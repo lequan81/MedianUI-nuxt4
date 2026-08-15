@@ -17,11 +17,11 @@ const appStore = useAppStore();
   >
     <!-- Thumbnail Header Link -->
     <div class="relative w-full aspect-16/7 sm:aspect-video overflow-hidden bg-bg-sec">
-      <NuxtLink :to="post.path || '#'" class="block w-full h-full">
+      <NuxtLink :to="post.path || '#'" class="relative block aspect-16/7 sm:aspect-video w-full h-full">
         <NuxtImg
           :src="post.thumbnail"
           :alt="post.title"
-          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          class="absolute inset-0 object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
           format="webp"
           quality="80"

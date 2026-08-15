@@ -83,11 +83,25 @@ export default defineNuxtConfig({
     "@nuxtjs/robots",
     "@nuxt/scripts",
     "@nuxt/image",
+    "@nuxt/fonts",
   ],
+
+  fonts: {
+    families: [
+      { name: "Be Vietnam Pro", weights: [400, 500, 600, 700], subsets: ["vietnamese", "latin"], display: "swap" },
+      { name: "Fira Mono", weights: [400, 500], subsets: ["latin"], display: "swap" },
+    ],
+    assets: {
+      prefix: "/_fonts",
+    },
+    defaults: {
+      preload: true,
+    },
+  },
 
   i18n: {
     defaultLocale: "vi",
-    langDir: "locales",
+    langDir: "../locales",
     strategy: "no_prefix",
     locales: [
       { code: "vi", name: "Tiếng Việt", file: "vi.json" },
@@ -124,8 +138,26 @@ export default defineNuxtConfig({
     groups: [
       {
         userAgent: ["*"],
-        allow: ["/"],
-        disallow: ["/admin", "/admin/**", "/api/admin/**"],
+        allow: [
+          "/",
+          "/blog",
+          "/blog/**",
+          "/about",
+          "/contact",
+          "/faq",
+          "/privacy",
+          "/tos",
+          "/disclaimer",
+          "/sitemap",
+          "/_fonts/**",
+        ],
+        disallow: [
+          "/admin",
+          "/admin/**",
+          "/api/admin/**",
+          "/api/contact/**",
+          "/*.sqlite*",
+        ],
       },
     ],
     sitemap: "https://lequan81.dev/sitemap.xml",
@@ -134,6 +166,10 @@ export default defineNuxtConfig({
   sitemap: {
     sources: ["/api/__sitemap__/urls"],
     autoLastmod: true,
+    discoverImages: true,
+    strictNuxtContentPaths: false,
+    xsl: process.env.NODE_ENV !== "production" ? "/__sitemap__/style.xsl" : false,
+    credits: false,
   },
 
   image: {
@@ -163,22 +199,10 @@ export default defineNuxtConfig({
       ],
       script: getHeadScripts(),
       link: [
-        { rel: "dns-prefetch", href: "https://fonts.googleapis.com" },
-        { rel: "dns-prefetch", href: "https://fonts.gstatic.com" },
         { rel: "dns-prefetch", href: "https://images.unsplash.com" },
         { rel: "dns-prefetch", href: "https://flagcdn.com" },
         { rel: "dns-prefetch", href: "https://blogger.googleusercontent.com" },
         { rel: "dns-prefetch", href: "https://api.dicebear.com" },
-        { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        {
-          rel: "preconnect",
-          href: "https://fonts.gstatic.com",
-          crossorigin: "anonymous",
-        },
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap",
-        },
       ],
     },
   },

@@ -109,7 +109,7 @@ function toggleCard(id: string) {
           <div class="relative space-y-3.5">
             <div class="flex items-center gap-2.5">
               <!-- Avatar Viền Ring CSS Tròn Tuyệt Đối 100% -->
-              <NuxtImg :src="authorConfig.avatar" :alt="authorConfig.name" :class="[
+              <NuxtImg :src="authorConfig.avatar" :alt="authorConfig.name" :width="36" :height="36" :class="[
                 'h-9 w-9 shrink-0 rounded-full object-cover ring-2 shadow-xs transition-all duration-300',
                 activeCard === 'author' ? 'ring-primary scale-105' : 'ring-primary/20 group-hover:ring-primary group-hover:scale-105'
               ]" format="webp" loading="lazy" />

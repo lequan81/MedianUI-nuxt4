@@ -24,10 +24,32 @@ function updateReadingProgress() {
   if (scrollRafId) return;
   scrollRafId = window.requestAnimationFrame(() => {
     scrollRafId = 0;
-    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-    if (totalHeight > 0) {
-      readingProgress.value = Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100));
+    const articleEl = (document.querySelector(".prose-content") || document.querySelector("article")) as HTMLElement | null;
+    if (!articleEl) {
+      readingProgress.value = 0;
+      return;
     }
+
+    const rect = articleEl.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const totalHeight = rect.height;
+
+    // Start tracking as top of article scrolls past the header line
+    const scrolledPastTop = -rect.top + 70;
+    const scrollableDistance = totalHeight - windowHeight * 0.5;
+
+    if (scrolledPastTop <= 0) {
+      readingProgress.value = 0;
+      return;
+    }
+
+    if (scrollableDistance <= 0) {
+      readingProgress.value = 1;
+      return;
+    }
+
+    const ratio = Math.max(0, Math.min(1, scrolledPastTop / scrollableDistance));
+    readingProgress.value = ratio;
   });
 }
 
@@ -42,13 +64,26 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Top Reading Progress Indicator -->
+  <!-- Top Reading Progress Indicator (GPU-accelerated 120fps continuous scaleX) -->
   <div
-    class="fixed top-0 left-0 right-0 h-0.75 bg-primary z-50 transition-all duration-75 pointer-events-none"
-    :style="{ width: `${readingProgress}%` }"
+    class="fixed top-0 left-0 right-0 h-0.75 bg-primary z-50 pointer-events-none origin-left will-change-transform"
+    :style="{ transform: `scaleX(${readingProgress})` }"
   ></div>
 
-  <article v-if="post" class="mx-auto max-w-4xl space-y-10 min-w-0 wrap-break-word">
+  <!-- Loading Skeleton to prevent 404 flash during navigation -->
+  <div v-if="status === 'pending' && !post" class="mx-auto max-w-4xl space-y-6 animate-pulse py-4">
+    <div class="h-4 w-32 bg-bg-sec rounded"></div>
+    <div class="h-9 w-4/5 bg-bg-sec rounded-lg"></div>
+    <div class="h-4 w-1/2 bg-bg-sec rounded"></div>
+    <div class="h-64 sm:h-80 w-full bg-bg-sec rounded-xl"></div>
+    <div class="space-y-3 pt-4">
+      <div class="h-4 w-full bg-bg-sec rounded"></div>
+      <div class="h-4 w-11/12 bg-bg-sec rounded"></div>
+      <div class="h-4 w-3/4 bg-bg-sec rounded"></div>
+    </div>
+  </div>
+
+  <article v-else-if="post" class="mx-auto max-w-4xl space-y-10 min-w-0 wrap-break-word">
     <section class="min-w-0 space-y-8">
       <header>
         <AppBreadcrumb :items="[
@@ -56,8 +91,7 @@ onUnmounted(() => {
           { label: post.title }
         ]" />
 
-        <h1 class="text-lg sm:text-2xl md:text-3xl font-bold leading-snug tracking-tight text-text-main pb-2 mb-1">
-
+        <h1 class="text-xl sm:text-2xl md:text-3xl lg:text-[34px] font-extrabold leading-tight tracking-tight text-text-main pb-2 mb-1">
           {{ post.title }}
         </h1>
 
@@ -123,7 +157,7 @@ onUnmounted(() => {
       </div>
 
       <section v-if="relatedPosts?.length" class="mt-8 pt-2">
-        <WidgetTitle title="Bạn có thể thích những bài đăng này" />
+        <WidgetTitle :title="$t('post.relatedPosts')" />
 
         <!-- Unified Responsive Related Posts Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
@@ -167,7 +201,9 @@ onUnmounted(() => {
                 v-if="getPostImage(item)"
                 :src="getPostImage(item)"
                 :alt="item.title"
-                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                :width="88"
+                :height="88"
+                class="absolute inset-0 object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
                 format="webp"
                 quality="80"
@@ -185,8 +221,8 @@ onUnmounted(() => {
     <LazyShareModal :is-open="isShareModalOpen" :title="post.title" @close="isShareModalOpen = false" />
   </article>
 
-  <!-- 404 Page: Tối ưu UI/UX Mobile & Desktop Chuẩn Đẹp Tự Động -->
-  <NotFoundBlock v-else status-code="404" title="Post Not Found"
+  <!-- 404 Page: Chỉ hiển thị khi đã hoàn tất nạp dữ liệu và thực sự không tìm thấy bài viết -->
+  <NotFoundBlock v-else-if="status !== 'pending'" status-code="404" title="Post Not Found"
     :message="`Bài viết /blog/${slug} không tồn tại hoặc đã bị gỡ bỏ.`" />
 </template>
 

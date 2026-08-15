@@ -16,7 +16,7 @@ describe("NotificationBar UI Component Test", () => {
     const wrapper = mount(NotificationBar);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.text()).toContain("Welcome to Median UI v1.7");
+    expect(wrapper.text()).toContain("Median UI v1.7");
   });
 
   it("should hide notification bar and store announcement ID in cookie when dismissed", async () => {

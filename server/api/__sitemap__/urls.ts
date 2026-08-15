@@ -26,36 +26,72 @@ export default defineEventHandler(async (event) => {
       loc: "/",
       changefreq: "daily",
       priority: 1.0,
-      images: [{ loc: `${siteUrl}/og-banner.png`, title: "Lê Quân Blog" }],
+      images: [{ loc: `${siteUrl}/og-banner.png`, title: "Lê Quân (@lequan81) - Blog Cá Nhân" }],
     },
-    { loc: "/blog", changefreq: "daily", priority: 0.9 },
     { loc: "/about", changefreq: "monthly", priority: 0.8 },
     { loc: "/contact", changefreq: "monthly", priority: 0.8 },
     { loc: "/faq", changefreq: "monthly", priority: 0.7 },
     { loc: "/privacy", changefreq: "yearly", priority: 0.3 },
     { loc: "/tos", changefreq: "yearly", priority: 0.3 },
     { loc: "/disclaimer", changefreq: "yearly", priority: 0.3 },
+    { loc: "/sitemap", changefreq: "monthly", priority: 0.5 },
   ];
 
+  const dynamicUrls: any[] = [];
+  const processedSlugs = new Set<string>();
+
+  try {
     const posts = await queryCollection(event, "posts").all();
     if (Array.isArray(posts)) {
-      const postUrls = posts.map((post: any) => ({
-        loc: post.path || `/blog/${post.stem || post.id}`,
-        lastmod: toW3CDate(post.date),
-        changefreq: "weekly",
-        priority: 0.8,
-        images: [
-          {
-            loc: resolveImageUrl(post.thumbnail || post.image),
-            title: post.title || "Bài viết",
-          },
-        ],
-      }));
-      return [...staticUrls, ...postUrls];
+      for (const post of posts) {
+        // Extract clean slug removing locale prefixes (e.g. "vi/hello" -> "hello")
+        const rawPath = post.path || post.stem || post.id || "";
+        const cleanSlug = rawPath.replace(/^\/?blog\/(vi|en)\//, "").replace(/^\/?blog\//, "").replace(/^\//, "");
+        
+        if (!cleanSlug || processedSlugs.has(cleanSlug)) continue;
+        processedSlugs.add(cleanSlug);
+
+        const postUrl = `${siteUrl}/blog/${cleanSlug}`;
+
+        dynamicUrls.push({
+          loc: `/blog/${cleanSlug}`,
+          lastmod: toW3CDate(post.updatedAt || post.date),
+          changefreq: "weekly",
+          priority: post.pinned ? 0.9 : 0.8,
+          images: [
+            {
+              loc: resolveImageUrl(post.image),
+              title: post.title || "Bài viết",
+            },
+          ],
+          alternatives: [
+            { hreflang: "vi", href: postUrl },
+            { hreflang: "en", href: postUrl },
+            { hreflang: "x-default", href: postUrl },
+          ],
+        });
+      }
     }
   } catch {
-    // Fallback to static URLs if content query fails
+    // Fallback gracefully if posts collection is unavailable during initial setup
   }
 
-  return staticUrls;
+  try {
+    const pages = await queryCollection(event, "pages").all();
+    if (Array.isArray(pages)) {
+      for (const page of pages) {
+        const slug = page.slug || page.stem || "";
+        if (!slug || slug === "index") continue;
+        
+        const existing = staticUrls.find((u) => u.loc === `/${slug}`);
+        if (existing) {
+          (existing as any).lastmod = toW3CDate(page.updatedAt || page.date);
+        }
+      }
+    }
+  } catch {
+    // Fallback gracefully
+  }
+
+  return [...staticUrls, ...dynamicUrls];
 });

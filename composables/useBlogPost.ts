@@ -3,7 +3,7 @@ import { useAuthor } from "~/composables/useAuthor";
 import { getPostPath } from "~/composables/usePosts";
 import { useSeo } from "~/composables/useSeo";
 import { useTimeout } from "~/composables/useTimeout";
-import type { PostItem } from "~/types/post";
+import type { PostItem, TocLink } from "~/types/post";
 
 
 export function useBlogPost() {
@@ -12,15 +12,53 @@ export function useBlogPost() {
   const isShareModalOpen = ref(false);
 
   const { data: post, status } = useAsyncData(`post-${slug.value}`, async () => {
-    const byPath = await queryCollection("posts")
-      .path(`/blog/${slug.value}`)
-      .first();
-    if (byPath) return byPath as unknown as PostItem;
+    let currentLocale = "vi";
+    try {
+      if (typeof useNuxtApp === "function") {
+        const nuxtApp = useNuxtApp() as any;
+        if (nuxtApp?.$i18n?.locale?.value === "en") {
+          currentLocale = "en";
+        }
+      }
+    } catch {}
 
-    const all = await queryCollection("posts").all();
-    return (
-      (all as unknown as PostItem[]).find((item) => getPostPath(item) === `/blog/${slug.value}`) || null
-    );
+    // 1. Try matching with active locale directory: /blog/vi/[slug] or /blog/en/[slug]
+    try {
+      const localized = await queryCollection("posts")
+        .path(`/blog/${currentLocale}/${slug.value}`)
+        .first();
+      if (localized) return localized as unknown as PostItem;
+    } catch {}
+
+    // 2. Try alternate locale directory
+    const otherLocale = currentLocale === "en" ? "vi" : "en";
+    try {
+      const alternate = await queryCollection("posts")
+        .path(`/blog/${otherLocale}/${slug.value}`)
+        .first();
+      if (alternate) return alternate as unknown as PostItem;
+    } catch {}
+
+    // 3. Try direct path /blog/[slug]
+    try {
+      const direct = await queryCollection("posts")
+        .path(`/blog/${slug.value}`)
+        .first();
+      if (direct) return direct as unknown as PostItem;
+    } catch {}
+
+    // 4. Fallback: match by stem / slug across all posts
+    try {
+      const all = await queryCollection("posts").all();
+      return (
+        (all as unknown as PostItem[]).find((item) => {
+          const itemSlug = (item.stem || item.path || "").split("/").filter(Boolean).pop();
+          return itemSlug === slug.value;
+        }) || null
+      );
+    } catch {
+      return null;
+    }
   });
 
 
@@ -81,6 +119,8 @@ export function useBlogPost() {
   : { data: shallowRef([] as PostItem[]) };
 
 
+  const isTagsExpanded = ref(false);
+
   const allPostTags = computed(() => {
     const list: string[] = [];
     if (post.value?.category) {
@@ -124,6 +164,10 @@ export function useBlogPost() {
     return Math.max(0, allPostTags.value.length - maxTagsLimit.value);
   });
 
+  function toggleExpandTags() {
+    isTagsExpanded.value = !isTagsExpanded.value;
+  }
+
   const extractedTocLinks = ref<TocLink[]>([]);
 
   function extractHeadingsFromDOM() {
@@ -166,7 +210,8 @@ export function useBlogPost() {
 
   const tocLinks = computed(() => {
     if (!post.value) return [];
-    const contentToc = post.value.body?.toc?.links || [];
+    const body = post.value.body as { toc?: { links?: TocLink[] } } | null | undefined;
+    const contentToc = body?.toc?.links;
     if (contentToc && contentToc.length > 0) return contentToc;
     return extractedTocLinks.value;
   });
@@ -174,8 +219,11 @@ export function useBlogPost() {
   const { set: setTocTimer } = useTimeout();
 
   onMounted(() => {
-    if (import.meta.client && !post.value?.body?.toc?.links?.length) {
-      setTocTimer(extractHeadingsFromDOM, 300);
+    if (import.meta.client) {
+      const body = post.value?.body as { toc?: { links?: TocLink[] } } | null | undefined;
+      if (!body?.toc?.links?.length) {
+        setTocTimer(extractHeadingsFromDOM, 300);
+      }
     }
   });
 
@@ -191,6 +239,8 @@ export function useBlogPost() {
     visiblePostTags,
     hiddenPostTags,
     isOverflowingTags,
+    isTagsExpanded,
+    toggleExpandTags,
     tocLinks,
     isShareModalOpen,
   };

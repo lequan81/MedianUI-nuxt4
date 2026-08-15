@@ -11,18 +11,35 @@
     "admin": "Quản trị",
     "searchPlaceholder": "Tìm kiếm bài viết, chuyên mục..."
   },
+  "common": {
+    "showAll": "Xem tất cả",
+    "showLess": "Thu gọn",
+    "showMore": "Xem thêm",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi",
+    "close": "Đóng"
+  },
+  "home": {
+    "pinnedTitle": "Bài viết ghim",
+    "latestTitle": "Bài đăng mới nhất",
+    "allStoriesTitle": "Tất cả bài viết",
+    "loadMore": "Tải thêm bài viết"
+  },
+  "category": {
+    "title": "Chuyên mục",
+    "all": "Tất cả chuyên mục",
+    "popular": "Bài viết phổ biến",
+    "filterBy": "Lọc theo:",
+    "clearAll": "Xóa bộ lọc"
+  },
   "post": {
     "readingTime": "phút đọc",
     "updatedAt": "Cập nhật",
-    "relatedPosts": "Bài viết liên quan",
+    "relatedPosts": "Bạn có thể thích những bài đăng này",
     "tableOfContents": "Mục lục bài viết",
     "share": "Chia sẻ",
     "copied": "Đã sao chép",
     "copy": "Sao chép",
-    "discussionTitle": "Thảo luận & Đóng góp ý kiến",
-    "discussionDesc": "Bạn có câu hỏi, phát hiện lỗi hoặc muốn trao đổi thêm về chủ đề này? Hãy chia sẻ phản hồi cùng tác giả.",
-    "githubDiscussions": "GitHub Discussions",
-    "directFeedback": "Gửi phản hồi trực tiếp",
     "notFoundTitle": "Không tìm thấy bài viết",
     "notFoundMessage": "Bài viết không tồn tại hoặc đã bị gỡ bỏ.",
     "backHome": "Về trang chủ"
@@ -33,7 +50,7 @@
     "name": "Họ và tên",
     "namePlaceholder": "Nhập tên của bạn",
     "email": "Email",
-    "emailPlaceholder": "your.email@example.com",
+    "emailPlaceholder": "your.email{'@'}example.com",
     "subject": "Tiêu đề",
     "subjectPlaceholder": "Tiêu đề lời nhắn (không bắt buộc)",
     "message": "Nội dung tin nhắn",
@@ -47,7 +64,36 @@
     "responseTime": "Thời gian phản hồi",
     "responseGuarantee": "Cam kết phản hồi tin nhắn trong < 24 giờ",
     "location": "Vị trí địa lý",
-    "locationValue": "Việt Nam (Múi giờ UTC+07:00)"
+    "locationValue": "Việt Nam (Múi giờ UTC+07:00)",
+    "messages": {
+      "locked": "Bạn đang trong thời gian chờ. Vui lòng không gửi quá nhanh!",
+      "validationError": "Vui lòng kiểm tra lại thông tin nhập trong form.",
+      "success": "Gửi tin nhắn thành công!",
+      "windowLimit": "Bạn đã đạt giới hạn gửi tin nhắn. Vui lòng chờ {seconds} giây.",
+      "burstLimit": "Bạn đã gửi quá nhanh. Vui lòng chờ {seconds} giây.",
+      "fastSubmit": "Thao tác gửi quá nhanh. Vui lòng thử lại sau giây lát.",
+      "captchaInvalid": "Xác minh Captcha không hợp lệ. Vui lòng thử lại.",
+      "serverError": "Có lỗi xảy ra phía máy chủ. Vui lòng thử lại sau."
+    }
+  },
+  "api": {
+    "SUCCESS": "Xử lý thành công.",
+    "CONTACT_SUCCESS": "Tin nhắn của bạn đã được gửi thành công!",
+    "VALIDATION_FAILED": "Dữ liệu nhập vào không hợp lệ. Vui lòng kiểm tra lại.",
+    "INVALID_EMAIL": "Địa chỉ email không đúng định dạng.",
+    "NAME_REQUIRED": "Vui lòng nhập họ và tên.",
+    "MESSAGE_REQUIRED": "Vui lòng nhập nội dung tin nhắn.",
+    "MESSAGE_TOO_SHORT": "Nội dung tin nhắn quá ngắn (tối thiểu 10 ký tự).",
+    "CAPTCHA_FAILED": "Xác thực bảo mật Cloudflare Turnstile thất bại. Vui lòng thử lại.",
+    "CAPTCHA_REQUIRED": "Vui lòng hoàn thành xác thực bảo mật.",
+    "RATE_LIMIT_BURST": "Bạn đang thao tác quá nhanh. Vui lòng chờ vài giây.",
+    "RATE_LIMIT_EXCEEDED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
+    "INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không chính xác.",
+    "UNAUTHORIZED": "Phiên đăng nhập đã hết hạn hoặc không có quyền truy cập.",
+    "INTERNAL_SERVER_ERROR": "Hệ thống gặp sự cố. Vui lòng thử lại sau.",
+    "CONTACT_NOT_FOUND": "Không tìm thấy dữ liệu liên hệ.",
+    "STATUS_UPDATED": "Đã cập nhật trạng thái thành công.",
+    "CONTACT_DELETED": "Đã xóa liên hệ thành công."
   },
   "search": {
     "title": "Tìm kiếm",

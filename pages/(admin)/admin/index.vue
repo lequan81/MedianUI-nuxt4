@@ -4,15 +4,14 @@ import { useSeoMeta } from "#imports";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 definePageMeta({
+  layout: "admin",
   middleware: ["admin-auth"],
 });
 
-if (import.meta.server) {
-  useSeoMeta({
-    title: "Dashboard Quản trị - Median UI",
-    description: "Tổng quan hệ thống quản trị Median UI v1.7",
-  });
-}
+useSeoMeta({
+  title: "Dashboard Quản trị - Median UI",
+  description: "Tổng quan hệ thống quản trị Median UI v1.7",
+});
 
 const liveStats = reactive({
   totalContacts: 0,

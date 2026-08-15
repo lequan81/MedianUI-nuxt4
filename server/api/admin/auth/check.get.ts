@@ -1,7 +1,10 @@
 import { defineEventHandler } from "h3";
-import { verifyAdminAuth } from "~/server/utils/admin-auth";
+import { verifyAdminSession } from "~/server/services/auth.service";
 
 export default defineEventHandler((event) => {
-  const authenticated = verifyAdminAuth(event);
-  return { authenticated };
+  const authenticated = verifyAdminSession(event);
+  return {
+    success: true,
+    authenticated,
+  };
 });

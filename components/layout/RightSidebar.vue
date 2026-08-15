@@ -88,17 +88,17 @@ function isCategoryActive(name: string) {
     <!-- POPULAR POSTS (Tự động ẨN khi người dùng đang chọn Lọc Danh Mục) -->
 
     <section v-if="!hasActiveCategoryFilter" class="pt-1">
-      <WidgetTitle title="Popular Posts" />
+      <WidgetTitle :title="$t('category.popular')" />
 
       <div class="flex flex-col gap-4">
         <article v-if="popularPosts[0]" class="group flex flex-col gap-4">
           <div class="relative overflow-hidden rounded-lg bg-bg-sec border border-border-subtle">
-            <NuxtLink :to="getPostPath(popularPosts[0])" :aria-label="popularPosts[0].title" class="block aspect-video">
+            <NuxtLink :to="getPostPath(popularPosts[0])" :aria-label="popularPosts[0].title" class="relative block aspect-video">
               <NuxtImg :src="getPostImage(popularPosts[0])" :alt="popularPosts[0].title" :width="280" :height="158"
                 sizes="280px"
                 format="webp"
                 quality="80"
-                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.05]"
+                class="absolute inset-0 object-cover transition-transform duration-300 group-hover:scale-[1.05]"
                 loading="lazy" />
             </NuxtLink>
 
@@ -158,7 +158,7 @@ function isCategoryActive(name: string) {
 
     <!-- WIDGET CATEGORIES (Chuẩn 100% Giao Diện Gốc Median UI & Có Nút Show All) -->
     <section class="pt-1">
-      <WidgetTitle title="Categories" />
+      <WidgetTitle :title="$t('category.all')" />
 
       <div class="grid grid-cols-2 gap-2">
         <button v-for="label in visibleLabels" :key="label.name" type="button" :class="[
@@ -181,7 +181,7 @@ function isCategoryActive(name: string) {
         <button type="button"
           class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline cursor-pointer"
           @click="isAllLabelsVisible = !isAllLabelsVisible">
-          <span>{{ isAllLabelsVisible ? "Show less" : "Show all" }}</span>
+          <span>{{ isAllLabelsVisible ? $t('common.showLess') : $t('common.showAll') }}</span>
           <span v-if="!isAllLabelsVisible" class="text-text-alt font-normal">(+{{ labels.length - 6 }})</span>
         </button>
       </div>

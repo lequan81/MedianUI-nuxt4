@@ -15,7 +15,7 @@ useSeo({
 });
 
 const captchaToken = ref("");
-const { form, fieldErrors, validFields, validateField, formState, toggleCard, resetFormState, handleSubmit } = useContactForm();
+const { form, fieldErrors, validFields, touchedFields, onFieldInput, onFieldBlur, formState, toggleCard, resetFormState, handleSubmit } = useContactForm();
 
 function onCaptchaVerify(token: string) {
     captchaToken.value = token;
@@ -56,7 +56,7 @@ function submitWithCaptcha(e?: Event) {
                         : 'border-border-main bg-bg-alt/60 hover:border-primary/60 hover:bg-bg-alt'
                 ]">
                     <div class="flex items-center gap-3">
-                        <NuxtImg :src="authorConfig.avatar" :alt="authorConfig.name" :class="[
+                        <NuxtImg :src="authorConfig.avatar" :alt="authorConfig.name" :width="38" :height="38" :class="[
                             'h-9.5 w-9.5 shrink-0 rounded-full object-cover ring-2 shadow-xs transition-all duration-300',
                             formState.activeCard === 'author' ? 'ring-primary scale-105' : 'ring-primary/20 group-hover:ring-primary group-hover:scale-105'
                         ]" format="webp" loading="lazy" />
@@ -250,10 +250,12 @@ function submitWithCaptcha(e?: Event) {
 
                     <!-- Container Form Fields với Validation Lỗi Chi Tiết -->
                     <div v-else class="relative flex-1 flex flex-col justify-between space-y-3.5 sm:space-y-4">
-                        <!-- Honeypot Anti-bot field (Hidden from real users) -->
-                        <input v-model="form.website_url" type="text" name="website_url" tabindex="-1"
-                            autocomplete="off" aria-hidden="true"
-                            class="opacity-0 absolute left-[-9999px] pointer-events-none h-0 w-0" />
+                        <!-- Honeypot Anti-bot field (Hidden from real users & 100% Lighthouse A11y compliant) -->
+                        <div class="opacity-0 absolute -z-50 pointer-events-none h-0 w-0 overflow-hidden" aria-hidden="true">
+                            <label for="website_url" class="sr-only">Leave this field blank</label>
+                            <input id="website_url" v-model="form.website_url" type="text" name="website_url" tabindex="-1"
+                                autocomplete="off" />
+                        </div>
 
                         <div class="space-y-3">
                             <div class="grid gap-3 sm:grid-cols-2">
@@ -270,7 +272,7 @@ function submitWithCaptcha(e?: Event) {
                                                 : validFields.name
                                                     ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
                                                     : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                                        ]" @input="validateField('name')" />
+                                        ]" @blur="onFieldBlur('name')" @input="onFieldInput('name')" />
                                         <AppIcon v-if="validFields.name" name="check" :size="14"
                                             class="absolute right-3 text-emerald-500 shrink-0 pointer-events-none" />
                                     </div>
@@ -293,7 +295,7 @@ function submitWithCaptcha(e?: Event) {
                                                     : validFields.email
                                                         ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
                                                         : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                                            ]" @input="validateField('email')" />
+                                            ]" @blur="onFieldBlur('email')" @input="onFieldInput('email')" />
                                         <AppIcon v-if="validFields.email" name="check" :size="14"
                                             class="absolute right-3 text-emerald-500 shrink-0 pointer-events-none" />
                                     </div>
@@ -325,7 +327,7 @@ function submitWithCaptcha(e?: Event) {
                                                 : validFields.message
                                                     ? 'border-emerald-500/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
                                                     : 'border-border-main focus:border-primary focus:ring-1 focus:ring-primary'
-                                        ]" @input="validateField('message')"></textarea>
+                                        ]" @blur="onFieldBlur('message')" @input="onFieldInput('message')"></textarea>
                                 </div>
                                 <p v-if="fieldErrors.message" class="mt-1 text-[11px] font-medium text-rose-500">
                                     {{ fieldErrors.message }}

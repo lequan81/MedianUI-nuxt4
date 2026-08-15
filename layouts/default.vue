@@ -5,12 +5,7 @@ import { useRoute } from "#imports";
 const route = useRoute();
 
 
-const isAdminPage = computed(() => {
-  return route.path.startsWith("/admin");
-});
-
 const hideRightSidebar = computed(() => {
-  if (isAdminPage.value) return true;
   return Boolean(route.meta.hideSidebar);
 });
 </script>
@@ -28,7 +23,7 @@ const hideRightSidebar = computed(() => {
         <main class="flex-1 pb-9">
           <div class="mx-auto mt-6 max-w-7xl px-4 sm:px-6 xl:pl-6 xl:pr-14">
             <!-- AdBanner Nằm Ngay Phía Trên Của Cả Hero Slider Lẫn Right Sidebar -->
-            <AdBanner v-if="!isAdminPage && !hideRightSidebar" class="mb-9" />
+            <AdBanner v-if="!hideRightSidebar" class="mb-9" />
             <div class="flex justify-center gap-9">
               <div class="min-w-0 flex-1 w-full">
                 <slot />

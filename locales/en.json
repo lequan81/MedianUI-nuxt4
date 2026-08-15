@@ -11,18 +11,35 @@
     "admin": "Admin",
     "searchPlaceholder": "Search articles, categories..."
   },
+  "common": {
+    "showAll": "Show all",
+    "showLess": "Show less",
+    "showMore": "Show more",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "close": "Close"
+  },
+  "home": {
+    "pinnedTitle": "Pinned Post",
+    "latestTitle": "Latest Stories",
+    "allStoriesTitle": "All Stories",
+    "loadMore": "Load More Stories"
+  },
+  "category": {
+    "title": "Category",
+    "all": "Categories",
+    "popular": "Popular Posts",
+    "filterBy": "Filter by:",
+    "clearAll": "Clear filters"
+  },
   "post": {
     "readingTime": "min read",
     "updatedAt": "Updated",
-    "relatedPosts": "Related Articles",
+    "relatedPosts": "You may also like these articles",
     "tableOfContents": "Table of Contents",
     "share": "Share",
     "copied": "Copied",
     "copy": "Copy",
-    "discussionTitle": "Discussion & Feedback",
-    "discussionDesc": "Have a question, found an issue, or want to discuss this topic further? Feel free to share your feedback with the author.",
-    "githubDiscussions": "GitHub Discussions",
-    "directFeedback": "Send Direct Feedback",
     "notFoundTitle": "Post Not Found",
     "notFoundMessage": "The requested article does not exist or has been removed.",
     "backHome": "Back to Home"
@@ -33,7 +50,7 @@
     "name": "Full Name",
     "namePlaceholder": "Enter your name",
     "email": "Email",
-    "emailPlaceholder": "your.email@example.com",
+    "emailPlaceholder": "your.email{'@'}example.com",
     "subject": "Subject",
     "subjectPlaceholder": "Subject (optional)",
     "message": "Message Content",
@@ -47,7 +64,36 @@
     "responseTime": "Response Time",
     "responseGuarantee": "Committed response within < 24 hours",
     "location": "Location",
-    "locationValue": "Vietnam (UTC+07:00 timezone)"
+    "locationValue": "Vietnam (UTC+07:00 timezone)",
+    "messages": {
+      "locked": "Please wait before sending another request!",
+      "validationError": "Please check the input fields in the form.",
+      "success": "Message sent successfully!",
+      "windowLimit": "You have reached the submission limit. Please wait {seconds}s.",
+      "burstLimit": "You are sending requests too quickly. Please wait {seconds}s.",
+      "fastSubmit": "Form submitted too fast. Please try again in a moment.",
+      "captchaInvalid": "Captcha verification failed. Please try again.",
+      "serverError": "A server error occurred. Please try again later."
+    }
+  },
+  "api": {
+    "SUCCESS": "Operation successful.",
+    "CONTACT_SUCCESS": "Your message has been sent successfully!",
+    "VALIDATION_FAILED": "Invalid form submission. Please check the fields.",
+    "INVALID_EMAIL": "Invalid email address format.",
+    "NAME_REQUIRED": "Please enter your name.",
+    "MESSAGE_REQUIRED": "Please enter your message content.",
+    "MESSAGE_TOO_SHORT": "Message content is too short (minimum 10 characters).",
+    "CAPTCHA_FAILED": "Cloudflare Turnstile verification failed. Please try again.",
+    "CAPTCHA_REQUIRED": "Please complete security verification.",
+    "RATE_LIMIT_BURST": "You are sending requests too quickly. Please wait a moment.",
+    "RATE_LIMIT_EXCEEDED": "Too many requests. Please try again later.",
+    "INVALID_CREDENTIALS": "Invalid username or password.",
+    "UNAUTHORIZED": "Session expired or unauthorized access.",
+    "INTERNAL_SERVER_ERROR": "Internal server error. Please try again later.",
+    "CONTACT_NOT_FOUND": "Contact record not found.",
+    "STATUS_UPDATED": "Status updated successfully.",
+    "CONTACT_DELETED": "Contact deleted successfully."
   },
   "search": {
     "title": "Search",

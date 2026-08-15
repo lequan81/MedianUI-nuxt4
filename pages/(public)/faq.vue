@@ -63,7 +63,7 @@ const faqs = [
         <span class="text-text-muted">/</span>
         <span class="truncate font-semibold text-text-main">FAQ</span>
       </nav>
-      <h1 class="text-xl sm:text-2xl md:text-3xl font-bold leading-snug tracking-tight text-text-main">
+      <h1 class="text-2xl sm:text-3xl lg:text-[32px] font-extrabold leading-tight tracking-tight text-text-main">
         Câu hỏi thường gặp (FAQ)
       </h1>
       <p v-if="page?.updatedAt || page?.date" class="text-xs text-text-muted pt-0.5">

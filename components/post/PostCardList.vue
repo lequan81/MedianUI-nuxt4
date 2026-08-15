@@ -21,7 +21,9 @@ const appStore = useAppStore();
       <NuxtImg
         :src="post.thumbnail"
         :alt="post.title"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        :width="192"
+        :height="144"
+        class="absolute inset-0 object-cover group-hover:scale-105 transition-transform duration-300"
         loading="lazy"
         format="webp"
       />

@@ -27,6 +27,8 @@ const authorData = computed(() => {
           <NuxtImg
             :src="authorData.avatar"
             :alt="authorData.name"
+            :width="size === 'sm' ? 20 : 28"
+            :height="size === 'sm' ? 20 : 28"
             :class="[
               'rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 group-hover/badge:ring-primary group-hover/badge:scale-105 hover:ring-primary hover:scale-105',
               size === 'sm' ? 'h-5 w-5' : 'h-7 w-7'
@@ -44,6 +46,8 @@ const authorData = computed(() => {
       <NuxtImg
         :src="authorData.avatar"
         :alt="authorData.name"
+        :width="36"
+        :height="36"
         class="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-primary/20 shadow-xs transition-all duration-300 hover:ring-primary hover:scale-105 cursor-pointer"
         loading="lazy" />
       <div class="min-w-0 flex-1">

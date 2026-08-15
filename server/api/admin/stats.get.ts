@@ -1,8 +1,10 @@
 import { defineEventHandler } from "h3";
-import { requireAdminAuth } from "~/server/utils/admin-auth";
-import { getAdminStats } from "~/server/utils/db";
+import { getContactStats } from "~/server/services/contact.service";
 
-export default defineEventHandler((event) => {
-  requireAdminAuth(event);
-  return getAdminStats();
+export default defineEventHandler(() => {
+  const stats = getContactStats();
+  return {
+    success: true,
+    ...stats,
+  };
 });

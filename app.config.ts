@@ -1,5 +1,4 @@
-import { siteConfig, postText } from "~/app/config/site";
-import { authorConfig } from "~/app/config/author";
+import { siteConfig, authorConfig, postText } from "~/app/config/site";
 import {
   footerLinks,
   footerSocials,

@@ -1,10 +1,12 @@
-export type { SupportedLocale, SupportedLanguage } from "~/app/config/languages";
+export type SupportedLocale = "vi" | "en";
 
 export interface LanguageItem {
-  readonly code: string;
+  readonly code: SupportedLocale;
   readonly countryCode: string;
   readonly name: string;
   readonly localName: string;
   readonly flag: string;
   readonly flagUrl: string;
 }
+
+export type SupportedLanguage = LanguageItem;

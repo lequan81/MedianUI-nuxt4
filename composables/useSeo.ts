@@ -4,6 +4,7 @@ import type { SeoOptions } from "~/types/seo";
 
 /**
  * Unified SEO Composable for pages and articles
+ * Injects OpenGraph, Twitter Cards, Hreflang alternates, and JSON-LD Structured Data
  */
 export function useSeo(optionsOrPost: SeoOptions | Ref<PostItem | null | any> | any = {}) {
   if (!import.meta.server) return;
@@ -16,6 +17,8 @@ export function useSeo(optionsOrPost: SeoOptions | Ref<PostItem | null | any> | 
 
   // If passed a reactive post ref/object (article mode)
   const isPost = optionsOrPost && (optionsOrPost.value?.title || optionsOrPost.title);
+  const postCategory = isPost ? (optionsOrPost?.value?.category || optionsOrPost?.category) : "";
+
   const options: SeoOptions = isPost
     ? {
         type: "article",
@@ -62,12 +65,20 @@ export function useSeo(optionsOrPost: SeoOptions | Ref<PostItem | null | any> | 
   });
 
   const schemaType = options.jsonLdType || (options.type === "article" ? "BlogPosting" : "WebPage");
-  const schemaData = {
+  const mainSchema = {
     "@context": "https://schema.org",
     "@type": schemaType,
     name: getTitle(),
+    headline: getTitle(),
     description: getDescription(),
+    image: getImage(),
     url: canonicalUrl,
+    datePublished: options.publishedTime ? resolveVal(options.publishedTime) : undefined,
+    author: {
+      "@type": "Person",
+      name: authorConfig.name,
+      url: siteUrl,
+    },
     publisher: {
       "@type": "Person",
       name: authorConfig.name,
@@ -75,13 +86,63 @@ export function useSeo(optionsOrPost: SeoOptions | Ref<PostItem | null | any> | 
     },
   };
 
+  const scripts: Array<{ type: "application/ld+json"; innerHTML: string }> = [
+    {
+      type: "application/ld+json",
+      innerHTML: JSON.stringify(mainSchema),
+    },
+  ];
+
+  if (options.type === "article") {
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Trang chủ",
+          item: siteUrl,
+        },
+        ...(postCategory
+          ? [
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: postCategory,
+                item: `${siteUrl}/?category=${encodeURIComponent(postCategory)}`,
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: getTitle(),
+                item: canonicalUrl,
+              },
+            ]
+          : [
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: getTitle(),
+                item: canonicalUrl,
+              },
+            ]),
+      ],
+    };
+
+    scripts.push({
+      type: "application/ld+json",
+      innerHTML: JSON.stringify(breadcrumbSchema),
+    });
+  }
+
   useHead({
-    link: [{ rel: "canonical", href: canonicalUrl }],
-    script: [
-      {
-        type: "application/ld+json",
-        innerHTML: JSON.stringify(schemaData),
-      },
+    link: [
+      { rel: "canonical", href: canonicalUrl },
+      { rel: "alternate", hreflang: "vi", href: canonicalUrl },
+      { rel: "alternate", hreflang: "en", href: canonicalUrl },
+      { rel: "alternate", hreflang: "x-default", href: canonicalUrl },
     ],
+    script: scripts as any,
   });
 }

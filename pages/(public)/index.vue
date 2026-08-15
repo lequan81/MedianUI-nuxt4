@@ -63,7 +63,7 @@ const {
           <NuxtLink :to="getPostPath(post)" @mouseenter.once="prefetchOnHover(getPostPath(post))" class="relative block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <NuxtImg :src="getPostImage(post)" :alt="post.title" :width="600" :height="338"
               sizes="sm:100vw md:50vw lg:33vw"
-              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+              class="absolute inset-0 object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="eager" fetchpriority="high" />
             <span
               class="absolute right-2 top-2 inline-flex h-7 items-center gap-1 rounded-full bg-white px-2 text-xs font-medium text-slate-800 shadow-md">
@@ -161,7 +161,7 @@ const {
             class="relative mb-3 block aspect-video overflow-hidden rounded-xl bg-bg-sec">
             <NuxtImg :src="getPostImage(post)" :alt="post.title" :width="600" :height="338"
               sizes="sm:100vw md:50vw lg:33vw"
-              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+              class="absolute inset-0 object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               :loading="index < 3 ? 'eager' : 'lazy'" />
           </NuxtLink>
 

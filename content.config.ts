@@ -4,7 +4,7 @@ export default defineContentConfig({
   collections: {
     posts: defineCollection({
       type: "page",
-      source: "blog/*.md",
+      source: "blog/**/*.md",
       schema: z.object({
         title: z.string(),
         snippet: z.string(),
@@ -34,7 +34,7 @@ export default defineContentConfig({
 
     pages: defineCollection({
       type: "page",
-      source: "pages/*.md",
+      source: "pages/**/*.md",
       schema: z.object({
         title: z.string(),
         description: z.string().optional(),

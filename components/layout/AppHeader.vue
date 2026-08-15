@@ -28,12 +28,10 @@ onMounted(() => {
         <AppIcon name="panel-left" :size="20" />
       </button>
 
-      <div class="min-w-0 pr-4">
-        <h1 class="truncate text-base sm:text-lg font-medium leading-normal">
-          <NuxtLink to="/" class="transition-colors hover:text-primary">
-            {{ siteConfig.shortName }}
-          </NuxtLink>
-        </h1>
+      <div class="min-w-0 pr-4 flex items-center">
+        <NuxtLink to="/" class="block truncate text-base sm:text-lg font-medium leading-normal transition-colors hover:text-primary cursor-pointer select-none" title="Trang chủ">
+          {{ siteConfig.shortName }}
+        </NuxtLink>
       </div>
     </div>
 

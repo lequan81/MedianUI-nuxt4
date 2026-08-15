@@ -30,7 +30,7 @@ const refinedSrc = computed(() => {
       class="mx-auto w-full max-w-[85%] sm:max-w-[78%] overflow-hidden rounded-xl border border-border-main bg-bg-sec/40 shadow-xs block">
       <NuxtImg :src="refinedSrc" :alt="props.alt || ''"
         class="h-auto w-full max-w-full rounded-xl object-contain block mx-auto"
-        loading="lazy" decoding="async" />
+        loading="eager" decoding="async" format="webp" />
     </span>
     <span v-if="props.alt"
       class="mt-2.5 max-w-[78%] text-center text-xs sm:text-[13px] text-text-alt/85 font-medium leading-normal block">

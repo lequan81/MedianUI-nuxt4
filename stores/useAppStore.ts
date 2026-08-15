@@ -41,15 +41,14 @@ export const useAppStore = defineStore("app", () => {
 
   function initTheme() {
     if (import.meta.client) {
-      const isDocDark = document.documentElement.classList.contains("dark");
-      const isDark = themeCookie.value === "dark" || isDocDark;
+      const hasCookie = Boolean(themeCookie.value);
+      const isDark = hasCookie
+        ? themeCookie.value === "dark"
+        : document.documentElement.classList.contains("dark") ||
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
 
       state.isDarkMode = isDark;
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      document.documentElement.classList.toggle("dark", isDark);
     }
   }
 
@@ -59,11 +58,7 @@ export const useAppStore = defineStore("app", () => {
     themeCookie.value = targetState ? "dark" : "light";
 
     if (import.meta.client) {
-      if (targetState) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      document.documentElement.classList.toggle("dark", targetState);
     }
   }
 

@@ -1,16 +1,15 @@
 import type { RouteLocationNormalized } from "vue-router";
 
-export default defineNuxtPlugin((nuxtApp: any) => {
+export default defineNuxtPlugin((nuxtApp) => {
   const router = useRouter();
-
-  const MIN_SHOW_MS = 250; // Smooth visual feedback duration without stalling navigation
+  const MIN_DISPLAY_TIME = 220;
 
   const overlay = document.createElement("div");
   overlay.id = "global-loading-overlay";
   overlay.setAttribute("aria-hidden", "true");
   overlay.setAttribute("data-nosnippet", "");
   overlay.className =
-    "fixed inset-0 z-9999 flex items-center justify-center bg-bg-base/90 dark:bg-bg-base/90 select-none pointer-events-none opacity-0 transition-opacity duration-200 ease-out transform-gpu";
+    "fixed inset-0 z-9999 flex items-center justify-center bg-bg-base/90 dark:bg-bg-base/90 backdrop-blur-xs select-none pointer-events-none opacity-0 transition-opacity duration-200 ease-out transform-gpu";
 
   overlay.innerHTML = `
     <div class="grid-loader">
@@ -27,75 +26,134 @@ export default defineNuxtPlugin((nuxtApp: any) => {
   `;
 
   document.body.appendChild(overlay);
-  const gridLoader = overlay.querySelector(".grid-loader") as HTMLElement;
+  const loader = overlay.querySelector(".grid-loader") as HTMLElement | null;
 
   let showTimer: ReturnType<typeof setTimeout> | null = null;
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
-  let maxSafetyTimer: ReturnType<typeof setTimeout> | null = null;
-  let shownAt = 0;
-  let isShown = false;
+  let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+  let startTime = 0;
+  let isVisible = false;
+  let isNavigating = false;
 
-  function showLoader() {
+  function show() {
+    isNavigating = true;
     if (showTimer) clearTimeout(showTimer);
     if (hideTimer) clearTimeout(hideTimer);
-    if (maxSafetyTimer) clearTimeout(maxSafetyTimer);
+    if (safetyTimer) clearTimeout(safetyTimer);
 
-    // If navigation takes longer than 60ms, display the smooth loading animation
+    // Hiển thị loader ngay khi bắt đầu chuyển trang
     showTimer = setTimeout(() => {
-      isShown = true;
-      shownAt = performance.now();
+      if (!isNavigating) return;
+      isVisible = true;
+      startTime = performance.now();
       overlay.style.opacity = "1";
       overlay.style.pointerEvents = "auto";
-      if (gridLoader) {
-        gridLoader.classList.add("run-anim");
-      }
+      loader?.classList.add("run-anim");
       document.body.classList.add("page-loading");
-    }, 60);
+    }, 40);
 
-    maxSafetyTimer = setTimeout(forceHide, 3500);
+    // Timeout an toàn tối đa 4s tránh kẹt vĩnh viễn
+    safetyTimer = setTimeout(forceHide, 4000);
   }
 
-  function hideLoader() {
+  async function waitForNewPageImage(): Promise<void> {
+    // Đợi 2 frames để Vue render xong cây DOM của trang mới
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const img = document.querySelector<HTMLImageElement>(
+      "article .prose-content img, article img, [data-hero-img]"
+    );
+
+    if (!img) return;
+    if (img.complete && img.naturalHeight > 0) return;
+
+    await new Promise<void>((resolve) => {
+      let resolved = false;
+      const done = () => {
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      };
+
+      const timeout = setTimeout(done, 1200);
+
+      if (typeof img.decode === "function") {
+        img.decode().then(() => {
+          clearTimeout(timeout);
+          done();
+        }).catch(() => {
+          clearTimeout(timeout);
+          done();
+        });
+      } else {
+        img.addEventListener("load", () => {
+          clearTimeout(timeout);
+          done();
+        }, { once: true });
+        img.addEventListener("error", () => {
+          clearTimeout(timeout);
+          done();
+        }, { once: true });
+      }
+    });
+  }
+
+  async function onPageFinish() {
+    isNavigating = false;
     if (showTimer) {
       clearTimeout(showTimer);
       showTimer = null;
     }
 
-    if (!isShown) {
+    if (!isVisible) {
       forceHide();
       return;
     }
 
-    const elapsed = performance.now() - shownAt;
-    const remaining = Math.max(0, MIN_SHOW_MS - elapsed);
+    // Nếu chuyển vào trang blog chi tiết, đợi ảnh hero/thumbnail nạp xong
+    if (router.currentRoute.value.path.startsWith("/blog/")) {
+      await waitForNewPageImage();
+    }
 
-    if (hideTimer) clearTimeout(hideTimer);
-    hideTimer = setTimeout(forceHide, remaining);
+    // Đảm bảo DOM trang mới đã vẽ lên màn hình trước khi fade out loader
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const elapsed = performance.now() - startTime;
+        const remaining = Math.max(0, MIN_DISPLAY_TIME - elapsed);
+
+        if (hideTimer) clearTimeout(hideTimer);
+        hideTimer = setTimeout(forceHide, remaining);
+      });
+    });
   }
 
   function forceHide() {
+    isNavigating = false;
     if (showTimer) clearTimeout(showTimer);
     if (hideTimer) clearTimeout(hideTimer);
-    if (maxSafetyTimer) clearTimeout(maxSafetyTimer);
+    if (safetyTimer) clearTimeout(safetyTimer);
     showTimer = null;
     hideTimer = null;
-    maxSafetyTimer = null;
-    isShown = false;
+    safetyTimer = null;
+    isVisible = false;
 
     document.body.classList.remove("page-loading");
     overlay.style.opacity = "0";
     overlay.style.pointerEvents = "none";
-    if (gridLoader) {
-      gridLoader.classList.remove("run-anim");
-    }
+    loader?.classList.remove("run-anim");
   }
 
   router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized) => {
     if (to.path !== from.path) {
-      showLoader();
+      show();
     }
   });
 
-  nuxtApp.hook("page:finish", hideLoader);
+  // QUAN TRỌNG: CHỈ ẩn loader khi Nuxt đã hoàn tất mount & render trang mới (hook page:finish)
+  // Tuyệt đối không gọi trong router.afterEach vì sau đó Vue mới bắt đầu nạp DOM trang mới!
+  nuxtApp.hook("page:finish", onPageFinish);
+  nuxtApp.hook("page:transition:finish", onPageFinish);
   nuxtApp.hook("app:error", forceHide);
 });

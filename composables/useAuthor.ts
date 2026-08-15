@@ -1,4 +1,4 @@
-import { authorConfig } from "~/app/config/author";
+import { authorConfig } from "~/app/config/defaults";
 import type { AuthorConfig } from "~/types/author";
 
 export function useAuthor(postAuthor?: string | Partial<AuthorConfig> | any): AuthorConfig {

@@ -29,7 +29,7 @@ useSeo({
         <span class="text-text-muted">/</span>
         <span class="truncate font-semibold text-text-main">Miễn trừ trách nhiệm</span>
       </nav>
-      <h1 class="text-xl sm:text-2xl md:text-3xl font-bold leading-snug tracking-tight text-text-main">
+      <h1 class="text-2xl sm:text-3xl lg:text-[32px] font-extrabold leading-tight tracking-tight text-text-main">
         Tuyên bố miễn trừ trách nhiệm
       </h1>
       <p v-if="page?.updatedAt || page?.date" class="text-[11px] italic text-text-muted mt-1">

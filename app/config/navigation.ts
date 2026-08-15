@@ -73,6 +73,12 @@ export const adminSidebarItems: readonly NavItem[] = [
     to: "/admin/contacts",
   },
   {
+    id: "admin-settings",
+    label: "Cài đặt Website",
+    icon: "settings",
+    to: "/admin/settings",
+  },
+  {
     id: "admin-website",
     label: "Xem Website",
     icon: "external-link",

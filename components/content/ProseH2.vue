@@ -1,5 +1,12 @@
+<script setup lang="ts">
+defineProps<{ id?: string }>();
+</script>
+
 <template>
-  <h2 class="mt-6 mb-3 sm:mt-10 sm:mb-4.5 text-base sm:text-xl md:text-2xl font-bold leading-snug text-text-main">
-    <slot />
+  <h2 :id="id" class="mt-8 mb-3 sm:mt-9 sm:mb-3.5 text-lg sm:text-xl font-bold leading-snug tracking-tight text-text-main scroll-mt-22">
+    <a v-if="id" :href="`#${id}`" class="text-inherit no-underline hover:text-primary transition-colors">
+      <slot />
+    </a>
+    <slot v-else />
   </h2>
 </template>

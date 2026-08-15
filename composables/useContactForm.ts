@@ -81,6 +81,24 @@ export function useContactForm() {
     return false;
   }
 
+  /**
+   * Called on input keystroke.
+   * If field was already touched/has error, re-validates realtime to give instant positive feedback.
+   */
+  function onFieldInput(fieldName: string) {
+    if (touchedFields.value[fieldName]) {
+      validateField(fieldName);
+    }
+  }
+
+  /**
+   * Called when user leaves the field (blur).
+   * Marks field as touched and triggers validation.
+   */
+  function onFieldBlur(fieldName: string) {
+    validateField(fieldName);
+  }
+
   const validFields = computed(() => {
     const result = v.safeParse(contactSchema, form.value);
     const errorKeys = new Set(result.success ? [] : result.issues.map((i) => String(i.path?.[0]?.key)));
@@ -212,9 +230,12 @@ export function useContactForm() {
   return {
     form,
     fieldErrors,
+    touchedFields,
     validFields,
     formState,
     validateField,
+    onFieldInput,
+    onFieldBlur,
     toggleCard,
     resetFormState,
     handleSubmit,

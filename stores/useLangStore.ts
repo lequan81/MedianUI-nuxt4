@@ -1,11 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import {
-  SUPPORTED_LANGUAGES,
-  isSupportedLocale,
-  type SupportedLocale,
-  type SupportedLanguage,
-} from "~/app/config/languages";
+import type { SupportedLocale, SupportedLanguage } from "~/types/lang";
+import { SUPPORTED_LANGUAGES, isSupportedLocale } from "~/app/config/defaults";
 
 export const supportedLanguages = SUPPORTED_LANGUAGES;
 
@@ -23,8 +19,8 @@ export const useLangStore = defineStore("lang", () => {
 
   const currentLangItem = computed<SupportedLanguage>(() => {
     return (
-      SUPPORTED_LANGUAGES.find((l) => l.code === currentLang.value) ||
-      SUPPORTED_LANGUAGES[0]
+      SUPPORTED_LANGUAGES.find((l) => l.code === currentLang.value) ??
+      (SUPPORTED_LANGUAGES[0] as SupportedLanguage)
     );
   });
 

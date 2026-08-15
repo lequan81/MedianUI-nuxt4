@@ -5,19 +5,17 @@ import type { ContactMessage } from "~/types/contact";
 import AppIcon from "~/components/ui/icon/AppIcon.vue";
 
 definePageMeta({
+  layout: "admin",
   middleware: ["admin-auth"],
 });
 
 const route = useRoute();
 
-if (import.meta.server) {
-  useSeoMeta({
-    title: "Hòm thư Liên hệ - Admin Median UI",
-    description: "Quản lý hòm thư liên hệ từ độc giả Median UI v1.7",
-  });
-}
+useSeoMeta({
+  title: "Hòm thư Liên hệ - Admin Median UI",
+  description: "Quản lý hòm thư liên hệ từ độc giả Median UI v1.7",
+});
 
-// Dùng shallowRef cho mảng và object dữ liệu lớn từ database để tránh deep Proxy overhead
 const contacts = shallowRef<ContactMessage[]>([]);
 const selectedContact = shallowRef<ContactMessage | null>(null);
 const isLoading = ref(true);
@@ -37,15 +35,17 @@ async function fetchContacts() {
 }
 
 async function selectMessage(contact: ContactMessage) {
-  selectedContact.value = contact;
-  if (contact && contact.status === "unread") {
-    contact.status = "read";
-    contacts.value = [...contacts.value]; // Trigger shallowRef update
+  if (contact.status === "unread") {
+    const updatedContact: ContactMessage = { ...contact, status: "read" };
+    selectedContact.value = updatedContact;
+    contacts.value = contacts.value.map((c) => (c.id === contact.id ? updatedContact : c));
     try {
       await $fetch(`/api/admin/contacts/${contact.id}`, { method: "POST", body: { action: "read" } });
     } catch {
       // Ignore
     }
+  } else {
+    selectedContact.value = contact;
   }
 }
 
@@ -80,14 +80,14 @@ onMounted(async () => {
 <template>
   <div class="space-y-6">
     <!-- Admin Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-subtle pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-main pb-4">
       <div>
-        <nav class="flex min-w-0 items-center gap-1.5 overflow-hidden text-xs text-text-alt mb-1.5">
+        <nav class="flex min-w-0 items-center gap-1.5 overflow-hidden text-xs text-text-muted mb-1.5">
           <NuxtLink to="/admin" class="shrink-0 text-text-muted transition-colors hover:text-primary">Admin</NuxtLink>
           <span class="text-text-muted">/</span>
           <span class="font-semibold text-text-main">Hòm thư liên hệ</span>
         </nav>
-        <h1 class="text-xl sm:text-2xl font-bold text-text-main">
+        <h1 class="text-xl sm:text-2xl font-bold text-text-main tracking-tight">
           Hòm thư liên hệ
         </h1>
       </div>
@@ -95,7 +95,7 @@ onMounted(async () => {
       <div class="flex items-center gap-2">
         <NuxtLink
           to="/admin"
-          class="inline-flex items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-2xs"
+          class="inline-flex h-9 items-center gap-2 rounded-lg border border-border-main bg-bg-sec px-3.5 text-xs font-semibold text-text-main transition-colors hover:border-primary hover:text-primary shadow-xs"
         >
           <AppIcon name="arrow-left" :size="14" />
           <span>Dashboard</span>
@@ -113,9 +113,9 @@ onMounted(async () => {
           </h2>
           <span
             v-if="contacts.filter((c) => c.status === 'unread').length > 0"
-            class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400"
+            class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400"
           >
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             {{ contacts.filter((c) => c.status === 'unread').length }} chưa đọc
           </span>
         </div>
@@ -131,41 +131,52 @@ onMounted(async () => {
           <p class="text-xs font-medium">Chưa có tin nhắn liên hệ nào</p>
         </div>
 
-        <!-- Zebra Striped Message List -->
+        <!-- High-Contrast Message List (Light & Dark Friendly) -->
         <div
           v-else
-          class="rounded-xl border border-border-main shadow-2xs overflow-hidden divide-y divide-border-subtle/80"
+          class="rounded-xl border border-border-main bg-bg-alt shadow-xs overflow-hidden divide-y divide-border-subtle"
         >
           <div
-            v-for="(item, idx) in contacts"
+            v-for="item in contacts"
             :key="item.id"
             :class="[
-              'p-4 cursor-pointer transition-all duration-150',
-              idx % 2 === 0 ? 'bg-[#0e1424]/90 hover:bg-[#121a2e]' : 'bg-[#141b2d]/90 hover:bg-[#192238]',
-              selectedContact?.id === item.id ? 'border-l-4 border-l-primary bg-primary-subtle/20' : '',
+              'p-4 cursor-pointer transition-colors border-l-4',
+              selectedContact?.id === item.id
+                ? 'border-l-primary bg-primary-subtle'
+                : 'border-l-transparent bg-bg-alt hover:bg-bg-sec',
             ]"
             @click="selectMessage(item)"
           >
             <div class="flex items-center justify-between gap-2 mb-1">
-              <span class="text-xs font-bold text-text-main truncate">
+              <span
+                :class="[
+                  'text-xs truncate transition-colors',
+                  selectedContact?.id === item.id ? 'font-bold text-primary' : 'font-semibold text-text-main',
+                ]"
+              >
                 {{ item.name }}
               </span>
               <span
                 v-if="item.status === 'unread'"
-                class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 shrink-0 shadow-2xs"
+                class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0 shadow-2xs"
               >
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Mới
               </span>
             </div>
 
-            <p class="text-xs font-semibold text-primary truncate mb-0.5">
+            <p
+              :class="[
+                'text-xs truncate mb-1',
+                selectedContact?.id === item.id ? 'font-semibold text-primary' : 'font-medium text-text-main',
+              ]"
+            >
               {{ item.subject || 'Không có tiêu đề' }}
             </p>
             <p class="text-[11.5px] text-text-alt line-clamp-1">
               {{ item.message }}
             </p>
-            <span class="text-[10px] text-text-muted block mt-2">{{ item.created_at }}</span>
+            <span class="text-[10px] text-text-muted block mt-2 font-medium">{{ item.created_at }}</span>
           </div>
         </div>
       </div>
@@ -180,35 +191,35 @@ onMounted(async () => {
 
         <div
           v-if="selectedContact"
-          class="rounded-xl border border-border-main bg-bg-alt/80 p-6 space-y-4 shadow-sm backdrop-blur-md"
+          class="rounded-xl border border-border-main bg-bg-alt p-6 space-y-4 shadow-sm"
         >
-          <div class="flex items-center justify-between border-b border-border-subtle pb-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-subtle pb-4">
             <div>
               <h3 class="text-base font-bold text-text-main flex items-center gap-2">
                 <span>{{ selectedContact.subject || 'Không có tiêu đề' }}</span>
                 <span
                   v-if="selectedContact.status === 'unread'"
-                  class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400"
+                  class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400"
                 >
-                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Mới
                 </span>
               </h3>
-              <p class="text-xs text-text-alt mt-0.5">
-                Từ: <strong class="text-text-main">{{ selectedContact.name }}</strong> (&lt;{{ selectedContact.email }}&gt;)
+              <p class="text-xs text-text-alt mt-1">
+                Từ: <strong class="text-text-main font-semibold">{{ selectedContact.name }}</strong> (&lt;{{ selectedContact.email }}&gt;)
               </p>
             </div>
-            <span class="text-xs text-text-muted font-medium">{{ selectedContact.created_at }}</span>
+            <span class="text-xs text-text-muted font-medium shrink-0">{{ selectedContact.created_at }}</span>
           </div>
 
-          <div class="text-xs leading-relaxed text-text-main/90 space-y-3 pt-2">
-            <p>{{ selectedContact.message }}</p>
+          <div class="text-xs leading-relaxed text-text-main space-y-3 pt-2 bg-bg-sec p-4 rounded-lg border border-border-subtle">
+            <p class="whitespace-pre-wrap">{{ selectedContact.message }}</p>
           </div>
 
           <div class="pt-4 border-t border-border-subtle flex items-center justify-between">
             <a
               :href="`mailto:${selectedContact.email}?subject=Re: ${encodeURIComponent(selectedContact.subject || '')}`"
-              class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-primary-hover transition-colors"
+              class="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-medium text-white shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all"
             >
               <AppIcon name="mail" :size="14" />
               <span>Trả lời qua Email</span>
@@ -216,10 +227,11 @@ onMounted(async () => {
 
             <button
               type="button"
-              class="text-xs font-semibold text-rose-500 hover:underline cursor-pointer"
+              class="inline-flex h-9 items-center gap-1.5 px-3 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
               @click="deleteMessage(selectedContact.id)"
             >
-              Xóa tin nhắn
+              <AppIcon name="trash-2" :size="14" />
+              <span>Xóa tin nhắn</span>
             </button>
           </div>
         </div>

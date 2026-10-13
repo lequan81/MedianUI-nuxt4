@@ -93,7 +93,11 @@ export async function verifyCredentials(passwordInput: string): Promise<boolean>
   const trimmedInput = passwordInput.trim();
 
   // Native Argon2id verification via Bun.password
-  if (secret.startsWith("$argon2id$") && typeof Bun !== "undefined" && typeof Bun.password?.verify === "function") {
+  if (
+    secret.startsWith("$argon2id$") &&
+    typeof Bun !== "undefined" &&
+    typeof Bun.password?.verify === "function"
+  ) {
     try {
       return await Bun.password.verify(trimmedInput, secret, "argon2id");
     } catch {
